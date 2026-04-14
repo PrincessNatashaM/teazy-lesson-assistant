@@ -2,7 +2,7 @@ import { useState } from "react";
 import LessonForm, { type LessonFormData } from "@/components/LessonForm";
 import LessonOutput from "@/components/LessonOutput";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen } from "lucide-react";
+import teazyLogo from "@/assets/teazy-logo.jpg";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson`;
 
