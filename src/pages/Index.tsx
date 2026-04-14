@@ -2,7 +2,7 @@ import { useState } from "react";
 import LessonForm, { type LessonFormData } from "@/components/LessonForm";
 import LessonOutput from "@/components/LessonOutput";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen } from "lucide-react";
+import teazyLogo from "@/assets/teazy-logo.jpg";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson`;
 
@@ -78,13 +78,8 @@ export default function Index() {
       {/* Header */}
       <header className="border-b border-border bg-primary">
         <div className="container mx-auto px-4 py-4 flex items-center gap-3">
-          <div className="bg-accent rounded-lg p-2">
-            <BookOpen className="h-6 w-6 text-accent-foreground" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-primary-foreground font-heading">Teazy AI Lesson Assistant</h1>
-            <p className="text-sm text-primary-foreground/70">by Teazy Tech</p>
-          </div>
+          <img src={teazyLogo} alt="Teazy Tech logo" className="h-10 w-10 rounded-lg object-contain bg-background" />
+          <h1 className="text-xl font-bold text-primary-foreground font-heading">Teazy AI</h1>
         </div>
       </header>
 
