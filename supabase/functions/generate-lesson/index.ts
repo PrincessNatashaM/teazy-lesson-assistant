@@ -11,19 +11,25 @@ const curriculumContext: Record<string, string> = {
 - "Behavioral Objectives" for learning objectives
 - Use "Evaluation" not "Assessment"
 - Reference Nigerian examples: local markets (Balogun, Onitsha), naira currency, Nigerian foods, festivals (Durbar, New Yam), states and landmarks
-- Use terms like "scheme of work", "lesson note", "instructional materials"`,
+- Use terms like "scheme of work", "lesson note", "instructional materials"
+- Follow a teacher-led + activity mix approach`,
 
   "Ghana": `Follow the Ghanaian NaCCA/CCP curriculum standards. Use Ghanaian classroom terminology:
-- "Introduction" or "Starter Activity"
-- "Learning Indicators" and "Core Competencies"
+- Use "Objectives" and "Core Competencies"
+- Structure around "Teaching & Learning Activities"
+- Use "Assessment" for evaluation
+- Blend structured + interactive teaching
 - Reference Ghanaian examples: cedi currency, local markets (Makola, Kejetia), Ghanaian foods (fufu, banku), festivals (Homowo, Aboakyir), regions and landmarks
-- Emphasize the 4 R's: Reading, wRiting, aRithmetic, cReativity`,
+- Reflect Ghanaian classroom terminology throughout`,
 
-  "Kenya": `Follow the Kenyan CBC (Competency-Based Curriculum) standards. Use Kenyan classroom terminology:
-- "Learning Experiences" and "Key Inquiry Questions"
-- "Core Competencies" and "Pertinent and Contemporary Issues (PCIs)"
+  "Kenya": `Follow the Kenyan CBC (Competency-Based Curriculum) standards strictly. Use Kenyan CBC terminology:
+- Use "Learning Outcomes" instead of objectives
+- Include "Key Competencies" (communication, collaboration, critical thinking, creativity, citizenship, digital literacy, self-efficacy)
+- Structure around "Learning Experiences / Activities"
+- Use "Reflection" instead of traditional evaluation
+- Emphasize learner-centered, activity-based pedagogy
 - Reference Kenyan examples: shilling currency, local contexts (Maasai Mara, Lake Victoria), Kenyan foods (ugali, nyama choma), counties and landmarks
-- Emphasize values, learner-centered approaches, and community service learning`,
+- Focus on competency development and community service learning`,
 };
 
 serve(async (req) => {
