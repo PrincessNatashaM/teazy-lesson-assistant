@@ -51,23 +51,15 @@ serve(async (req) => {
     const curriculumGuide = curriculumContext[curriculum] || curriculumContext["Nigeria (NERDC)"];
     const lang = language || "English";
 
-    const systemPrompt = `You are an expert African curriculum specialist and master lesson note writer for Teazy Tech. You help teachers across Africa create HIGHLY DETAILED, classroom-ready lesson notes they can use immediately.
-
-${curriculumGuide}
-
-IMPORTANT: Generate the ENTIRE lesson note in ${lang}.
-
-Your lesson notes must be EXTREMELY detailed and practical — not generic summaries. Write as if you are coaching a new teacher through every minute of the lesson.
-
-Format using markdown headings:
-
+    const lessonTemplates: Record<string, string> = {
+      "Nigeria (NERDC)": `
 # Lesson Note: [Topic]
 
 ## Subject and Class
-## Curriculum
+## Curriculum: Nigeria (NERDC)
 ## Lesson Duration
-## Learning Objectives
-(Write 4-6 SMART, measurable, action-based objectives)
+## Behavioral Objectives
+(Write 4-6 SMART, measurable, action-based behavioral objectives using verbs like "state", "identify", "solve", "explain")
 
 ## Instructional Materials
 (List specific, accessible materials with alternatives)
@@ -75,10 +67,10 @@ Format using markdown headings:
 ## Previous Knowledge
 (What students should already know; how to verify)
 
-## Set Induction / Introduction (5-7 minutes)
+## Set Induction (5-7 minutes)
 (A specific, engaging opening activity with exact teacher script and expected student responses)
 
-## Lesson Development
+## Presentation / Lesson Development
 
 ### Step 1: [Sub-topic]
 **Teacher Activity:** (Exact words the teacher says, demonstrations to perform)
@@ -94,28 +86,151 @@ Format using markdown headings:
 (Same detailed structure — include at least 3-4 steps)
 
 ## Real-Life Examples and Applications
-(3-4 concrete, local, relatable examples connecting the topic to daily life)
+(3-4 concrete Nigerian examples connecting the topic to daily life)
 
 ## Differentiation Strategies
 ### For Advanced Learners:
-(Extension activities and challenge questions)
 ### For Struggling Learners:
-(Simplified explanations, scaffolding techniques, peer support strategies)
 
 ## Common Misconceptions
-(List 3-5 specific misconceptions students may have and how to address each one)
 
-## Evaluation / Assessment
+## Evaluation
 (4-6 questions of varying difficulty — recall, understanding, and application)
 
 ## Conclusion (3-5 minutes)
-(Summary technique, key takeaways, student reflection prompt)
 
 ## Assignment / Homework
-(Specific, measurable tasks with clear instructions)
 
-## Suggested EdTech Tools
-(3-4 accessible digital tools with brief explanation of how to use each)`;
+## Suggested EdTech Tools`,
+
+      "Kenya": `
+# Lesson Note: [Topic]
+
+## Subject and Grade
+## Curriculum: Kenya CBC
+## Lesson Duration
+## Strand / Sub-Strand
+## Learning Outcomes
+(Write 4-6 learner-centered outcomes focusing on what the learner will be able to do)
+
+## Key Competencies
+(List relevant CBC competencies: Communication, Collaboration, Critical Thinking, Creativity, Citizenship, Digital Literacy, Self-Efficacy)
+
+## Values
+(Core values addressed in this lesson)
+
+## Pertinent and Contemporary Issues (PCIs)
+
+## Learning Resources
+(List specific, accessible materials with alternatives)
+
+## Previous Knowledge / Learner Experience
+
+## Introduction / Engagement (5-7 minutes)
+(A learner-centered opening activity)
+
+## Learning Experiences / Activities
+
+### Activity 1: [Sub-topic]
+**Facilitator Guide:** (How the teacher facilitates, not lectures)
+**Learner Activity:** (What learners do — group work, exploration, discussion)
+**Expected Learner Responses:**
+**Assessment Cues:** (How to check understanding during the activity)
+
+### Activity 2: [Sub-topic]
+(Same learner-centered structure)
+
+### Activity 3: [Sub-topic]
+(Same structure — include at least 3-4 activities)
+
+## Real-Life Connections
+(3-4 concrete Kenyan examples)
+
+## Differentiation Strategies
+### For Advanced Learners:
+### For Struggling Learners:
+
+## Common Misconceptions
+
+## Reflection
+(Learner self-assessment, peer assessment, teacher observation notes)
+
+## Extended Activity / Homework
+
+## Community Service Learning Connection
+(How this lesson connects to the community)
+
+## Suggested EdTech Tools`,
+
+      "Ghana": `
+# Lesson Note: [Topic]
+
+## Subject and Class
+## Curriculum: Ghana (NaCCA)
+## Lesson Duration
+## Content Standard
+## Objectives
+(Write 4-6 clear, measurable objectives)
+
+## Core Competencies
+(List relevant competencies: Critical Thinking, Creativity, Communication, Collaboration, Cultural Identity, Digital Literacy)
+
+## Learning Resources
+(List specific, accessible materials with alternatives)
+
+## Previous Knowledge
+
+## Introduction (5-7 minutes)
+(A specific, engaging starter activity)
+
+## Teaching & Learning Activities
+
+### Activity 1: [Sub-topic]
+**Teacher Activity:** (Teacher-led instruction and facilitation)
+**Learner Activity:** (Interactive tasks, group work, discussions)
+**Board Work / Notes:**
+**Expected Responses:**
+**Teacher Feedback:**
+
+### Activity 2: [Sub-topic]
+(Same structure — blend of structured + interactive)
+
+### Activity 3: [Sub-topic]
+(Same structure — include at least 3-4 activities)
+
+## Real-Life Examples and Applications
+(3-4 concrete Ghanaian examples)
+
+## Differentiation Strategies
+### For Advanced Learners:
+### For Struggling Learners:
+
+## Common Misconceptions
+
+## Assessment
+(4-6 questions of varying difficulty)
+
+## Conclusion (3-5 minutes)
+
+## Assignment / Homework
+
+## Suggested EdTech Tools`,
+    };
+
+    const selectedTemplate = lessonTemplates[curriculum] || lessonTemplates["Nigeria (NERDC)"];
+
+    const systemPrompt = `You are an expert African curriculum specialist and master lesson note writer for Teazy Tech. You help teachers across Africa create HIGHLY DETAILED, classroom-ready lesson notes they can use immediately.
+
+${curriculumGuide}
+
+IMPORTANT: Generate the ENTIRE lesson note in ${lang}.
+
+Your lesson notes must be EXTREMELY detailed and practical — not generic summaries. Write as if you are coaching a new teacher through every minute of the lesson.
+
+CRITICAL: You MUST use the EXACT structure and terminology below. Do NOT use a generic template. The output must clearly feel like it belongs to the ${curriculum} education system.
+
+Format using markdown headings following this EXACT structure:
+${selectedTemplate}`;
 
     const userPrompt = `Create an extremely detailed, classroom-ready lesson note for:
 - Subject: ${subject}
