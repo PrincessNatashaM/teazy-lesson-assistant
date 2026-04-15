@@ -8,12 +8,14 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-les
 
 export default function Index() {
   const [lessonPlan, setLessonPlan] = useState("");
+  const [language, setLanguage] = useState("English");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleGenerate = async (data: LessonFormData) => {
     setIsLoading(true);
     setLessonPlan("");
+    setLanguage(data.language);
 
     try {
       const resp = await fetch(CHAT_URL, {
@@ -67,7 +69,7 @@ export default function Index() {
       }
     } catch (e) {
       console.error(e);
-      toast({ title: "Error", description: "Failed to generate lesson plan. Please try again.", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to generate lesson note. Please try again.", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +77,6 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b border-border bg-primary">
         <div className="container mx-auto px-4 py-4 flex items-center gap-3">
           <img src={teazyLogo} alt="Teazy Tech logo" className="h-10 w-10 rounded-lg object-contain bg-background" />
@@ -84,34 +85,29 @@ export default function Index() {
       </header>
 
       <main className="container mx-auto px-4 py-8 max-w-3xl">
-        {/* Intro */}
         <div className="text-center mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-primary font-heading mb-2">
-            Create Lesson Plans in Seconds
+            Create Detailed Lesson Notes in Seconds
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Fill in a few details and let AI generate a complete, Nigerian-curriculum-aligned lesson plan for your class.
+            Fill in a few details and let AI generate a complete, classroom-ready lesson note aligned to your curriculum.
           </p>
         </div>
 
-        {/* Form Card */}
         <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-sm mb-8">
           <LessonForm onGenerate={handleGenerate} isLoading={isLoading} />
         </div>
 
-        {/* Loading state */}
         {isLoading && !lessonPlan && (
           <div className="flex flex-col items-center gap-3 py-12">
             <div className="h-10 w-10 rounded-full border-4 border-accent border-t-transparent animate-spin" />
-            <p className="text-muted-foreground">Crafting your lesson plan...</p>
+            <p className="text-muted-foreground">Crafting your detailed lesson note...</p>
           </div>
         )}
 
-        {/* Output */}
-        {lessonPlan && <LessonOutput content={lessonPlan} />}
+        {lessonPlan && <LessonOutput content={lessonPlan} language={language} />}
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-border py-6 mt-12">
         <p className="text-center text-sm text-muted-foreground">
           © {new Date().getFullYear()} Teazy Tech — Empowering teachers with technology.

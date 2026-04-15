@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -13,63 +12,46 @@ import {
 import { Loader2, Sparkles } from "lucide-react";
 
 const SUBJECTS = [
-  "Mathematics",
-  "English Language",
-  "Basic Science",
-  "Basic Technology",
-  "Social Studies",
-  "Civic Education",
-  "Agricultural Science",
-  "Computer Studies / ICT",
-  "Christian Religious Studies",
-  "Islamic Religious Studies",
-  "Physical and Health Education",
-  "Home Economics",
-  "Business Studies",
-  "French",
-  "Yoruba",
-  "Igbo",
-  "Hausa",
-  "Creative Arts",
-  "Music",
+  "Mathematics", "English Language", "Basic Science", "Basic Technology",
+  "Social Studies", "Civic Education", "Agricultural Science",
+  "Computer Studies / ICT", "Christian Religious Studies",
+  "Islamic Religious Studies", "Physical and Health Education",
+  "Home Economics", "Business Studies", "French", "Yoruba", "Igbo",
+  "Hausa", "Creative Arts", "Music", "Biology", "Chemistry", "Physics",
+  "Economics", "Government", "Literature in English", "Geography",
 ];
 
 const CLASSES = [
-  "Primary 1",
-  "Primary 2",
-  "Primary 3",
-  "Primary 4",
-  "Primary 5",
-  "Primary 6",
-  "JSS 1",
-  "JSS 2",
-  "JSS 3",
-  "SS 1",
-  "SS 2",
-  "SS 3",
+  "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5", "Primary 6",
+  "JSS 1", "JSS 2", "JSS 3", "SS 1", "SS 2", "SS 3",
 ];
+
+const CURRICULA = [
+  "Nigeria (NERDC)",
+  "Ghana",
+  "Kenya",
+];
+
+const LANGUAGES = ["English", "French"];
 
 const TEACHING_STYLES = [
-  "Activity-based",
-  "Lecture",
-  "Discussion",
-  "Demonstration",
-  "Group Work",
-  "Project-based",
+  "Activity-based", "Lecture", "Discussion", "Demonstration",
+  "Group Work", "Project-based",
 ];
-
-interface LessonFormProps {
-  onGenerate: (data: LessonFormData) => void;
-  isLoading: boolean;
-}
 
 export interface LessonFormData {
   subject: string;
   classLevel: string;
   topic: string;
+  curriculum: string;
+  language: string;
   duration: string;
-  objectives: string;
   teachingStyle: string;
+}
+
+interface LessonFormProps {
+  onGenerate: (data: LessonFormData) => void;
+  isLoading: boolean;
 }
 
 export default function LessonForm({ onGenerate, isLoading }: LessonFormProps) {
@@ -77,12 +59,13 @@ export default function LessonForm({ onGenerate, isLoading }: LessonFormProps) {
     subject: "",
     classLevel: "",
     topic: "",
+    curriculum: "",
+    language: "English",
     duration: "",
-    objectives: "",
     teachingStyle: "",
   });
 
-  const canSubmit = form.subject && form.classLevel && form.topic;
+  const canSubmit = form.subject && form.classLevel && form.topic && form.curriculum;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,6 +74,36 @@ export default function LessonForm({ onGenerate, isLoading }: LessonFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="curriculum">Curriculum *</Label>
+          <Select value={form.curriculum} onValueChange={(v) => setForm({ ...form, curriculum: v })}>
+            <SelectTrigger id="curriculum">
+              <SelectValue placeholder="Select curriculum" />
+            </SelectTrigger>
+            <SelectContent>
+              {CURRICULA.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="language">Language *</Label>
+          <Select value={form.language} onValueChange={(v) => setForm({ ...form, language: v })}>
+            <SelectTrigger id="language">
+              <SelectValue placeholder="Select language" />
+            </SelectTrigger>
+            <SelectContent>
+              {LANGUAGES.map((l) => (
+                <SelectItem key={l} value={l}>{l}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="subject">Subject *</Label>
@@ -157,17 +170,6 @@ export default function LessonForm({ onGenerate, isLoading }: LessonFormProps) {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="objectives">Learning Objectives (optional)</Label>
-        <Textarea
-          id="objectives"
-          placeholder="Describe what students should be able to do after the lesson..."
-          value={form.objectives}
-          onChange={(e) => setForm({ ...form, objectives: e.target.value })}
-          rows={3}
-        />
-      </div>
-
       <Button
         type="submit"
         disabled={!canSubmit || isLoading}
@@ -176,12 +178,12 @@ export default function LessonForm({ onGenerate, isLoading }: LessonFormProps) {
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            Generating Lesson Plan...
+            Generating Detailed Lesson Note...
           </>
         ) : (
           <>
             <Sparkles className="mr-2 h-5 w-5" />
-            Generate Lesson Plan
+            Generate Lesson Note
           </>
         )}
       </Button>
