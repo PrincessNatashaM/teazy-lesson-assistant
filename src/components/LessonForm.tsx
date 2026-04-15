@@ -21,16 +21,32 @@ const SUBJECTS = [
   "Economics", "Government", "Literature in English", "Geography",
 ];
 
-const CLASSES = [
-  "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5", "Primary 6",
-  "JSS 1", "JSS 2", "JSS 3", "SS 1", "SS 2", "SS 3",
-];
-
 const CURRICULA = [
   "Nigeria (NERDC)",
   "Ghana",
   "Kenya",
 ];
+
+const CLASS_OPTIONS: Record<string, string[]> = {
+  "Nigeria (NERDC)": [
+    "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5", "Primary 6",
+    "JSS 1", "JSS 2", "JSS 3", "SS 1", "SS 2", "SS 3",
+  ],
+  "Kenya": [
+    "Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6",
+    "Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12",
+  ],
+  "Ghana": [
+    "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5", "Primary 6",
+    "JHS 1", "JHS 2", "JHS 3", "SHS 1", "SHS 2", "SHS 3",
+  ],
+};
+
+const CURRICULUM_HINTS: Record<string, string> = {
+  "Nigeria (NERDC)": "You are using the Nigerian NERDC curriculum structure",
+  "Kenya": "You are using Kenya CBC (Competency-Based Curriculum) structure",
+  "Ghana": "You are using the Ghana Education Service structure",
+};
 
 const LANGUAGES = ["English", "French"];
 
@@ -77,7 +93,7 @@ export default function LessonForm({ onGenerate, isLoading }: LessonFormProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="curriculum">Curriculum *</Label>
-          <Select value={form.curriculum} onValueChange={(v) => setForm({ ...form, curriculum: v })}>
+          <Select value={form.curriculum} onValueChange={(v) => setForm({ ...form, curriculum: v, classLevel: "" })}>
             <SelectTrigger id="curriculum">
               <SelectValue placeholder="Select curriculum" />
             </SelectTrigger>
@@ -120,17 +136,24 @@ export default function LessonForm({ onGenerate, isLoading }: LessonFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="class">Class *</Label>
-          <Select value={form.classLevel} onValueChange={(v) => setForm({ ...form, classLevel: v })}>
+          <Label htmlFor="class">Class / Grade *</Label>
+          <Select
+            value={form.classLevel}
+            onValueChange={(v) => setForm({ ...form, classLevel: v })}
+            disabled={!form.curriculum}
+          >
             <SelectTrigger id="class">
-              <SelectValue placeholder="Select class" />
+              <SelectValue placeholder={form.curriculum ? "Select class" : "Select curriculum first"} />
             </SelectTrigger>
             <SelectContent>
-              {CLASSES.map((c) => (
+              {(CLASS_OPTIONS[form.curriculum] || []).map((c) => (
                 <SelectItem key={c} value={c}>{c}</SelectItem>
               ))}
             </SelectContent>
           </Select>
+          {form.curriculum && (
+            <p className="text-xs text-accent font-medium">{CURRICULUM_HINTS[form.curriculum]}</p>
+          )}
         </div>
       </div>
 
