@@ -93,7 +93,7 @@ export default function LessonForm({ onGenerate, isLoading }: LessonFormProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="curriculum">Curriculum *</Label>
-          <Select value={form.curriculum} onValueChange={(v) => setForm({ ...form, curriculum: v })}>
+          <Select value={form.curriculum} onValueChange={(v) => setForm({ ...form, curriculum: v, classLevel: "" })}>
             <SelectTrigger id="curriculum">
               <SelectValue placeholder="Select curriculum" />
             </SelectTrigger>
@@ -136,17 +136,24 @@ export default function LessonForm({ onGenerate, isLoading }: LessonFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="class">Class *</Label>
-          <Select value={form.classLevel} onValueChange={(v) => setForm({ ...form, classLevel: v })}>
+          <Label htmlFor="class">Class / Grade *</Label>
+          <Select
+            value={form.classLevel}
+            onValueChange={(v) => setForm({ ...form, classLevel: v })}
+            disabled={!form.curriculum}
+          >
             <SelectTrigger id="class">
-              <SelectValue placeholder="Select class" />
+              <SelectValue placeholder={form.curriculum ? "Select class" : "Select curriculum first"} />
             </SelectTrigger>
             <SelectContent>
-              {CLASSES.map((c) => (
+              {(CLASS_OPTIONS[form.curriculum] || []).map((c) => (
                 <SelectItem key={c} value={c}>{c}</SelectItem>
               ))}
             </SelectContent>
           </Select>
+          {form.curriculum && (
+            <p className="text-xs text-accent font-medium">{CURRICULUM_HINTS[form.curriculum]}</p>
+          )}
         </div>
       </div>
 
