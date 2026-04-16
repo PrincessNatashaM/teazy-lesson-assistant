@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, PenLine } from "lucide-react";
+import { Loader2, PenLine, Upload, Camera, X, ImageIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const CURRICULA = ["Nigeria (NERDC)", "Ghana", "Kenya"];
 
@@ -37,6 +38,8 @@ const CURRICULUM_HINTS: Record<string, string> = {
 const WRITING_TYPES = ["Narrative", "Descriptive", "Argumentative", "Letter Writing"];
 const LANGUAGES = ["English", "French"];
 
+const OCR_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-handwriting`;
+
 export interface WritingAssessmentFormData {
   curriculum: string;
   classLevel: string;
@@ -58,12 +61,90 @@ export default function WritingAssessmentForm({ onAssess, isLoading }: Props) {
     studentWriting: "",
     language: "English",
   });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isOcrLoading, setIsOcrLoading] = useState(false);
+  const [ocrDone, setOcrDone] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const canSubmit = form.curriculum && form.classLevel && form.writingType && form.studentWriting.trim().length > 20;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (canSubmit) onAssess(form);
+  };
+
+  const handleImageUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Invalid file", description: "Please upload an image (JPG, PNG).", variant: "destructive" });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Please upload an image under 10MB.", variant: "destructive" });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target?.result as string;
+      setImagePreview(dataUrl);
+      setOcrDone(false);
+
+      const base64 = dataUrl.split(",")[1];
+      const mimeType = file.type;
+
+      setIsOcrLoading(true);
+      try {
+        const resp = await fetch(OCR_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ imageBase64: base64, mimeType }),
+        });
+
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({ error: "OCR failed" }));
+          toast({ title: "OCR Error", description: err.error, variant: "destructive" });
+          return;
+        }
+
+        const data = await resp.json();
+        const text = data.extractedText || "";
+
+        if (text === "[UNREADABLE]" || text.length < 5) {
+          toast({
+            title: "Hard to read",
+            description: "The handwriting was difficult to read. Please type or correct the text manually.",
+            variant: "destructive",
+          });
+          setForm((prev) => ({ ...prev, studentWriting: "" }));
+        } else {
+          setForm((prev) => ({ ...prev, studentWriting: text }));
+          toast({ title: "Text extracted!", description: "Review and correct any errors before grading." });
+        }
+        setOcrDone(true);
+      } catch (err) {
+        console.error(err);
+        toast({ title: "Error", description: "Failed to extract text from image.", variant: "destructive" });
+      } finally {
+        setIsOcrLoading(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleImageUpload(file);
+    e.target.value = "";
+  };
+
+  const clearImage = () => {
+    setImagePreview(null);
+    setOcrDone(false);
   };
 
   return (
@@ -135,11 +216,91 @@ export default function WritingAssessmentForm({ onAssess, isLoading }: Props) {
         </div>
       </div>
 
+      {/* Image Upload Section */}
+      <div className="space-y-3">
+        <Label>Upload Handwritten Essay (Optional)</Label>
+        <div className="border-2 border-dashed border-border rounded-xl p-4 bg-muted/30">
+          {imagePreview ? (
+            <div className="space-y-3">
+              <div className="relative inline-block">
+                <img
+                  src={imagePreview}
+                  alt="Uploaded essay"
+                  className="max-h-48 rounded-lg border border-border object-contain"
+                />
+                <button
+                  type="button"
+                  onClick={clearImage}
+                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 shadow-md hover:bg-destructive/90"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+              {isOcrLoading && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin text-accent" />
+                  Reading handwriting...
+                </div>
+              )}
+              {ocrDone && (
+                <p className="text-xs text-green-600 font-medium">
+                  ✓ Text extracted — review and correct below before grading
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3 py-4">
+              <ImageIcon className="h-10 w-10 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground text-center">
+                Upload a clear photo of the student's handwritten essay
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload Image
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => cameraInputRef.current?.click()}
+                >
+                  <Camera className="mr-2 h-4 w-4" />
+                  Take Photo
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">JPG, PNG — max 10MB</p>
+            </div>
+          )}
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+        <input
+          ref={cameraInputRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+      </div>
+
+      {/* Student Writing Text */}
       <div className="space-y-2">
-        <Label htmlFor="wa-writing">Student Writing *</Label>
+        <Label htmlFor="wa-writing">Student Writing * {ocrDone && <span className="text-xs text-muted-foreground font-normal">(extracted from image — edit if needed)</span>}</Label>
         <Textarea
           id="wa-writing"
-          placeholder="Paste the student's writing here... (minimum 20 characters)"
+          placeholder="Paste the student's writing here, or upload an image above... (minimum 20 characters)"
           value={form.studentWriting}
           onChange={(e) => setForm({ ...form, studentWriting: e.target.value })}
           className="min-h-[180px]"
@@ -151,7 +312,7 @@ export default function WritingAssessmentForm({ onAssess, isLoading }: Props) {
 
       <Button
         type="submit"
-        disabled={!canSubmit || isLoading}
+        disabled={!canSubmit || isLoading || isOcrLoading}
         className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base h-12"
       >
         {isLoading ? (
@@ -162,7 +323,7 @@ export default function WritingAssessmentForm({ onAssess, isLoading }: Props) {
         ) : (
           <>
             <PenLine className="mr-2 h-5 w-5" />
-            Assess Writing
+            Grade Essay
           </>
         )}
       </Button>
