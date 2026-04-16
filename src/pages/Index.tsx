@@ -1,24 +1,30 @@
 import { useState } from "react";
 import LessonForm, { type LessonFormData } from "@/components/LessonForm";
 import LessonOutput from "@/components/LessonOutput";
+import WritingAssessmentForm, { type WritingAssessmentFormData } from "@/components/WritingAssessmentForm";
+import WritingAssessmentOutput, { type AssessmentData } from "@/components/WritingAssessmentOutput";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import teazyLogo from "@/assets/teazy-logo.jpg";
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson`;
+const LESSON_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson`;
+const ASSESS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-writing`;
 
 export default function Index() {
   const [lessonPlan, setLessonPlan] = useState("");
   const [language, setLanguage] = useState("English");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLessonLoading, setIsLessonLoading] = useState(false);
+  const [assessmentData, setAssessmentData] = useState<AssessmentData | null>(null);
+  const [isAssessLoading, setIsAssessLoading] = useState(false);
   const { toast } = useToast();
 
   const handleGenerate = async (data: LessonFormData) => {
-    setIsLoading(true);
+    setIsLessonLoading(true);
     setLessonPlan("");
     setLanguage(data.language);
 
     try {
-      const resp = await fetch(CHAT_URL, {
+      const resp = await fetch(LESSON_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -30,7 +36,7 @@ export default function Index() {
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: "Something went wrong" }));
         toast({ title: "Error", description: err.error, variant: "destructive" });
-        setIsLoading(false);
+        setIsLessonLoading(false);
         return;
       }
 
@@ -71,7 +77,38 @@ export default function Index() {
       console.error(e);
       toast({ title: "Error", description: "Failed to generate lesson note. Please try again.", variant: "destructive" });
     } finally {
-      setIsLoading(false);
+      setIsLessonLoading(false);
+    }
+  };
+
+  const handleAssess = async (data: WritingAssessmentFormData) => {
+    setIsAssessLoading(true);
+    setAssessmentData(null);
+
+    try {
+      const resp = await fetch(ASSESS_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: "Something went wrong" }));
+        toast({ title: "Error", description: err.error, variant: "destructive" });
+        setIsAssessLoading(false);
+        return;
+      }
+
+      const result = await resp.json();
+      setAssessmentData(result);
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Error", description: "Failed to assess writing. Please try again.", variant: "destructive" });
+    } finally {
+      setIsAssessLoading(false);
     }
   };
 
@@ -87,25 +124,49 @@ export default function Index() {
       <main className="container mx-auto px-4 py-8 max-w-3xl">
         <div className="text-center mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold text-primary font-heading mb-2">
-            Create Detailed Lesson Notes in Seconds
+            Your AI-Powered Teaching Assistant
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Fill in a few details and let AI generate a complete, classroom-ready lesson note aligned to your curriculum.
+            Generate detailed lesson notes or assess student writing — all aligned to your curriculum.
           </p>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-sm mb-8">
-          <LessonForm onGenerate={handleGenerate} isLoading={isLoading} />
-        </div>
+        <Tabs defaultValue="lesson" className="w-full">
+          <TabsList className="w-full mb-6">
+            <TabsTrigger value="lesson" className="flex-1">Lesson Note Generator</TabsTrigger>
+            <TabsTrigger value="writing" className="flex-1">Writing Assessment</TabsTrigger>
+          </TabsList>
 
-        {isLoading && !lessonPlan && (
-          <div className="flex flex-col items-center gap-3 py-12">
-            <div className="h-10 w-10 rounded-full border-4 border-accent border-t-transparent animate-spin" />
-            <p className="text-muted-foreground">Crafting your detailed lesson note...</p>
-          </div>
-        )}
+          <TabsContent value="lesson">
+            <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-sm mb-8">
+              <LessonForm onGenerate={handleGenerate} isLoading={isLessonLoading} />
+            </div>
 
-        {lessonPlan && <LessonOutput content={lessonPlan} language={language} />}
+            {isLessonLoading && !lessonPlan && (
+              <div className="flex flex-col items-center gap-3 py-12">
+                <div className="h-10 w-10 rounded-full border-4 border-accent border-t-transparent animate-spin" />
+                <p className="text-muted-foreground">Crafting your detailed lesson note...</p>
+              </div>
+            )}
+
+            {lessonPlan && <LessonOutput content={lessonPlan} language={language} />}
+          </TabsContent>
+
+          <TabsContent value="writing">
+            <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-sm mb-8">
+              <WritingAssessmentForm onAssess={handleAssess} isLoading={isAssessLoading} />
+            </div>
+
+            {isAssessLoading && (
+              <div className="flex flex-col items-center gap-3 py-12">
+                <div className="h-10 w-10 rounded-full border-4 border-accent border-t-transparent animate-spin" />
+                <p className="text-muted-foreground">Analyzing student writing...</p>
+              </div>
+            )}
+
+            {assessmentData && <WritingAssessmentOutput data={assessmentData} />}
+          </TabsContent>
+        </Tabs>
       </main>
 
       <footer className="border-t border-border py-6 mt-12">
