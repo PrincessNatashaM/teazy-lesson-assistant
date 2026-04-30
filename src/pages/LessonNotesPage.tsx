@@ -116,7 +116,14 @@ export default function LessonNotesPage() {
         </div>
       )}
 
-      {lessonPlan && <LessonOutput content={lessonPlan} language={language} />}
+      {lessonPlan && (
+        <LessonOutput
+          content={lessonPlan}
+          language={language}
+          images={images}
+          imagesLoading={imagesLoading}
+        />
+      )}
     </div>
   );
 }
