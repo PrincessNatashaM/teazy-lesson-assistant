@@ -17,6 +17,8 @@ export default function LessonNotesPage() {
   const handleGenerate = async (data: LessonFormData) => {
     setIsLoading(true);
     setLessonPlan("");
+    setImages([]);
+    setImagesLoading(false);
     setLanguage(data.language);
 
     try {
