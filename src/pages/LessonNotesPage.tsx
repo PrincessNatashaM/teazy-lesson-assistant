@@ -4,11 +4,14 @@ import LessonOutput from "@/components/LessonOutput";
 import { useToast } from "@/hooks/use-toast";
 
 const LESSON_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson`;
+const IMAGES_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson-images`;
 
 export default function LessonNotesPage() {
   const [lessonPlan, setLessonPlan] = useState("");
   const [language, setLanguage] = useState("English");
   const [isLoading, setIsLoading] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
+  const [imagesLoading, setImagesLoading] = useState(false);
   const { toast } = useToast();
 
   const handleGenerate = async (data: LessonFormData) => {
