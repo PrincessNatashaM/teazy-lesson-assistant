@@ -9,9 +9,11 @@ import PaywallModal from "./PaywallModal";
 interface LessonOutputProps {
   content: string;
   language: string;
+  images?: string[];
+  imagesLoading?: boolean;
 }
 
-export default function LessonOutput({ content, language }: LessonOutputProps) {
+export default function LessonOutput({ content, language, images = [], imagesLoading = false }: LessonOutputProps) {
   const [copied, setCopied] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const { toast } = useToast();
