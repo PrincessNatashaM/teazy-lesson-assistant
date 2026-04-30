@@ -21,6 +21,31 @@ export default function LessonNotesPage() {
     setImagesLoading(false);
     setLanguage(data.language);
 
+    // Kick off image generation in parallel (don't block the lesson stream)
+    setImagesLoading(true);
+    fetch(IMAGES_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({
+        subject: data.subject,
+        classLevel: data.classLevel,
+        topic: data.topic,
+        curriculum: data.curriculum,
+      }),
+    })
+      .then(async (r) => {
+        if (!r.ok) throw new Error("image gen failed");
+        const json = await r.json();
+        setImages(Array.isArray(json.images) ? json.images : []);
+      })
+      .catch((err) => {
+        console.error("Image generation failed:", err);
+      })
+      .finally(() => setImagesLoading(false));
+
     try {
       const resp = await fetch(LESSON_URL, {
         method: "POST",
