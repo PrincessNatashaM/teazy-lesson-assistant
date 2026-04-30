@@ -4,17 +4,47 @@ import LessonOutput from "@/components/LessonOutput";
 import { useToast } from "@/hooks/use-toast";
 
 const LESSON_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson`;
+const IMAGES_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson-images`;
 
 export default function LessonNotesPage() {
   const [lessonPlan, setLessonPlan] = useState("");
   const [language, setLanguage] = useState("English");
   const [isLoading, setIsLoading] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
+  const [imagesLoading, setImagesLoading] = useState(false);
   const { toast } = useToast();
 
   const handleGenerate = async (data: LessonFormData) => {
     setIsLoading(true);
     setLessonPlan("");
+    setImages([]);
+    setImagesLoading(false);
     setLanguage(data.language);
+
+    // Kick off image generation in parallel (don't block the lesson stream)
+    setImagesLoading(true);
+    fetch(IMAGES_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      },
+      body: JSON.stringify({
+        subject: data.subject,
+        classLevel: data.classLevel,
+        topic: data.topic,
+        curriculum: data.curriculum,
+      }),
+    })
+      .then(async (r) => {
+        if (!r.ok) throw new Error("image gen failed");
+        const json = await r.json();
+        setImages(Array.isArray(json.images) ? json.images : []);
+      })
+      .catch((err) => {
+        console.error("Image generation failed:", err);
+      })
+      .finally(() => setImagesLoading(false));
 
     try {
       const resp = await fetch(LESSON_URL, {
@@ -86,7 +116,14 @@ export default function LessonNotesPage() {
         </div>
       )}
 
-      {lessonPlan && <LessonOutput content={lessonPlan} language={language} />}
+      {lessonPlan && (
+        <LessonOutput
+          content={lessonPlan}
+          language={language}
+          images={images}
+          imagesLoading={imagesLoading}
+        />
+      )}
     </div>
   );
 }
