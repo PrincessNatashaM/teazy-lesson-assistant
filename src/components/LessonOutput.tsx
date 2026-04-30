@@ -104,6 +104,41 @@ export default function LessonOutput({ content, language, images = [], imagesLoa
             className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-sm prose-sm max-w-none"
           >
             {renderContent(content)}
+
+            {(imagesLoading || images.length > 0) && (
+              <div className="mt-8 pt-6 border-t border-border">
+                <h3 className="text-lg font-semibold text-primary mb-4 font-heading">
+                  Visual Teaching Aids
+                </h3>
+                {imagesLoading && images.length === 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[0, 1, 2].map((i) => (
+                      <div
+                        key={i}
+                        className="aspect-video rounded-lg bg-muted animate-pulse"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {images.map((src, i) => (
+                      <img
+                        key={i}
+                        src={src}
+                        alt={`Lesson visual aid ${i + 1}`}
+                        className="w-full aspect-video object-cover rounded-lg border border-border"
+                        loading="lazy"
+                      />
+                    ))}
+                  </div>
+                )}
+                {imagesLoading && images.length === 0 && (
+                  <p className="text-xs text-muted-foreground mt-3">
+                    Generating visual aids for this lesson...
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </TabsContent>
 
