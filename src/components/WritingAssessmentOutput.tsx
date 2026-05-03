@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, CheckCircle, Download, Star, TrendingUp, AlertCircle, MessageSquare, PenLine } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import PaywallModal from "./PaywallModal";
 
 interface RubricItem {
   score: number;
@@ -56,7 +55,6 @@ function RubricRow({ label, item }: { label: string; item: RubricItem }) {
 
 export default function WritingAssessmentOutput({ data }: Props) {
   const [copied, setCopied] = useState(false);
-  const [showPaywall, setShowPaywall] = useState(false);
   const { toast } = useToast();
 
   const feedbackText = `Overall Score: ${data.overallScore}%
@@ -96,7 +94,6 @@ ${data.teacherComment}`;
     a.click();
     URL.revokeObjectURL(url);
     toast({ title: "Downloaded!", description: "Assessment downloaded successfully." });
-    setShowPaywall(false);
   };
 
   return (
@@ -109,7 +106,7 @@ ${data.teacherComment}`;
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setShowPaywall(true)}
+          onClick={handleDownload}
           className="border-accent text-accent hover:bg-accent/10"
         >
           <Download className="mr-2 h-4 w-4" />
@@ -183,11 +180,6 @@ ${data.teacherComment}`;
         </div>
       </div>
 
-      <PaywallModal
-        open={showPaywall}
-        onClose={() => setShowPaywall(false)}
-        onSuccess={handleDownload}
-      />
     </div>
   );
 }
