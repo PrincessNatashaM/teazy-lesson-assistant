@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import LessonForm, { type LessonFormData } from "@/components/LessonForm";
 import LessonOutput from "@/components/LessonOutput";
 import { useToast } from "@/hooks/use-toast";
@@ -6,13 +6,30 @@ import { useToast } from "@/hooks/use-toast";
 const LESSON_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson`;
 const IMAGES_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson-images`;
 
+function loadingMessageFor(subject: string): string {
+  const s = subject.toLowerCase();
+  if (s.includes("math")) return "Generating formulas, worked examples and diagrams...";
+  if (s.includes("biology") || s.includes("basic science"))
+    return "Creating labeled instructional visuals...";
+  if (s.includes("physics")) return "Building circuits, formulas and force diagrams...";
+  if (s.includes("chemistry")) return "Drawing reactions and lab apparatus...";
+  if (s.includes("geography")) return "Mapping out landforms and regional examples...";
+  if (s.includes("english") || s.includes("literature"))
+    return "Structuring lesson content and exercises...";
+  return "Crafting your detailed lesson note...";
+}
+
 export default function LessonNotesPage() {
   const [lessonPlan, setLessonPlan] = useState("");
   const [language, setLanguage] = useState("English");
+  const [subject, setSubject] = useState("");
+  const [topic, setTopic] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [imagesLoading, setImagesLoading] = useState(false);
   const { toast } = useToast();
+
+  const loadingMessage = useMemo(() => loadingMessageFor(subject), [subject]);
 
   const handleGenerate = async (data: LessonFormData) => {
     setIsLoading(true);
@@ -20,8 +37,9 @@ export default function LessonNotesPage() {
     setImages([]);
     setImagesLoading(false);
     setLanguage(data.language);
+    setSubject(data.subject);
+    setTopic(data.topic);
 
-    // Kick off image generation in parallel (don't block the lesson stream)
     setImagesLoading(true);
     fetch(IMAGES_URL, {
       method: "POST",
@@ -112,7 +130,7 @@ export default function LessonNotesPage() {
       {isLoading && !lessonPlan && (
         <div className="flex flex-col items-center gap-3 py-12">
           <div className="h-10 w-10 rounded-full border-4 border-accent border-t-transparent animate-spin" />
-          <p className="text-muted-foreground">Crafting your detailed lesson note...</p>
+          <p className="text-muted-foreground">{loadingMessage}</p>
         </div>
       )}
 
@@ -122,6 +140,8 @@ export default function LessonNotesPage() {
           language={language}
           images={images}
           imagesLoading={imagesLoading}
+          subject={subject}
+          topic={topic}
         />
       )}
     </div>
