@@ -219,9 +219,29 @@ serve(async (req) => {
 
     const selectedTemplate = lessonTemplates[curriculum] || lessonTemplates["Nigeria (NERDC)"];
 
+    const subjectLower = (subject || "").toLowerCase();
+    let subjectGuide = "";
+    if (subjectLower.includes("math")) {
+      subjectGuide = `\nSUBJECT FOCUS — MATHEMATICS:\n- Always include at least 2 fully worked examples with step-by-step solutions.\n- Include 4-6 practice problems with answers.\n- Show formulas explicitly. Use proper mathematical notation.\n- Suggest visual diagrams (graphs, shapes, coordinate planes) where useful.\n`;
+    } else if (subjectLower.includes("biology") || subjectLower.includes("basic science")) {
+      subjectGuide = `\nSUBJECT FOCUS — BIOLOGY:\n- Reference labeled diagrams (cell, organ, system, plant) wherever relevant.\n- Use observation-based explanations and real specimens.\n- Include scientific terminology with definitions.\n`;
+    } else if (subjectLower.includes("physics")) {
+      subjectGuide = `\nSUBJECT FOCUS — PHYSICS:\n- Include formulas, units and at least 2 worked numerical examples.\n- Reference diagrams (circuits, force, motion, ray) where relevant.\n`;
+    } else if (subjectLower.includes("chemistry")) {
+      subjectGuide = `\nSUBJECT FOCUS — CHEMISTRY:\n- Include balanced equations, atomic structures and lab apparatus references.\n- Use correct chemical notation.\n`;
+    } else if (subjectLower.includes("english") || subjectLower.includes("literature")) {
+      subjectGuide = `\nSUBJECT FOCUS — ENGLISH/LITERATURE:\n- Focus on rich examples, model sentences and class exercises.\n- Include comprehension questions and writing tasks.\n`;
+    } else if (subjectLower.includes("geography")) {
+      subjectGuide = `\nSUBJECT FOCUS — GEOGRAPHY:\n- Reference maps, landforms, cycles and regional examples.\n`;
+    }
+
+    const mathFormatting = `\nMATH FORMATTING RULES (CRITICAL):\n- Wrap inline math in single dollar signs: $x^2 + y^2 = r^2$\n- Wrap display equations in double dollar signs on their own lines: $$A = l \\\\times b$$\n- Use proper LaTeX: ^ for superscript, _ for subscript, \\\\frac{a}{b} for fractions, \\\\sqrt{x} for roots, \\\\times for multiplication, \\\\div for division, \\\\pi, \\\\theta, \\\\Delta etc.\n- Never write x2 when you mean x squared — write $x^2$.\n- Never write H2O — write $H_2O$.\n`;
+
     const systemPrompt = `You are an expert African curriculum specialist and master lesson note writer for Teazy Tech. You help teachers across Africa create HIGHLY DETAILED, classroom-ready lesson notes they can use immediately.
 
 ${curriculumGuide}
+${subjectGuide}
+${mathFormatting}
 
 IMPORTANT: Generate the ENTIRE lesson note in ${lang}.
 
