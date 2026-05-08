@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,21 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Sparkles } from "lucide-react";
 
-const SUBJECTS = [
-  "Mathematics", "English Language", "Basic Science", "Basic Technology",
-  "Social Studies", "Civic Education", "Agricultural Science",
-  "Computer Studies / ICT", "Christian Religious Studies",
-  "Islamic Religious Studies", "Physical and Health Education",
-  "Home Economics", "Business Studies", "French", "Yoruba", "Igbo",
-  "Hausa", "Creative Arts", "Music", "Biology", "Chemistry", "Physics",
-  "Economics", "Government", "Literature in English", "Geography",
-];
-
-const CURRICULA = [
-  "Nigeria (NERDC)",
-  "Ghana",
-  "Kenya",
-];
+const CURRICULA = ["Nigeria (NERDC)", "Ghana", "Kenya"];
 
 const CLASS_OPTIONS: Record<string, string[]> = {
   "Nigeria (NERDC)": [
@@ -43,10 +29,96 @@ const CLASS_OPTIONS: Record<string, string[]> = {
 };
 
 const CURRICULUM_HINTS: Record<string, string> = {
-  "Nigeria (NERDC)": "You are using the Nigerian NERDC curriculum structure",
-  "Kenya": "You are using Kenya CBC (Competency-Based Curriculum) structure",
-  "Ghana": "You are using the Ghana Education Service structure",
+  "Nigeria (NERDC)": "Nigeria NERDC subjects loaded",
+  "Kenya": "Kenya CBC subjects loaded",
+  "Ghana": "Ghana Education Service subjects loaded",
 };
+
+// Subject lists by curriculum and education level
+const SUBJECTS_BY_CURRICULUM: Record<
+  string,
+  { primary: string[]; junior: string[]; senior: string[] }
+> = {
+  "Nigeria (NERDC)": {
+    primary: [
+      "English Studies", "Mathematics", "Basic Science", "Social Studies",
+      "Civic Education", "Cultural and Creative Arts", "Computer Studies",
+      "Christian Religious Studies", "Islamic Religious Studies",
+      "Yoruba", "Igbo", "Hausa", "French", "Agricultural Science", "Home Economics",
+    ],
+    junior: [
+      "English Language", "Mathematics", "Basic Science", "Basic Technology",
+      "Social Studies", "Civic Education", "Computer Studies",
+      "Christian Religious Studies", "Islamic Religious Studies",
+      "Agricultural Science", "Home Economics", "Business Studies",
+      "Cultural and Creative Arts", "Yoruba", "Igbo", "Hausa", "French",
+    ],
+    senior: [
+      "English Language", "Mathematics", "Biology", "Chemistry", "Physics",
+      "Economics", "Government", "Literature in English", "Geography",
+      "Commerce", "Agricultural Science", "Civic Education", "Computer Studies",
+      "Christian Religious Studies", "Islamic Religious Studies",
+      "Yoruba", "Igbo", "Hausa", "Further Mathematics",
+    ],
+  },
+  "Ghana": {
+    primary: [
+      "English Language", "Mathematics", "Science", "Social Studies",
+      "Computing", "Creative Arts and Design", "Religious and Moral Education",
+      "Ghanaian Language", "French", "Physical and Health Education",
+    ],
+    junior: [
+      "English Language", "Mathematics", "Science", "Social Studies",
+      "Computing", "Creative Arts and Design", "Career Technology",
+      "Religious and Moral Education", "Ghanaian Language", "French",
+      "Physical and Health Education",
+    ],
+    senior: [
+      "Core Mathematics", "English Language", "Integrated Science", "Social Studies",
+      "Elective Mathematics", "Biology", "Chemistry", "Physics", "Economics",
+      "Government", "Geography", "History", "Literature in English",
+      "Financial Accounting", "ICT",
+    ],
+  },
+  "Kenya": {
+    primary: [
+      "Mathematics", "English", "Kiswahili", "Environmental Activities",
+      "Creative Arts", "Religious Education", "Movement Activities",
+    ],
+    junior: [
+      "Mathematics", "English", "Kiswahili", "Integrated Science", "Social Studies",
+      "Pre-Technical Studies", "Agriculture", "Business Studies",
+      "Life Skills Education", "Health Education", "Creative Arts and Sports",
+    ],
+    senior: [
+      "Mathematics", "English", "Kiswahili", "Biology", "Chemistry", "Physics",
+      "Geography", "History", "Agriculture", "Computer Science", "Business Studies",
+    ],
+  },
+};
+
+function getLevel(curriculum: string, classLevel: string): "primary" | "junior" | "senior" | null {
+  if (!classLevel) return null;
+  if (curriculum === "Nigeria (NERDC)") {
+    if (classLevel.startsWith("Primary")) return "primary";
+    if (classLevel.startsWith("JSS")) return "junior";
+    if (classLevel.startsWith("SS")) return "senior";
+  }
+  if (curriculum === "Ghana") {
+    if (classLevel.startsWith("Primary")) return "primary";
+    if (classLevel.startsWith("JHS")) return "junior";
+    if (classLevel.startsWith("SHS")) return "senior";
+  }
+  if (curriculum === "Kenya") {
+    const m = classLevel.match(/Grade (\d+)/);
+    if (!m) return null;
+    const n = parseInt(m[1], 10);
+    if (n <= 6) return "primary";
+    if (n <= 9) return "junior";
+    return "senior";
+  }
+  return null;
+}
 
 const LANGUAGES = ["English", "French"];
 
@@ -81,6 +153,28 @@ export default function LessonForm({ onGenerate, isLoading }: LessonFormProps) {
     teachingStyle: "",
   });
 
+  const availableSubjects = useMemo(() => {
+    if (!form.curriculum) return [];
+    const buckets = SUBJECTS_BY_CURRICULUM[form.curriculum];
+    if (!buckets) return [];
+    const level = getLevel(form.curriculum, form.classLevel);
+    if (!level) {
+      // Union across all levels for this curriculum
+      const all = new Set<string>([
+        ...buckets.primary, ...buckets.junior, ...buckets.senior,
+      ]);
+      return Array.from(all);
+    }
+    return buckets[level];
+  }, [form.curriculum, form.classLevel]);
+
+  // Reset subject if it's no longer valid for the chosen curriculum/class
+  useEffect(() => {
+    if (form.subject && !availableSubjects.includes(form.subject)) {
+      setForm((f) => ({ ...f, subject: "" }));
+    }
+  }, [availableSubjects, form.subject]);
+
   const canSubmit = form.subject && form.classLevel && form.topic && form.curriculum;
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -93,7 +187,12 @@ export default function LessonForm({ onGenerate, isLoading }: LessonFormProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="curriculum">Curriculum *</Label>
-          <Select value={form.curriculum} onValueChange={(v) => setForm({ ...form, curriculum: v, classLevel: "" })}>
+          <Select
+            value={form.curriculum}
+            onValueChange={(v) =>
+              setForm({ ...form, curriculum: v, classLevel: "", subject: "" })
+            }
+          >
             <SelectTrigger id="curriculum">
               <SelectValue placeholder="Select curriculum" />
             </SelectTrigger>
@@ -103,6 +202,9 @@ export default function LessonForm({ onGenerate, isLoading }: LessonFormProps) {
               ))}
             </SelectContent>
           </Select>
+          {form.curriculum && (
+            <p className="text-xs text-accent font-medium">{CURRICULUM_HINTS[form.curriculum]}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -122,20 +224,6 @@ export default function LessonForm({ onGenerate, isLoading }: LessonFormProps) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="subject">Subject *</Label>
-          <Select value={form.subject} onValueChange={(v) => setForm({ ...form, subject: v })}>
-            <SelectTrigger id="subject">
-              <SelectValue placeholder="Select subject" />
-            </SelectTrigger>
-            <SelectContent>
-              {SUBJECTS.map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
           <Label htmlFor="class">Class / Grade *</Label>
           <Select
             value={form.classLevel}
@@ -151,9 +239,32 @@ export default function LessonForm({ onGenerate, isLoading }: LessonFormProps) {
               ))}
             </SelectContent>
           </Select>
-          {form.curriculum && (
-            <p className="text-xs text-accent font-medium">{CURRICULUM_HINTS[form.curriculum]}</p>
-          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="subject">Subject *</Label>
+          <Select
+            value={form.subject}
+            onValueChange={(v) => setForm({ ...form, subject: v })}
+            disabled={!form.curriculum}
+          >
+            <SelectTrigger id="subject">
+              <SelectValue
+                placeholder={
+                  form.curriculum
+                    ? form.classLevel
+                      ? "Select subject"
+                      : "Select class for best match"
+                    : "Select curriculum first"
+                }
+              />
+            </SelectTrigger>
+            <SelectContent>
+              {availableSubjects.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
