@@ -248,34 +248,33 @@ export default function LessonOutput({
     while (i < lines.length) {
       const line = lines[i];
 
-      // Block math $$...$$ possibly multiline
-      if (line.trim().startsWith("$$")) {
+      // Block math $$...$$ or \[...\] possibly multiline
+      const trimmed = line.trim();
+      const isDollarBlock = trimmed.startsWith("$$");
+      const isBracketBlock = trimmed.startsWith("\\[");
+      if (isDollarBlock || isBracketBlock) {
+        const openLen = 2;
+        const closeToken = isDollarBlock ? "$$" : "\\]";
         const collected: string[] = [];
-        let inner = line.trim().slice(2);
-        if (inner.endsWith("$$")) {
-          collected.push(inner.slice(0, -2));
+        let inner = trimmed.slice(openLen);
+        if (inner.endsWith(closeToken)) {
+          collected.push(inner.slice(0, -closeToken.length));
         } else {
           if (inner) collected.push(inner);
           i++;
-          while (i < lines.length && !lines[i].trim().endsWith("$$")) {
+          while (i < lines.length && !lines[i].trim().endsWith(closeToken)) {
             collected.push(lines[i]);
             i++;
           }
           if (i < lines.length) {
             const last = lines[i].trim();
-            collected.push(last.slice(0, -2));
+            collected.push(last.slice(0, -closeToken.length));
           }
         }
         const math = collected.join("\n").trim();
         out.push(
           <div key={`bm-${i}`} className="my-4 p-4 bg-primary/5 border-l-4 border-primary rounded overflow-x-auto">
-            {(() => {
-              try {
-                return <BlockMath math={math} />;
-              } catch {
-                return <code>{math}</code>;
-              }
-            })()}
+            <SafeBlockMath value={math} />
           </div>,
         );
         i++;
