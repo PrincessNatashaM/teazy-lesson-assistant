@@ -178,27 +178,56 @@ export default function LessonOutput({
     }
   };
 
-  // Render inline content with bold + math ($...$)
+  // Unicode fallback for trivial LaTeX when KaTeX fails
+  const unicodeFallback = (s: string): string => {
+    return s
+      .replace(/\\circ/g, "°")
+      .replace(/\\times/g, "×")
+      .replace(/\\div/g, "÷")
+      .replace(/\\pm/g, "±")
+      .replace(/\\pi/g, "π")
+      .replace(/\\theta/g, "θ")
+      .replace(/\\Delta/g, "Δ")
+      .replace(/\\angle/g, "∠")
+      .replace(/\\sqrt\{([^}]*)\}/g, "√($1)")
+      .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, "($1)/($2)")
+      .replace(/\^\{([^}]*)\}/g, "^$1")
+      .replace(/_\{([^}]*)\}/g, "_$1");
+  };
+
+  const SafeInlineMath = ({ value }: { value: string }) => (
+    <InlineMath
+      math={value}
+      renderError={() => <code className="text-sm">{unicodeFallback(value)}</code>}
+      settings={{ throwOnError: false, strict: false } as any}
+    />
+  );
+
+  const SafeBlockMath = ({ value }: { value: string }) => (
+    <BlockMath
+      math={value}
+      renderError={() => <code className="text-sm">{unicodeFallback(value)}</code>}
+      settings={{ throwOnError: false, strict: false } as any}
+    />
+  );
+
+  // Render inline content with bold + math ($...$, \(...\))
   const renderInline = (text: string, keyPrefix = "") => {
-    // First split out math: $$...$$ for block, $...$ for inline (only inline here)
     const segments: { type: "text" | "math"; value: string }[] = [];
-    const regex = /\$([^$\n]+)\$/g;
+    // Match $...$ or \( ... \)
+    const regex = /\$([^$\n]+?)\$|\\\(([\s\S]+?)\\\)/g;
     let lastIdx = 0;
     let m: RegExpExecArray | null;
     while ((m = regex.exec(text)) !== null) {
       if (m.index > lastIdx) segments.push({ type: "text", value: text.slice(lastIdx, m.index) });
-      segments.push({ type: "math", value: m[1] });
+      segments.push({ type: "math", value: (m[1] ?? m[2] ?? "").trim() });
       lastIdx = m.index + m[0].length;
     }
     if (lastIdx < text.length) segments.push({ type: "text", value: text.slice(lastIdx) });
 
     return segments.map((seg, i) => {
       if (seg.type === "math") {
-        try {
-          return <InlineMath key={`${keyPrefix}m${i}`} math={seg.value} />;
-        } catch {
-          return <code key={`${keyPrefix}m${i}`}>{seg.value}</code>;
-        }
+        return <SafeInlineMath key={`${keyPrefix}m${i}`} value={seg.value} />;
       }
       // Bold parsing
       const parts = seg.value.split(/\*\*(.*?)\*\*/g);
