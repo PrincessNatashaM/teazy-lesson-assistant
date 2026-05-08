@@ -178,27 +178,56 @@ export default function LessonOutput({
     }
   };
 
-  // Render inline content with bold + math ($...$)
+  // Unicode fallback for trivial LaTeX when KaTeX fails
+  const unicodeFallback = (s: string): string => {
+    return s
+      .replace(/\\circ/g, "°")
+      .replace(/\\times/g, "×")
+      .replace(/\\div/g, "÷")
+      .replace(/\\pm/g, "±")
+      .replace(/\\pi/g, "π")
+      .replace(/\\theta/g, "θ")
+      .replace(/\\Delta/g, "Δ")
+      .replace(/\\angle/g, "∠")
+      .replace(/\\sqrt\{([^}]*)\}/g, "√($1)")
+      .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, "($1)/($2)")
+      .replace(/\^\{([^}]*)\}/g, "^$1")
+      .replace(/_\{([^}]*)\}/g, "_$1");
+  };
+
+  const SafeInlineMath = ({ value }: { value: string }) => (
+    <InlineMath
+      math={value}
+      renderError={() => <code className="text-sm">{unicodeFallback(value)}</code>}
+      settings={{ throwOnError: false, strict: false } as any}
+    />
+  );
+
+  const SafeBlockMath = ({ value }: { value: string }) => (
+    <BlockMath
+      math={value}
+      renderError={() => <code className="text-sm">{unicodeFallback(value)}</code>}
+      settings={{ throwOnError: false, strict: false } as any}
+    />
+  );
+
+  // Render inline content with bold + math ($...$, \(...\))
   const renderInline = (text: string, keyPrefix = "") => {
-    // First split out math: $$...$$ for block, $...$ for inline (only inline here)
     const segments: { type: "text" | "math"; value: string }[] = [];
-    const regex = /\$([^$\n]+)\$/g;
+    // Match $...$ or \( ... \)
+    const regex = /\$([^$\n]+?)\$|\\\(([\s\S]+?)\\\)/g;
     let lastIdx = 0;
     let m: RegExpExecArray | null;
     while ((m = regex.exec(text)) !== null) {
       if (m.index > lastIdx) segments.push({ type: "text", value: text.slice(lastIdx, m.index) });
-      segments.push({ type: "math", value: m[1] });
+      segments.push({ type: "math", value: (m[1] ?? m[2] ?? "").trim() });
       lastIdx = m.index + m[0].length;
     }
     if (lastIdx < text.length) segments.push({ type: "text", value: text.slice(lastIdx) });
 
     return segments.map((seg, i) => {
       if (seg.type === "math") {
-        try {
-          return <InlineMath key={`${keyPrefix}m${i}`} math={seg.value} />;
-        } catch {
-          return <code key={`${keyPrefix}m${i}`}>{seg.value}</code>;
-        }
+        return <SafeInlineMath key={`${keyPrefix}m${i}`} value={seg.value} />;
       }
       // Bold parsing
       const parts = seg.value.split(/\*\*(.*?)\*\*/g);
@@ -219,34 +248,33 @@ export default function LessonOutput({
     while (i < lines.length) {
       const line = lines[i];
 
-      // Block math $$...$$ possibly multiline
-      if (line.trim().startsWith("$$")) {
+      // Block math $$...$$ or \[...\] possibly multiline
+      const trimmed = line.trim();
+      const isDollarBlock = trimmed.startsWith("$$");
+      const isBracketBlock = trimmed.startsWith("\\[");
+      if (isDollarBlock || isBracketBlock) {
+        const openLen = 2;
+        const closeToken = isDollarBlock ? "$$" : "\\]";
         const collected: string[] = [];
-        let inner = line.trim().slice(2);
-        if (inner.endsWith("$$")) {
-          collected.push(inner.slice(0, -2));
+        let inner = trimmed.slice(openLen);
+        if (inner.endsWith(closeToken)) {
+          collected.push(inner.slice(0, -closeToken.length));
         } else {
           if (inner) collected.push(inner);
           i++;
-          while (i < lines.length && !lines[i].trim().endsWith("$$")) {
+          while (i < lines.length && !lines[i].trim().endsWith(closeToken)) {
             collected.push(lines[i]);
             i++;
           }
           if (i < lines.length) {
             const last = lines[i].trim();
-            collected.push(last.slice(0, -2));
+            collected.push(last.slice(0, -closeToken.length));
           }
         }
         const math = collected.join("\n").trim();
         out.push(
           <div key={`bm-${i}`} className="my-4 p-4 bg-primary/5 border-l-4 border-primary rounded overflow-x-auto">
-            {(() => {
-              try {
-                return <BlockMath math={math} />;
-              } catch {
-                return <code>{math}</code>;
-              }
-            })()}
+            <SafeBlockMath value={math} />
           </div>,
         );
         i++;
