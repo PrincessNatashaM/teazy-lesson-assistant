@@ -14,7 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cached_lessons: {
+        Row: {
+          class_level: string
+          content: string
+          created_at: string
+          curriculum: string
+          hit_count: number
+          id: string
+          language: string
+          subject: string
+          topic_normalized: string
+          updated_at: string
+        }
+        Insert: {
+          class_level: string
+          content: string
+          created_at?: string
+          curriculum: string
+          hit_count?: number
+          id?: string
+          language?: string
+          subject: string
+          topic_normalized: string
+          updated_at?: string
+        }
+        Update: {
+          class_level?: string
+          content?: string
+          created_at?: string
+          curriculum?: string
+          hit_count?: number
+          id?: string
+          language?: string
+          subject?: string
+          topic_normalized?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cached_quizzes: {
+        Row: {
+          created_at: string
+          hit_count: number
+          id: string
+          language: string
+          lesson_hash: string
+          quiz: Json
+        }
+        Insert: {
+          created_at?: string
+          hit_count?: number
+          id?: string
+          language?: string
+          lesson_hash: string
+          quiz: Json
+        }
+        Update: {
+          created_at?: string
+          hit_count?: number
+          id?: string
+          language?: string
+          lesson_hash?: string
+          quiz?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

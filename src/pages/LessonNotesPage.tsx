@@ -6,6 +6,22 @@ import { useToast } from "@/hooks/use-toast";
 const LESSON_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson`;
 const IMAGES_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson-images`;
 
+const VISUAL_SUBJECTS = ["math", "biology", "basic science", "physics", "chemistry", "geography", "agric"];
+const VISUAL_KEYWORDS = [
+  "diagram", "shape", "cycle", "cell", "organ", "system", "circuit", "map",
+  "structure", "anatomy", "geometry", "triangle", "polygon", "graph",
+  "ecosystem", "photosynthesis", "respiration", "digestion", "force",
+  "motion", "wave", "atom", "molecule", "reaction",
+];
+
+function shouldGenerateDiagrams(subject: string, topic: string): boolean {
+  const s = (subject || "").toLowerCase();
+  const t = (topic || "").toLowerCase();
+  if (VISUAL_SUBJECTS.some((v) => s.includes(v))) return true;
+  if (VISUAL_KEYWORDS.some((k) => t.includes(k))) return true;
+  return false;
+}
+
 function loadingMessageFor(subject: string): string {
   const s = subject.toLowerCase();
   if (s.includes("math")) return "Generating formulas, worked examples and diagrams...";
@@ -40,8 +56,11 @@ export default function LessonNotesPage() {
     setSubject(data.subject);
     setTopic(data.topic);
 
-    setImagesLoading(true);
-    fetch(IMAGES_URL, {
+    // Modular generation: only fetch diagrams when subject/topic actually needs them.
+    const needsDiagrams = shouldGenerateDiagrams(data.subject, data.topic);
+    if (needsDiagrams) {
+      setImagesLoading(true);
+      fetch(IMAGES_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -63,6 +82,7 @@ export default function LessonNotesPage() {
         console.error("Image generation failed:", err);
       })
       .finally(() => setImagesLoading(false));
+    }
 
     try {
       const resp = await fetch(LESSON_URL, {
