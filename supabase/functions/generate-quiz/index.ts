@@ -1,8 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getCachedQuiz, saveCachedQuiz, hashString } from "../_shared/cache.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
@@ -18,36 +20,27 @@ serve(async (req) => {
       });
     }
 
+    const lang = language || "English";
+
+    // Cache lookup by content hash
+    const lessonHash = await hashString(lessonContent.slice(0, 4000) + "|" + lang);
+    const cached = await getCachedQuiz(lessonHash, lang);
+    if (cached) {
+      console.log("Quiz cache HIT");
+      return new Response(JSON.stringify(cached), {
+        headers: { ...corsHeaders, "Content-Type": "application/json", "X-Cache": "HIT" },
+      });
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const lang = language || "English";
-
-    const systemPrompt = `You are a quiz generator for African teachers. Generate quizzes in ${lang} based on lesson content provided.
-
-Generate exactly this JSON structure (no markdown, no code fences, just raw JSON):
-{
-  "multipleChoice": [
-    {
-      "question": "...",
-      "options": {"A": "...", "B": "...", "C": "...", "D": "..."},
-      "answer": "A"
-    }
-  ],
-  "shortAnswer": [
-    {
-      "question": "...",
-      "answer": "..."
-    }
-  ]
-}
-
-Rules:
-- Generate 8 multiple choice questions and 2 short answer questions
-- Questions should test recall, understanding, and application
-- Make questions practical and classroom-appropriate
-- Include a mix of easy, medium, and hard questions
-- All content must be in ${lang}`;
+    // Cost optimization: use the lite model for quiz generation
+    const systemPrompt = `Quiz generator for African teachers. Output ONLY raw JSON (no markdown):
+{"multipleChoice":[{"question":"...","options":{"A":"...","B":"...","C":"...","D":"..."},"answer":"A"}],"shortAnswer":[{"question":"...","answer":"..."}]}
+- 8 multiple choice + 2 short answer
+- Mix of recall, understanding, application
+- Language: ${lang}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -56,10 +49,10 @@ Rules:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash-lite",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Generate a quiz based on this lesson:\n\n${lessonContent.slice(0, 4000)}` },
+          { role: "user", content: `Generate a quiz from this lesson:\n\n${lessonContent.slice(0, 4000)}` },
         ],
       }),
     });
@@ -88,7 +81,6 @@ Rules:
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
 
-    // Parse JSON from response (handle possible markdown fences)
     let quiz;
     try {
       const cleaned = content.replace(/```json?\n?/g, "").replace(/```/g, "").trim();
@@ -100,8 +92,11 @@ Rules:
       });
     }
 
+    // Save to cache (fire-and-forget)
+    saveCachedQuiz(lessonHash, lang, quiz).catch(() => {});
+
     return new Response(JSON.stringify(quiz), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json", "X-Cache": "MISS" },
     });
   } catch (e) {
     console.error("Error:", e);
