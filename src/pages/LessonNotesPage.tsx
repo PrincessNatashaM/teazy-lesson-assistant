@@ -82,6 +82,7 @@ export default function LessonNotesPage() {
         console.error("Image generation failed:", err);
       })
       .finally(() => setImagesLoading(false));
+    }
 
     try {
       const resp = await fetch(LESSON_URL, {
