@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils";
 import teazyLogo from "@/assets/teazy-logo.jpg";
 
 const NAV = [
-  { to: "/", label: "Lesson Notes", icon: BookOpen },
-  { to: "/quiz", label: "Quiz Generator", icon: Brain },
-  { to: "/writing", label: "Writing Assessment", icon: PenLine },
+  { to: "/app", label: "Lesson Notes", icon: BookOpen },
+  { to: "/app/quiz", label: "Quiz Generator", icon: Brain },
+  { to: "/app/writing", label: "Writing Assessment", icon: PenLine },
 ];
 
 export default function Header() {
@@ -32,7 +32,7 @@ export default function Header() {
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1">
           {NAV.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to} end={to === "/"} className={linkClass}>
+            <NavLink key={to} to={to} end={to === "/app"} className={linkClass}>
               <Icon className="h-4 w-4" />
               {label}
             </NavLink>
@@ -56,7 +56,7 @@ export default function Header() {
             <NavLink
               key={to}
               to={to}
-              end={to === "/"}
+              end={to === "/app"}
               onClick={() => setOpen(false)}
               className={linkClass}
             >
