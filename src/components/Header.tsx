@@ -18,15 +18,15 @@ export default function Header() {
       "px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
       isActive
         ? "bg-accent text-accent-foreground"
-        : "text-primary-foreground/90 hover:bg-primary-foreground/10",
+        : "text-navy-foreground/90 hover:bg-navy-foreground/10",
     );
 
   return (
-    <header className="border-b border-border bg-primary sticky top-0 z-40">
+    <header className="border-b border-border bg-navy sticky top-0 z-40">
       <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-3">
         <Link to="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
           <img src={teazyLogo} alt="Teazy Tech logo" className="h-9 w-9 rounded-lg object-contain bg-background" />
-          <h1 className="text-lg sm:text-xl font-bold text-primary-foreground font-heading">Teazy AI</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-navy-foreground font-heading">Teazy AI</h1>
         </Link>
 
         {/* Desktop nav */}
