@@ -116,13 +116,13 @@ ${data.teacherComment}`;
 
       {/* Overall Score */}
       <div className="bg-card border border-border rounded-xl p-6 text-center">
-        <h3 className="text-lg font-semibold text-primary font-heading mb-3">Overall Score</h3>
+        <h3 className="text-lg font-semibold text-navy font-heading mb-3">Overall Score</h3>
         <ScoreCircle score={data.overallScore} />
       </div>
 
       {/* Rubric Breakdown */}
       <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-primary font-heading flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-navy font-heading flex items-center gap-2">
           <Star className="h-5 w-5" /> Rubric Breakdown
         </h3>
         <RubricRow label="Content / Ideas" item={data.rubric.contentIdeas} />
@@ -164,7 +164,7 @@ ${data.teacherComment}`;
 
       {/* Suggested Rewrite */}
       <div className="bg-card border border-border rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-primary font-heading flex items-center gap-2 mb-3">
+        <h3 className="text-lg font-semibold text-navy font-heading flex items-center gap-2 mb-3">
           <PenLine className="h-5 w-5" /> Suggested Rewrite
         </h3>
         <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">{data.suggestedRewrite}</p>
@@ -172,7 +172,7 @@ ${data.teacherComment}`;
 
       {/* Teacher Comment */}
       <div className="bg-card border border-border rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-primary font-heading flex items-center gap-2 mb-3">
+        <h3 className="text-lg font-semibold text-navy font-heading flex items-center gap-2 mb-3">
           <MessageSquare className="h-5 w-5" /> Teacher Comment
         </h3>
         <div className="bg-muted rounded-lg p-4">

@@ -87,7 +87,7 @@ export default function QuizSection({ lessonContent, language }: QuizSectionProp
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-primary font-heading">Quiz Questions</h3>
+        <h3 className="text-lg font-semibold text-navy font-heading">Quiz Questions</h3>
         <Button
           variant="outline"
           size="sm"
