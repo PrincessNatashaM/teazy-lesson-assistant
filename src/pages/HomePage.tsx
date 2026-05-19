@@ -210,7 +210,7 @@ export default function HomePage() {
             <span className="inline-flex items-center gap-2 rounded-full bg-accent/10 text-accent px-3 py-1 text-xs font-semibold">
               <Sparkles className="h-3.5 w-3.5" /> Built for African classrooms
             </span>
-            <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-extrabold text-primary font-heading leading-tight">
+            <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-extrabold text-navy font-heading leading-tight">
               AI Lesson Note Generator for African Teachers
             </h1>
             <p className="mt-5 text-lg text-muted-foreground max-w-xl">
@@ -250,7 +250,7 @@ export default function HomePage() {
       <section id="features" className="py-20 bg-background">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="text-center max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold text-primary font-heading">
+            <h2 className="text-3xl sm:text-4xl font-bold text-navy font-heading">
               Everything a teacher needs in one AI assistant
             </h2>
             <p className="mt-4 text-muted-foreground">
@@ -276,7 +276,7 @@ export default function HomePage() {
       <section className="py-20 bg-secondary/40">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="text-center max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold text-primary font-heading">
+            <h2 className="text-3xl sm:text-4xl font-bold text-navy font-heading">
               Built for African Classrooms
             </h2>
             <p className="mt-4 text-muted-foreground">
@@ -288,7 +288,7 @@ export default function HomePage() {
             {CURRICULA.map(({ flag, name, points }) => (
               <article key={name} className="rounded-2xl bg-card border border-border p-6">
                 <div className="text-4xl" aria-hidden="true">{flag}</div>
-                <h3 className="mt-3 text-xl font-semibold text-primary font-heading">{name}</h3>
+                <h3 className="mt-3 text-xl font-semibold text-navy font-heading">{name}</h3>
                 <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
                   {points.map((p) => (
                     <li key={p} className="flex items-start gap-2">
@@ -307,7 +307,7 @@ export default function HomePage() {
       <section className="py-20 bg-background">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="text-center max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold text-primary font-heading">
+            <h2 className="text-3xl sm:text-4xl font-bold text-navy font-heading">
               Supports multiple subjects
             </h2>
             <p className="mt-4 text-muted-foreground">
@@ -330,7 +330,7 @@ export default function HomePage() {
       <section className="py-20 bg-secondary/40">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="text-center max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold text-primary font-heading">How it works</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-navy font-heading">How it works</h2>
             <p className="mt-4 text-muted-foreground">
               Three simple steps from blank page to classroom-ready material.
             </p>
@@ -354,7 +354,7 @@ export default function HomePage() {
       <section className="py-20 bg-background">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="text-center max-w-2xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-bold text-primary font-heading">
+            <h2 className="text-3xl sm:text-4xl font-bold text-navy font-heading">
               Trusted by teachers across Africa
             </h2>
             <p className="mt-4 text-muted-foreground">
@@ -384,7 +384,7 @@ export default function HomePage() {
       <section className="py-20 bg-secondary/40">
         <div className="container mx-auto max-w-3xl px-4">
           <div className="text-center">
-            <h2 className="text-3xl sm:text-4xl font-bold text-primary font-heading">
+            <h2 className="text-3xl sm:text-4xl font-bold text-navy font-heading">
               Frequently asked questions
             </h2>
             <p className="mt-4 text-muted-foreground">
@@ -403,13 +403,13 @@ export default function HomePage() {
       </section>
 
       {/* FINAL CTA */}
-      <section className="py-20 bg-primary text-primary-foreground">
+      <section className="py-20 bg-navy text-navy-foreground">
         <div className="container mx-auto max-w-3xl px-4 text-center">
           <GraduationCap className="h-10 w-10 mx-auto text-accent" />
           <h2 className="mt-4 text-3xl sm:text-4xl font-bold font-heading">
             Save hours on lesson preparation
           </h2>
-          <p className="mt-4 text-primary-foreground/80">
+          <p className="mt-4 text-navy-foreground/80">
             Join teachers across Nigeria, Ghana and Kenya using AI to simplify
             lesson planning, quizzes and grading.
           </p>
