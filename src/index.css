@@ -2,51 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    /* Teazy Tech Brand Palette
+       Primary Blue  #2F6FCC -> 214 60% 49%
+       Deep Navy     #233463 -> 226 48% 26%
+       Teal Accent   #44BBA4 -> 170 47% 50%
+       Orange/Red    #E94F37 -> 8 81% 57%
+       Soft BG       #F6F7EB -> 65 39% 95%
+       Neutral Gray  #474D4F -> 195 5% 30%
+    */
+    --background: 65 39% 95%;
+    --foreground: 226 48% 26%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 226 48% 26%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 226 48% 26%;
 
-    --primary: 224 76% 33%;
+    --primary: 214 60% 49%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 214 32% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --navy: 226 48% 26%;
+    --navy-foreground: 0 0% 100%;
 
-    --muted: 214 32% 96%;
-    --muted-foreground: 215 16% 47%;
+    --secondary: 0 0% 100%;
+    --secondary-foreground: 214 60% 49%;
 
-    --accent: 25 95% 53%;
+    --muted: 65 30% 92%;
+    --muted-foreground: 195 5% 30%;
+
+    --accent: 8 81% 57%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --success: 170 47% 50%;
+    --success-foreground: 0 0% 100%;
+
+    --destructive: 8 81% 57%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 224 76% 33%;
+    --border: 214 20% 88%;
+    --input: 214 20% 88%;
+    --ring: 214 60% 49%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 65 39% 97%;
+    --sidebar-foreground: 226 48% 26%;
+    --sidebar-primary: 226 48% 26%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 65 30% 92%;
+    --sidebar-accent-foreground: 226 48% 26%;
+    --sidebar-border: 214 20% 88%;
+    --sidebar-ring: 214 60% 49%;
 
-    --font-heading: 'Plus Jakarta Sans', sans-serif;
-    --font-body: 'Inter', sans-serif;
+    --font-heading: 'Poppins', sans-serif;
+    --font-body: 'Poppins', sans-serif;
   }
 }
 

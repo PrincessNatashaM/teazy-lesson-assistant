@@ -48,7 +48,7 @@ export default function Hero() {
   return (
     <section className="text-center py-10 sm:py-14 px-4">
       <div key={index} className="animate-fade-in">
-        <h2 className="text-3xl sm:text-5xl font-extrabold text-primary font-heading leading-tight max-w-3xl mx-auto">
+        <h2 className="text-3xl sm:text-5xl font-extrabold text-navy font-heading leading-tight max-w-3xl mx-auto">
           {slide.title}
         </h2>
         <p className="mt-4 text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto">

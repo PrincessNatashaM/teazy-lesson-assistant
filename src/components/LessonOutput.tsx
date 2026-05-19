@@ -283,13 +283,13 @@ export default function LessonOutput({
 
       if (line.startsWith("# ")) {
         out.push(
-          <h2 key={i} className="text-xl font-bold text-primary mt-6 mb-2 font-heading">
+          <h2 key={i} className="text-xl font-bold text-navy mt-6 mb-2 font-heading">
             {renderInline(line.slice(2), `h${i}`)}
           </h2>,
         );
       } else if (line.startsWith("## ")) {
         out.push(
-          <h3 key={i} className="text-lg font-semibold text-primary mt-5 mb-1 font-heading">
+          <h3 key={i} className="text-lg font-semibold text-navy mt-5 mb-1 font-heading">
             {renderInline(line.slice(3), `h${i}`)}
           </h3>,
         );
@@ -384,7 +384,7 @@ export default function LessonOutput({
 
               {(imagesLoading || images.length > 0) && (
                 <div className="mt-8 pt-6 border-t border-border">
-                  <h3 className="text-lg font-semibold text-primary mb-4 font-heading">
+                  <h3 className="text-lg font-semibold text-navy mb-4 font-heading">
                     Visual Teaching Aids
                   </h3>
                   {imagesLoading && images.length === 0 ? (

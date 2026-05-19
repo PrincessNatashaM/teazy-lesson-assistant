@@ -23,6 +23,14 @@ export default {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
+        navy: {
+          DEFAULT: "hsl(var(--navy))",
+          foreground: "hsl(var(--navy-foreground))",
+        },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
@@ -82,8 +90,9 @@ export default {
         },
       },
       fontFamily: {
-        heading: ['Plus Jakarta Sans', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
+        heading: ['Poppins', 'sans-serif'],
+        body: ['Poppins', 'sans-serif'],
+        sans: ['Poppins', 'sans-serif'],
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
