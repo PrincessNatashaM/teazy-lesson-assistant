@@ -41,7 +41,7 @@ export default function Header() {
 
         {/* Mobile toggle */}
         <button
-          className="md:hidden text-primary-foreground p-2 rounded-md hover:bg-primary-foreground/10"
+          className="md:hidden text-navy-foreground p-2 rounded-md hover:bg-navy-foreground/10"
           onClick={() => setOpen((v) => !v)}
           aria-label="Toggle menu"
         >
@@ -51,7 +51,7 @@ export default function Header() {
 
       {/* Mobile nav */}
       {open && (
-        <nav className="md:hidden border-t border-primary-foreground/10 bg-primary px-4 py-3 flex flex-col gap-1 animate-fade-in">
+        <nav className="md:hidden border-t border-navy-foreground/10 bg-navy px-4 py-3 flex flex-col gap-1 animate-fade-in">
           {NAV.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
