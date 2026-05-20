@@ -188,7 +188,7 @@ export default function HomePage() {
         <title>Teazy AI Lesson Assistant | AI Lesson Note Generator for African Teachers</title>
         <meta
           name="description"
-          content="Generate curriculum-aligned lesson notes, quizzes and writing assessments for Nigeria (NERDC), Ghana and Kenya (CBC) using AI. Free for teachers."
+          content="Generate curriculum-aligned lesson notes, quizzes and writing assessments for Nigeria (NERDC), Ghana and Kenya (CBC) using AI. Start free, upgrade when you need more."
         />
         <link rel="canonical" href="/" />
         <meta property="og:title" content="Teazy AI Lesson Assistant" />
