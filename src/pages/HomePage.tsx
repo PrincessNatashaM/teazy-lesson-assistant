@@ -402,6 +402,63 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* FREE VS PREMIUM */}
+      <section id="pricing" className="py-20 bg-background">
+        <div className="container mx-auto max-w-5xl px-4">
+          <div className="text-center max-w-2xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl font-bold text-navy font-heading">
+              What's free, what's premium
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Core lesson generation stays free. Only pay when you need
+              downloads or additional writing assessments.
+            </p>
+          </div>
+          <div className="mt-12 grid md:grid-cols-2 gap-6">
+            <article className="rounded-2xl border border-border bg-card p-8">
+              <div className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Free</div>
+              <h3 className="mt-1 text-2xl font-bold text-navy font-heading">Generate &amp; copy, no cost</h3>
+              <ul className="mt-6 space-y-3 text-sm">
+                {[
+                  "Generate lesson notes",
+                  "Generate quizzes",
+                  "Copy generated content",
+                  "2 free writing assessments",
+                ].map((p) => (
+                  <li key={p} className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-accent mt-0.5 shrink-0" />
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+            </article>
+            <article className="rounded-2xl border-2 border-accent bg-card p-8 relative">
+              <span className="absolute -top-3 right-6 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full">
+                Best for active teachers
+              </span>
+              <div className="text-sm font-semibold uppercase tracking-wide text-accent">Premium</div>
+              <h3 className="mt-1 text-2xl font-bold text-navy font-heading">Unlock downloads &amp; more</h3>
+              <ul className="mt-6 space-y-3 text-sm">
+                {[
+                  "PDF downloads",
+                  "Word (.docx) downloads",
+                  "Extra writing assessments",
+                  "Unlimited Pro access",
+                ].map((p) => (
+                  <li key={p} className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-accent mt-0.5 shrink-0" />
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-6 text-xs text-muted-foreground">
+                Designed to remain affordable for teachers across Nigeria, Ghana and Kenya.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
       {/* FINAL CTA */}
       <section className="py-20 bg-navy text-navy-foreground">
         <div className="container mx-auto max-w-3xl px-4 text-center">
@@ -411,11 +468,12 @@ export default function HomePage() {
           </h2>
           <p className="mt-4 text-navy-foreground/80">
             Join teachers across Nigeria, Ghana and Kenya using AI to simplify
-            lesson planning, quizzes and grading.
+            lesson planning, quizzes and grading. Start free — upgrade only
+            when you need downloads or more assessments.
           </p>
           <Button asChild size="lg" className="mt-7 bg-accent text-accent-foreground hover:bg-accent/90">
             <Link to="/app">
-              Launch Teazy AI <ArrowRight className="h-4 w-4" />
+              Start Generating Lesson Notes <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
