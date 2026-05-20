@@ -185,16 +185,16 @@ export default function HomePage() {
   return (
     <>
       <Helmet>
-        <title>Teazy AI Lesson Assistant | AI Lesson Note Generator for African Teachers</title>
+        <title>AI Lesson Note Generator for African Teachers | Teazy AI</title>
         <meta
           name="description"
-          content="Generate curriculum-aligned lesson notes, quizzes and writing assessments for Nigeria (NERDC), Ghana and Kenya (CBC) using AI. Start free, upgrade when you need more."
+          content="AI lesson note generator for African teachers. Generate curriculum-aligned lesson notes, quizzes and classroom materials for Nigeria (NERDC), Ghana (NaCCA) and Kenya (CBC)."
         />
         <link rel="canonical" href="/" />
-        <meta property="og:title" content="Teazy AI Lesson Assistant" />
+        <meta property="og:title" content="AI Lesson Note Generator for African Teachers | Teazy AI" />
         <meta
           property="og:description"
-          content="AI lesson note generator for African teachers — NERDC, Ghana and Kenya CBC curricula supported."
+          content="Curriculum-aligned AI lesson notes, quizzes and classroom materials for Nigeria, Ghana and Kenya."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="/" />
@@ -211,27 +211,27 @@ export default function HomePage() {
               <Sparkles className="h-3.5 w-3.5" /> Built for African classrooms
             </span>
             <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-extrabold text-navy font-heading leading-tight">
-              Start Free. Upgrade When You Need More.
+              AI Lesson Note Generator for African Teachers
             </h1>
             <p className="mt-5 text-lg text-muted-foreground max-w-xl">
-              Teazy AI generates curriculum-aligned lesson notes and quizzes for
-              Nigeria, Ghana and Kenya — free to create and copy. Unlock PDF,
-              Word and unlimited writing assessments when you need them.
+              Generate curriculum-aligned lesson notes, quizzes and classroom
+              materials for Nigeria (NERDC), Ghana (NaCCA) and Kenya (CBC) —
+              built for real classroom instruction.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
                 <Link to="/app">
-                  Start Generating Lesson Notes <ArrowRight className="h-4 w-4" />
+                  Generate Lesson Notes <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <a href="#pricing">See What's Free</a>
+                <a href="#features">Explore Features</a>
               </Button>
             </div>
             <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Free lesson generation</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Affordable downloads</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> NERDC · CBC · NaCCA</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Aligned with NERDC structure</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Supports Kenya CBC framework</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Ghana NaCCA aligned</li>
             </ul>
           </div>
           <div className="relative">
