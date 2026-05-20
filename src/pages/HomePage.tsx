@@ -464,16 +464,16 @@ export default function HomePage() {
         <div className="container mx-auto max-w-3xl px-4 text-center">
           <GraduationCap className="h-10 w-10 mx-auto text-accent" />
           <h2 className="mt-4 text-3xl sm:text-4xl font-bold font-heading">
-            Save hours on lesson preparation
+            Your AI teaching assistant for African classrooms
           </h2>
           <p className="mt-4 text-navy-foreground/80">
-            Join teachers across Nigeria, Ghana and Kenya using AI to simplify
-            lesson planning, quizzes and grading. Start free — upgrade only
-            when you need downloads or more assessments.
+            Generate curriculum-aligned lesson notes, quizzes and writing
+            assessments for Nigeria, Ghana and Kenya — built for real
+            classroom instruction.
           </p>
           <Button asChild size="lg" className="mt-7 bg-accent text-accent-foreground hover:bg-accent/90">
             <Link to="/app">
-              Start Generating Lesson Notes <ArrowRight className="h-4 w-4" />
+              Launch Teazy AI <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
