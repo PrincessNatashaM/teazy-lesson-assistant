@@ -148,11 +148,11 @@ const FAQS = [
   },
   {
     q: "Can I download lesson notes as Word documents?",
-    a: "Yes. Every generated lesson note can be downloaded as an editable Microsoft Word (.docx) file, so you can tweak it before printing or sharing.",
+    a: "Word and PDF downloads are part of the premium tier. You can always generate lesson notes for free and copy the content, then upgrade when you need a formatted file to share or print.",
   },
   {
     q: "Is Teazy AI free to use?",
-    a: "Teazy AI is currently free for teachers. All downloads — Word, PDF and quizzes — are unlocked while we gather feedback from educators.",
+    a: "Lesson note generation, quiz generation, copying outputs and your first 2 writing assessments are free. PDF/Word downloads and additional writing assessments are part of the affordable premium tier.",
   },
   {
     q: "Which subjects are supported?",
