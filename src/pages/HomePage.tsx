@@ -148,11 +148,11 @@ const FAQS = [
   },
   {
     q: "Can I download lesson notes as Word documents?",
-    a: "Yes. Every generated lesson note can be downloaded as an editable Microsoft Word (.docx) file, so you can tweak it before printing or sharing.",
+    a: "Word and PDF downloads are part of the premium tier. You can always generate lesson notes for free and copy the content, then upgrade when you need a formatted file to share or print.",
   },
   {
     q: "Is Teazy AI free to use?",
-    a: "Teazy AI is currently free for teachers. All downloads — Word, PDF and quizzes — are unlocked while we gather feedback from educators.",
+    a: "Lesson note generation, quiz generation, copying outputs and your first 2 writing assessments are free. PDF/Word downloads and additional writing assessments are part of the affordable premium tier.",
   },
   {
     q: "Which subjects are supported?",
@@ -188,7 +188,7 @@ export default function HomePage() {
         <title>Teazy AI Lesson Assistant | AI Lesson Note Generator for African Teachers</title>
         <meta
           name="description"
-          content="Generate curriculum-aligned lesson notes, quizzes and writing assessments for Nigeria (NERDC), Ghana and Kenya (CBC) using AI. Free for teachers."
+          content="Generate curriculum-aligned lesson notes, quizzes and writing assessments for Nigeria (NERDC), Ghana and Kenya (CBC) using AI. Start free, upgrade when you need more."
         />
         <link rel="canonical" href="/" />
         <meta property="og:title" content="Teazy AI Lesson Assistant" />
@@ -211,26 +211,26 @@ export default function HomePage() {
               <Sparkles className="h-3.5 w-3.5" /> Built for African classrooms
             </span>
             <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-extrabold text-navy font-heading leading-tight">
-              AI Lesson Note Generator for African Teachers
+              Start Free. Upgrade When You Need More.
             </h1>
             <p className="mt-5 text-lg text-muted-foreground max-w-xl">
-              Create curriculum-aligned lesson notes, quizzes and writing
-              assessments for Nigeria, Ghana and Kenya in minutes. Teazy AI is
-              the AI teaching assistant built around NERDC, NaCCA and CBC.
+              Teazy AI generates curriculum-aligned lesson notes and quizzes for
+              Nigeria, Ghana and Kenya — free to create and copy. Unlock PDF,
+              Word and unlimited writing assessments when you need them.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
                 <Link to="/app">
-                  Launch Teazy AI <ArrowRight className="h-4 w-4" />
+                  Start Generating Lesson Notes <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <a href="#features">Explore Features</a>
+                <a href="#pricing">See What's Free</a>
               </Button>
             </div>
             <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Free for teachers</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Word & PDF export</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Free lesson generation</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Affordable downloads</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> NERDC · CBC · NaCCA</li>
             </ul>
           </div>
@@ -402,6 +402,63 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* FREE VS PREMIUM */}
+      <section id="pricing" className="py-20 bg-background">
+        <div className="container mx-auto max-w-5xl px-4">
+          <div className="text-center max-w-2xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl font-bold text-navy font-heading">
+              What's free, what's premium
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Core lesson generation stays free. Only pay when you need
+              downloads or additional writing assessments.
+            </p>
+          </div>
+          <div className="mt-12 grid md:grid-cols-2 gap-6">
+            <article className="rounded-2xl border border-border bg-card p-8">
+              <div className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Free</div>
+              <h3 className="mt-1 text-2xl font-bold text-navy font-heading">Generate &amp; copy, no cost</h3>
+              <ul className="mt-6 space-y-3 text-sm">
+                {[
+                  "Generate lesson notes",
+                  "Generate quizzes",
+                  "Copy generated content",
+                  "2 free writing assessments",
+                ].map((p) => (
+                  <li key={p} className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-accent mt-0.5 shrink-0" />
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+            </article>
+            <article className="rounded-2xl border-2 border-accent bg-card p-8 relative">
+              <span className="absolute -top-3 right-6 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full">
+                Best for active teachers
+              </span>
+              <div className="text-sm font-semibold uppercase tracking-wide text-accent">Premium</div>
+              <h3 className="mt-1 text-2xl font-bold text-navy font-heading">Unlock downloads &amp; more</h3>
+              <ul className="mt-6 space-y-3 text-sm">
+                {[
+                  "PDF downloads",
+                  "Word (.docx) downloads",
+                  "Extra writing assessments",
+                  "Unlimited Pro access",
+                ].map((p) => (
+                  <li key={p} className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-accent mt-0.5 shrink-0" />
+                    <span>{p}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-6 text-xs text-muted-foreground">
+                Designed to remain affordable for teachers across Nigeria, Ghana and Kenya.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
       {/* FINAL CTA */}
       <section className="py-20 bg-navy text-navy-foreground">
         <div className="container mx-auto max-w-3xl px-4 text-center">
@@ -411,11 +468,12 @@ export default function HomePage() {
           </h2>
           <p className="mt-4 text-navy-foreground/80">
             Join teachers across Nigeria, Ghana and Kenya using AI to simplify
-            lesson planning, quizzes and grading.
+            lesson planning, quizzes and grading. Start free — upgrade only
+            when you need downloads or more assessments.
           </p>
           <Button asChild size="lg" className="mt-7 bg-accent text-accent-foreground hover:bg-accent/90">
             <Link to="/app">
-              Launch Teazy AI <ArrowRight className="h-4 w-4" />
+              Start Generating Lesson Notes <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
