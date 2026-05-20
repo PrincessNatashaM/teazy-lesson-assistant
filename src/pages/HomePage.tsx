@@ -211,26 +211,26 @@ export default function HomePage() {
               <Sparkles className="h-3.5 w-3.5" /> Built for African classrooms
             </span>
             <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl font-extrabold text-navy font-heading leading-tight">
-              AI Lesson Note Generator for African Teachers
+              Start Free. Upgrade When You Need More.
             </h1>
             <p className="mt-5 text-lg text-muted-foreground max-w-xl">
-              Create curriculum-aligned lesson notes, quizzes and writing
-              assessments for Nigeria, Ghana and Kenya in minutes. Teazy AI is
-              the AI teaching assistant built around NERDC, NaCCA and CBC.
+              Teazy AI generates curriculum-aligned lesson notes and quizzes for
+              Nigeria, Ghana and Kenya — free to create and copy. Unlock PDF,
+              Word and unlimited writing assessments when you need them.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
                 <Link to="/app">
-                  Launch Teazy AI <ArrowRight className="h-4 w-4" />
+                  Start Generating Lesson Notes <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <a href="#features">Explore Features</a>
+                <a href="#pricing">See What's Free</a>
               </Button>
             </div>
             <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Free for teachers</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Word & PDF export</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Free lesson generation</li>
+              <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> Affordable downloads</li>
               <li className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-accent" /> NERDC · CBC · NaCCA</li>
             </ul>
           </div>
