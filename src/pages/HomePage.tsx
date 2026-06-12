@@ -456,7 +456,7 @@ export default function HomePage() {
               </ul>
               <Button asChild className="mt-6 w-full bg-accent text-accent-foreground hover:bg-accent/90">
                 <Link to="/auth?next=/account">
-                  <Sparkles className="mr-2 h-4 w-4" /> Subscribe with Paystack
+                  <Sparkles className="mr-2 h-4 w-4" /> Subscribe
                 </Link>
               </Button>
               <p className="mt-3 text-xs text-muted-foreground text-center">
