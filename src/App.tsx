@@ -10,7 +10,11 @@ import HomePage from "./pages/HomePage";
 import LessonNotesPage from "./pages/LessonNotesPage";
 import QuizGeneratorPage from "./pages/QuizGeneratorPage";
 import WritingAssessmentPage from "./pages/WritingAssessmentPage";
+import AuthPage from "./pages/AuthPage";
+import AccountPage from "./pages/AccountPage";
+import AdminPage from "./pages/AdminPage";
 import NotFound from "./pages/NotFound.tsx";
+import { AuthProvider } from "./hooks/useAuth";
 
 const queryClient = new QueryClient();
 
@@ -21,20 +25,24 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/app" element={<AppShell />}>
-                <Route index element={<LessonNotesPage />} />
-                <Route path="quiz" element={<QuizGeneratorPage />} />
-                <Route path="writing" element={<WritingAssessmentPage />} />
+          <AuthProvider>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/account" element={<AccountPage />} />
+                <Route path="/admin" element={<AdminPage />} />
+                <Route path="/app" element={<AppShell />}>
+                  <Route index element={<LessonNotesPage />} />
+                  <Route path="quiz" element={<QuizGeneratorPage />} />
+                  <Route path="writing" element={<WritingAssessmentPage />} />
+                </Route>
+                <Route path="/quiz" element={<Navigate to="/app/quiz" replace />} />
+                <Route path="/writing" element={<Navigate to="/app/writing" replace />} />
               </Route>
-              {/* Legacy redirects */}
-              <Route path="/quiz" element={<Navigate to="/app/quiz" replace />} />
-              <Route path="/writing" element={<Navigate to="/app/writing" replace />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
