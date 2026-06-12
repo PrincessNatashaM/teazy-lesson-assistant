@@ -436,14 +436,17 @@ export default function HomePage() {
               <span className="absolute -top-3 right-6 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full">
                 Best for active teachers
               </span>
-              <div className="text-sm font-semibold uppercase tracking-wide text-accent">Premium</div>
-              <h3 className="mt-1 text-2xl font-bold text-navy font-heading">Unlock downloads &amp; more</h3>
+              <div className="text-sm font-semibold uppercase tracking-wide text-accent">Pro</div>
+              <h3 className="mt-1 text-2xl font-bold text-navy font-heading">₦2,000/month</h3>
+              <p className="text-xs text-muted-foreground">2,000 CFA/month · KSh 180/month</p>
               <ul className="mt-6 space-y-3 text-sm">
                 {[
-                  "PDF downloads",
-                  "Word (.docx) downloads",
-                  "Extra writing assessments",
-                  "Unlimited Pro access",
+                  "Unlimited editing",
+                  "Unlimited PDF downloads",
+                  "Unlimited Word downloads",
+                  "Unlimited writing assessments",
+                  "Priority access",
+                  "No individual unlock fees",
                 ].map((p) => (
                   <li key={p} className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-accent mt-0.5 shrink-0" />
@@ -451,7 +454,12 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-              <p className="mt-6 text-xs text-muted-foreground">
+              <Button asChild className="mt-6 w-full bg-accent text-accent-foreground hover:bg-accent/90">
+                <Link to="/auth?next=/account">
+                  <Sparkles className="mr-2 h-4 w-4" /> Subscribe with Paystack
+                </Link>
+              </Button>
+              <p className="mt-3 text-xs text-muted-foreground text-center">
                 Designed to remain affordable for teachers across Nigeria, Ghana and Kenya.
               </p>
             </article>
