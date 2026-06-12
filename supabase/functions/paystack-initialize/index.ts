@@ -103,6 +103,7 @@ Deno.serve(async (req) => {
       amount_minor: minor,
       currency: charge_currency,
       payment_id: payment.id,
+      public_key: Deno.env.get("PAYSTACK_PUBLIC_KEY") || "",
     });
   } catch (e) {
     return json({ error: (e as Error).message }, 500);

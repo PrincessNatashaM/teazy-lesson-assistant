@@ -31,9 +31,6 @@ import {
 } from "@/lib/pricing";
 import type { EntitlementKind } from "@/hooks/useEntitlements";
 
-const PAYSTACK_PUBLIC_KEY =
-  (import.meta.env.VITE_PAYSTACK_PUBLIC_KEY as string | undefined) ?? "";
-
 type Purpose = EntitlementKind | "subscription";
 
 interface Props {
@@ -158,14 +155,14 @@ export default function PaywallModal({ open, onClose, purpose, lessonHash, onSuc
         return;
       }
 
-      if (!PAYSTACK_PUBLIC_KEY) {
-        throw new Error("Paystack not configured. Add VITE_PAYSTACK_PUBLIC_KEY.");
+      if (!init.public_key) {
+        throw new Error("Paystack not configured. Contact support.");
       }
 
       // 2. Open Paystack popup
       const Paystack = await loadPaystack();
       const handler = Paystack.setup({
-        key: PAYSTACK_PUBLIC_KEY,
+        key: init.public_key,
         email: user.email,
         amount: init.amount_minor,
         currency: init.currency,
