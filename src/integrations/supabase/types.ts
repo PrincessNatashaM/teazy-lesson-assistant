@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
+      assessment_credits: {
+        Row: {
+          created_at: string
+          id: string
+          remaining: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          remaining?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          remaining?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cached_lessons: {
         Row: {
           class_level: string
@@ -80,15 +122,311 @@ export type Database = {
         }
         Relationships: []
       }
+      entitlements: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          lesson_hash: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          lesson_hash: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          lesson_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount_minor: number
+          created_at: string
+          currency: string
+          id: string
+          lesson_hash: string | null
+          metadata: Json | null
+          paystack_reference: string
+          promo_code_id: string | null
+          purpose: Database["public"]["Enums"]["payment_purpose"]
+          status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_minor: number
+          created_at?: string
+          currency: string
+          id?: string
+          lesson_hash?: string | null
+          metadata?: Json | null
+          paystack_reference: string
+          promo_code_id?: string | null
+          purpose: Database["public"]["Enums"]["payment_purpose"]
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_minor?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          lesson_hash?: string | null
+          metadata?: Json | null
+          paystack_reference?: string
+          promo_code_id?: string | null
+          purpose?: Database["public"]["Enums"]["payment_purpose"]
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          country: Database["public"]["Enums"]["country_code"]
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          country?: Database["public"]["Enums"]["country_code"]
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          country?: Database["public"]["Enums"]["country_code"]
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      promo_codes: {
+        Row: {
+          active: boolean
+          applies_to: string[]
+          code: string
+          created_at: string
+          currency: string | null
+          expires_at: string | null
+          id: string
+          kind: Database["public"]["Enums"]["promo_kind"]
+          max_uses: number | null
+          notes: string | null
+          updated_at: string
+          used_count: number
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          applies_to?: string[]
+          code: string
+          created_at?: string
+          currency?: string | null
+          expires_at?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["promo_kind"]
+          max_uses?: number | null
+          notes?: string | null
+          updated_at?: string
+          used_count?: number
+          value?: number
+        }
+        Update: {
+          active?: boolean
+          applies_to?: string[]
+          code?: string
+          created_at?: string
+          currency?: string | null
+          expires_at?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["promo_kind"]
+          max_uses?: number | null
+          notes?: string | null
+          updated_at?: string
+          used_count?: number
+          value?: number
+        }
+        Relationships: []
+      }
+      promo_redemptions: {
+        Row: {
+          feature_unlocked: string | null
+          id: string
+          payment_id: string | null
+          promo_code_id: string
+          purpose: Database["public"]["Enums"]["payment_purpose"] | null
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          feature_unlocked?: string | null
+          id?: string
+          payment_id?: string | null
+          promo_code_id: string
+          purpose?: Database["public"]["Enums"]["payment_purpose"] | null
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          feature_unlocked?: string | null
+          id?: string
+          payment_id?: string | null
+          promo_code_id?: string
+          purpose?: Database["public"]["Enums"]["payment_purpose"] | null
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_redemptions_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          id: string
+          paystack_customer_code: string | null
+          paystack_email_token: string | null
+          paystack_subscription_code: string | null
+          plan: string
+          status: Database["public"]["Enums"]["subscription_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          paystack_customer_code?: string | null
+          paystack_email_token?: string | null
+          paystack_subscription_code?: string | null
+          plan?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          paystack_customer_code?: string | null
+          paystack_email_token?: string | null
+          paystack_subscription_code?: string | null
+          plan?: string
+          status?: Database["public"]["Enums"]["subscription_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      usage_counters: {
+        Row: {
+          count: number
+          created_at: string
+          id: string
+          kind: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          id?: string
+          kind: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      country_code: "NG" | "GH" | "KE" | "OTHER"
+      payment_purpose:
+        | "download_pdf"
+        | "download_docx"
+        | "edit_unlock"
+        | "assessment_pack_6"
+        | "assessment_pack_11"
+        | "subscription"
+      payment_status: "pending" | "success" | "failed" | "abandoned"
+      promo_kind:
+        | "free_access"
+        | "percent_off"
+        | "fixed_off"
+        | "bonus_assessments"
+        | "pro_days"
+      subscription_status: "active" | "canceled" | "expired" | "past_due"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -215,6 +553,26 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      country_code: ["NG", "GH", "KE", "OTHER"],
+      payment_purpose: [
+        "download_pdf",
+        "download_docx",
+        "edit_unlock",
+        "assessment_pack_6",
+        "assessment_pack_11",
+        "subscription",
+      ],
+      payment_status: ["pending", "success", "failed", "abandoned"],
+      promo_kind: [
+        "free_access",
+        "percent_off",
+        "fixed_off",
+        "bonus_assessments",
+        "pro_days",
+      ],
+      subscription_status: ["active", "canceled", "expired", "past_due"],
+    },
   },
 } as const

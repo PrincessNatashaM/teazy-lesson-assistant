@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, Download, CheckCircle, FileText, Pencil, Save } from "lucide-react";
+import { Copy, Download, CheckCircle, FileText, Pencil, Save, Lock, BadgeCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,9 @@ import {
   AlignmentType,
 } from "docx";
 import { saveAs } from "file-saver";
+import { useAuth } from "@/hooks/useAuth";
+import { useEntitlements, sha256Hex, type EntitlementKind } from "@/hooks/useEntitlements";
+import PaywallModal from "./PaywallModal";
 
 interface LessonOutputProps {
   content: string;
@@ -41,14 +44,42 @@ export default function LessonOutput({
   const [editing, setEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(content);
   const [exporting, setExporting] = useState(false);
+  const [lessonHash, setLessonHash] = useState<string | null>(null);
+  const [paywall, setPaywall] = useState<{ open: boolean; purpose: EntitlementKind }>({
+    open: false,
+    purpose: "download_pdf",
+  });
   const { toast } = useToast();
+  const { user } = useAuth();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!editing) setEditedContent(content);
   }, [content, editing]);
 
+  useEffect(() => {
+    if (content) sha256Hex(content).then(setLessonHash);
+  }, [content]);
+
+  const { proActive, unlockedKinds, loading: entLoading, refresh } = useEntitlements(lessonHash);
+
   const activeContent = editing ? editedContent : content;
+
+  const canEdit = proActive || unlockedKinds.has("edit_unlock");
+  const canPdf = proActive || unlockedKinds.has("download_pdf");
+  const canDocx = proActive || unlockedKinds.has("download_docx");
+
+  const requirePaywall = (purpose: EntitlementKind) => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Create an account to unlock this feature.",
+      });
+      window.location.href = `/auth?next=${encodeURIComponent(window.location.pathname)}`;
+      return;
+    }
+    setPaywall({ open: true, purpose });
+  };
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(activeContent);
@@ -57,15 +88,24 @@ export default function LessonOutput({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleEditClick = () => {
+    if (editing) {
+      setEditing(false);
+      return;
+    }
+    if (!canEdit) {
+      requirePaywall("edit_unlock");
+      return;
+    }
+    setEditing(true);
+  };
+
   const handleDownloadPDF = async () => {
+    if (!canPdf) return requirePaywall("download_pdf");
     if (!ref.current) return;
     setExporting(true);
     try {
-      const canvas = await html2canvas(ref.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-      });
+      const canvas = await html2canvas(ref.current, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
       const imgData = canvas.toDataURL("image/jpeg", 0.95);
       const pdf = new jsPDF("p", "mm", "a4");
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -104,6 +144,7 @@ export default function LessonOutput({
   };
 
   const handleDownloadWord = async () => {
+    if (!canDocx) return requirePaywall("download_docx");
     setExporting(true);
     try {
       const lines = activeContent.split("\n");
@@ -120,30 +161,19 @@ export default function LessonOutput({
         } else if (line.startsWith("- ")) {
           children.push(new Paragraph({ text: line.slice(2), bullet: { level: 0 } }));
         } else if (/^\d+\.\s/.test(line)) {
-          children.push(
-            new Paragraph({ text: line.replace(/^\d+\.\s/, ""), bullet: { level: 0 } }),
-          );
+          children.push(new Paragraph({ text: line.replace(/^\d+\.\s/, ""), bullet: { level: 0 } }));
         } else if (line.trim() === "") {
           children.push(new Paragraph({ text: "" }));
         } else {
-          // Inline bold parsing
           const parts = line.split(/\*\*(.*?)\*\*/g);
-          const runs = parts.map((p, i) =>
-            new TextRun({ text: p, bold: i % 2 === 1 }),
-          );
+          const runs = parts.map((p, i) => new TextRun({ text: p, bold: i % 2 === 1 }));
           children.push(new Paragraph({ children: runs }));
         }
       }
 
-      // Append images
       if (images.length > 0) {
         children.push(new Paragraph({ text: "" }));
-        children.push(
-          new Paragraph({
-            text: "Visual Teaching Aids",
-            heading: HeadingLevel.HEADING_2,
-          }),
-        );
+        children.push(new Paragraph({ text: "Visual Teaching Aids", heading: HeadingLevel.HEADING_2 }));
         for (const url of images) {
           const buf = await fetchImageAsBuffer(url);
           if (!buf) continue;
@@ -151,11 +181,7 @@ export default function LessonOutput({
             new Paragraph({
               alignment: AlignmentType.CENTER,
               children: [
-                new ImageRun({
-                  data: buf,
-                  transformation: { width: 500, height: 320 },
-                  type: "png",
-                }),
+                new ImageRun({ data: buf, transformation: { width: 500, height: 320 }, type: "png" }),
               ],
             }),
           );
@@ -163,10 +189,7 @@ export default function LessonOutput({
         }
       }
 
-      const doc = new DocxDocument({
-        sections: [{ children }],
-      });
-
+      const doc = new DocxDocument({ sections: [{ children }] });
       const blob = await Packer.toBlob(doc);
       saveAs(blob, `${(topic || "lesson-note").replace(/\s+/g, "-")}.docx`);
       toast({ title: "Downloaded!", description: "Lesson note saved as Word document." });
@@ -211,10 +234,8 @@ export default function LessonOutput({
     />
   );
 
-  // Render inline content with bold + math ($...$, \(...\))
   const renderInline = (text: string, keyPrefix = "") => {
     const segments: { type: "text" | "math"; value: string }[] = [];
-    // Match $...$ or \( ... \)
     const regex = /\$([^$\n]+?)\$|\\\(([\s\S]+?)\\\)/g;
     let lastIdx = 0;
     let m: RegExpExecArray | null;
@@ -229,7 +250,6 @@ export default function LessonOutput({
       if (seg.type === "math") {
         return <SafeInlineMath key={`${keyPrefix}m${i}`} value={seg.value} />;
       }
-      // Bold parsing
       const parts = seg.value.split(/\*\*(.*?)\*\*/g);
       return parts.map((p, j) =>
         j % 2 === 1 ? (
@@ -247,8 +267,6 @@ export default function LessonOutput({
     let i = 0;
     while (i < lines.length) {
       const line = lines[i];
-
-      // Block math $$...$$ or \[...\] possibly multiline
       const trimmed = line.trim();
       const isDollarBlock = trimmed.startsWith("$$");
       const isBracketBlock = trimmed.startsWith("\\[");
@@ -282,48 +300,26 @@ export default function LessonOutput({
       }
 
       if (line.startsWith("# ")) {
-        out.push(
-          <h2 key={i} className="text-xl font-bold text-navy mt-6 mb-2 font-heading">
-            {renderInline(line.slice(2), `h${i}`)}
-          </h2>,
-        );
+        out.push(<h2 key={i} className="text-xl font-bold text-navy mt-6 mb-2 font-heading">{renderInline(line.slice(2), `h${i}`)}</h2>);
       } else if (line.startsWith("## ")) {
-        out.push(
-          <h3 key={i} className="text-lg font-semibold text-navy mt-5 mb-1 font-heading">
-            {renderInline(line.slice(3), `h${i}`)}
-          </h3>,
-        );
+        out.push(<h3 key={i} className="text-lg font-semibold text-navy mt-5 mb-1 font-heading">{renderInline(line.slice(3), `h${i}`)}</h3>);
       } else if (line.startsWith("### ")) {
-        out.push(
-          <h4 key={i} className="text-base font-semibold mt-3 mb-1">
-            {renderInline(line.slice(4), `h${i}`)}
-          </h4>,
-        );
+        out.push(<h4 key={i} className="text-base font-semibold mt-3 mb-1">{renderInline(line.slice(4), `h${i}`)}</h4>);
       } else if (line.startsWith("- ")) {
-        out.push(
-          <li key={i} className="ml-5 list-disc text-foreground/90">
-            {renderInline(line.slice(2), `l${i}`)}
-          </li>,
-        );
+        out.push(<li key={i} className="ml-5 list-disc text-foreground/90">{renderInline(line.slice(2), `l${i}`)}</li>);
       } else if (/^\d+\.\s/.test(line)) {
-        out.push(
-          <li key={i} className="ml-5 list-decimal text-foreground/90">
-            {renderInline(line.replace(/^\d+\.\s/, ""), `l${i}`)}
-          </li>,
-        );
+        out.push(<li key={i} className="ml-5 list-decimal text-foreground/90">{renderInline(line.replace(/^\d+\.\s/, ""), `l${i}`)}</li>);
       } else if (line.trim() === "") {
         out.push(<div key={i} className="h-2" />);
       } else {
-        out.push(
-          <p key={i} className="text-foreground/90 leading-relaxed">
-            {renderInline(line, `p${i}`)}
-          </p>,
-        );
+        out.push(<p key={i} className="text-foreground/90 leading-relaxed">{renderInline(line, `p${i}`)}</p>);
       }
       i++;
     }
     return out;
   };
+
+  const LockIcon = () => <Lock className="mr-2 h-4 w-4" />;
 
   return (
     <div className="space-y-4">
@@ -334,42 +330,49 @@ export default function LessonOutput({
         </TabsList>
 
         <TabsContent value="lesson">
+          {proActive && (
+            <div className="mb-3 flex items-center gap-2 text-sm bg-success/10 text-success rounded-lg px-3 py-2 w-fit">
+              <BadgeCheck className="h-4 w-4" /> Pro Active — unlimited editing & downloads
+            </div>
+          )}
+
           <div className="flex flex-wrap gap-2 justify-end mb-4">
             <Button variant="outline" size="sm" onClick={handleCopy}>
               {copied ? <CheckCircle className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
               {copied ? "Copied" : "Copy"}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setEditing((v) => !v)}
-            >
-              {editing ? <Save className="mr-2 h-4 w-4" /> : <Pencil className="mr-2 h-4 w-4" />}
-              {editing ? "Done Editing" : "Edit"}
+            <Button variant="outline" size="sm" onClick={handleEditClick} disabled={entLoading}>
+              {editing ? (
+                <><Save className="mr-2 h-4 w-4" /> Done Editing</>
+              ) : canEdit ? (
+                <><Pencil className="mr-2 h-4 w-4" /> Edit</>
+              ) : (
+                <><LockIcon /> Edit</>
+              )}
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={handleDownloadPDF}
-              disabled={exporting}
+              disabled={exporting || entLoading}
               className="border-accent text-accent hover:bg-accent/10"
             >
-              <Download className="mr-2 h-4 w-4" />
+              {canPdf ? <Download className="mr-2 h-4 w-4" /> : <LockIcon />}
               Download PDF
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={handleDownloadWord}
-              disabled={exporting}
+              disabled={exporting || entLoading}
               className="border-primary text-primary hover:bg-primary/10"
             >
-              <FileText className="mr-2 h-4 w-4" />
+              {canDocx ? <FileText className="mr-2 h-4 w-4" /> : <LockIcon />}
               Download Word
             </Button>
           </div>
 
-          {editing ? (
+          {editing && canEdit ? (
             <Textarea
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}
@@ -384,9 +387,7 @@ export default function LessonOutput({
 
               {(imagesLoading || images.length > 0) && (
                 <div className="mt-8 pt-6 border-t border-border">
-                  <h3 className="text-lg font-semibold text-navy mb-4 font-heading">
-                    Visual Teaching Aids
-                  </h3>
+                  <h3 className="text-lg font-semibold text-navy mb-4 font-heading">Visual Teaching Aids</h3>
                   {imagesLoading && images.length === 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                       {[0, 1, 2].map((i) => (
@@ -411,11 +412,6 @@ export default function LessonOutput({
                       ))}
                     </div>
                   )}
-                  {imagesLoading && images.length === 0 && (
-                    <p className="text-xs text-muted-foreground mt-3">
-                      Generating subject diagrams...
-                    </p>
-                  )}
                 </div>
               )}
             </div>
@@ -428,6 +424,14 @@ export default function LessonOutput({
           </div>
         </TabsContent>
       </Tabs>
+
+      <PaywallModal
+        open={paywall.open}
+        onClose={() => setPaywall({ ...paywall, open: false })}
+        purpose={paywall.purpose}
+        lessonHash={lessonHash}
+        onSuccess={refresh}
+      />
     </div>
   );
 }
