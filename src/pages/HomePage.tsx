@@ -417,7 +417,8 @@ export default function HomePage() {
           <div className="mt-12 grid md:grid-cols-2 gap-6">
             <article className="rounded-2xl border border-border bg-card p-8">
               <div className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Free</div>
-              <h3 className="mt-1 text-2xl font-bold text-navy font-heading">Generate &amp; copy, no cost</h3>
+              <h3 className="mt-1 text-2xl font-bold text-navy font-heading">₦0 — Generate &amp; copy</h3>
+              <p className="text-xs text-muted-foreground">0 CFA · KSh 0</p>
               <ul className="mt-6 space-y-3 text-sm">
                 {[
                   "Generate lesson notes",
@@ -431,6 +432,14 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
+              <div className="mt-6 rounded-lg bg-secondary/60 border border-border p-4 text-sm">
+                <div className="font-semibold text-foreground">Pay-per-download</div>
+                <p className="mt-1 text-muted-foreground text-xs">
+                  Unlock editing + PDF + Word for a single lesson note for{" "}
+                  <span className="font-semibold text-foreground">₦500</span>{" "}
+                  <span className="text-muted-foreground">(500 CFA · KSh 45)</span>.
+                </p>
+              </div>
             </article>
             <article className="rounded-2xl border-2 border-accent bg-card p-8 relative">
               <span className="absolute -top-3 right-6 bg-accent text-accent-foreground text-xs font-bold px-3 py-1 rounded-full">
