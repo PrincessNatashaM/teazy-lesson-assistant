@@ -12,7 +12,7 @@ import { z } from "zod";
 
 const schema = z.object({
   email: z.string().email().max(255),
-  password: z.string().min(6, "At least 6 characters").max(72),
+  password: z.string().min(8, "Use at least 8 characters — avoid common passwords").max(72),
   displayName: z.string().max(100).optional(),
 });
 
@@ -56,7 +56,10 @@ export default function AuthPage() {
           },
         });
         if (error) throw error;
-        toast({ title: "Welcome!", description: "Account created. Signing you in..." });
+        // Auto-confirm is on, so try signing in immediately to get a session
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInError) throw signInError;
+        toast({ title: "Welcome!", description: "Account created." });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -99,7 +102,12 @@ export default function AuthPage() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+              {mode === "signup" && (
+                <p className="text-xs text-muted-foreground">
+                  At least 8 characters. Avoid common passwords (e.g. "password", "12345678") — they'll be rejected.
+                </p>
+              )}
             </div>
             <Button type="submit" disabled={loading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90 h-11">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "signin" ? "Sign in" : "Create account"}
