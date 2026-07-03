@@ -102,7 +102,12 @@ export default function AuthPage() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
+              {mode === "signup" && (
+                <p className="text-xs text-muted-foreground">
+                  At least 8 characters. Avoid common passwords (e.g. "password", "12345678") — they'll be rejected.
+                </p>
+              )}
             </div>
             <Button type="submit" disabled={loading} className="w-full bg-accent text-accent-foreground hover:bg-accent/90 h-11">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "signin" ? "Sign in" : "Create account"}
