@@ -56,7 +56,10 @@ export default function AuthPage() {
           },
         });
         if (error) throw error;
-        toast({ title: "Welcome!", description: "Account created. Signing you in..." });
+        // Auto-confirm is on, so try signing in immediately to get a session
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInError) throw signInError;
+        toast({ title: "Welcome!", description: "Account created." });
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
