@@ -12,7 +12,7 @@ import { z } from "zod";
 
 const schema = z.object({
   email: z.string().email().max(255),
-  password: z.string().min(6, "At least 6 characters").max(72),
+  password: z.string().min(8, "Use at least 8 characters — avoid common passwords").max(72),
   displayName: z.string().max(100).optional(),
 });
 
