@@ -2,65 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @layer base {
   :root {
-    /* Teazy Tech Brand Palette
-       Primary Blue  #2F6FCC -> 214 60% 49%
-       Deep Navy     #233463 -> 226 48% 26%
-       Teal Accent   #44BBA4 -> 170 47% 50%
-       Orange/Red    #E94F37 -> 8 81% 57%
-       Soft BG       #F6F7EB -> 65 39% 95%
-       Neutral Gray  #474D4F -> 195 5% 30%
-    */
-    --background: 65 39% 95%;
-    --foreground: 226 48% 26%;
+    /* Teazy AI — premium blue SaaS palette */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 226 48% 26%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 226 48% 26%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 214 60% 49%;
+    /* Primary blue #2563EB */
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
+    --primary-glow: 217 91% 65%;
 
-    --navy: 226 48% 26%;
+    /* Deep navy for headings */
+    --navy: 222 47% 11%;
     --navy-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 100%;
-    --secondary-foreground: 214 60% 49%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 65 30% 92%;
-    --muted-foreground: 195 5% 30%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 8 81% 57%;
+    --accent: 221 83% 53%;
     --accent-foreground: 0 0% 100%;
 
-    --success: 170 47% 50%;
+    --success: 160 84% 39%;
     --success-foreground: 0 0% 100%;
 
-    --destructive: 8 81% 57%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 20% 88%;
-    --input: 214 20% 88%;
-    --ring: 214 60% 49%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    --sidebar-background: 65 39% 97%;
-    --sidebar-foreground: 226 48% 26%;
-    --sidebar-primary: 226 48% 26%;
+    /* Gradients */
+    --gradient-hero: radial-gradient(ellipse 80% 60% at 50% 0%, hsl(221 83% 53% / 0.12), transparent 60%);
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(217 91% 65%));
+    --gradient-soft: linear-gradient(180deg, hsl(214 100% 97%), hsl(0 0% 100%));
+    --gradient-cta: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(221 83% 25%) 50%, hsl(221 83% 53%) 100%);
+
+    /* Shadows */
+    --shadow-soft: 0 1px 2px 0 hsl(222 47% 11% / 0.04), 0 1px 3px 0 hsl(222 47% 11% / 0.06);
+    --shadow-card: 0 4px 24px -6px hsl(221 83% 53% / 0.08), 0 2px 8px -2px hsl(222 47% 11% / 0.04);
+    --shadow-elevated: 0 20px 60px -20px hsl(221 83% 53% / 0.25), 0 8px 24px -8px hsl(222 47% 11% / 0.08);
+    --shadow-glow: 0 0 60px hsl(221 83% 53% / 0.35);
+
+    --sidebar-background: 210 40% 98%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 221 83% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 65 30% 92%;
-    --sidebar-accent-foreground: 226 48% 26%;
-    --sidebar-border: 214 20% 88%;
-    --sidebar-ring: 214 60% 49%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 221 83% 53%;
 
-    --font-heading: 'Poppins', sans-serif;
-    --font-body: 'Poppins', sans-serif;
+    --font-heading: 'Inter', sans-serif;
+    --font-body: 'Inter', sans-serif;
   }
 }
 
@@ -69,12 +77,40 @@
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-family: var(--font-body);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .bg-grid {
+    background-image:
+      linear-gradient(hsl(221 83% 53% / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(221 83% 53% / 0.06) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .glass {
+    background: hsl(0 0% 100% / 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsl(0 0% 100% / 0.6);
+  }
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 }
