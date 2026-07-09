@@ -60,10 +60,12 @@ const HEADLINES: Record<Purpose, { title: string; message: string }> = {
   },
 };
 
-export default function PaywallModal({ open, onClose, purpose, lessonHash, onSuccess }: Props) {
+export default function PaywallModal({ open, onClose, purpose: initialPurpose, lessonHash, onSuccess }: Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [purpose, setPurpose] = useState<Purpose>(initialPurpose);
+  useEffect(() => { setPurpose(initialPurpose); }, [initialPurpose, open]);
   const [country, setCountry] = useState<DisplayCurrency>("NGN");
   const [showPromo, setShowPromo] = useState(false);
   const [promoCode, setPromoCode] = useState("");
@@ -295,8 +297,10 @@ export default function PaywallModal({ open, onClose, purpose, lessonHash, onSuc
               variant="outline"
               className="w-full"
               onClick={() => {
-                onClose();
-                navigate("/pricing");
+                setPromoApplied(null);
+                setPromoCode("");
+                setShowPromo(false);
+                setPurpose("subscription");
               }}
             >
               <Sparkles className="mr-2 h-4 w-4" />
