@@ -708,7 +708,7 @@ export default function HomePage() {
               variants={fadeUp}
               whileHover={{ y: -6 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="rounded-2xl border border-border bg-card p-8"
+              className="rounded-2xl border border-border bg-card p-8 flex flex-col"
             >
               <div className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Free</div>
               <div className="mt-2 flex items-baseline gap-1">
@@ -725,7 +725,6 @@ export default function HomePage() {
                   "Limited handwriting assessment (2 free)",
                   "Quiz generator",
                   "Copy generated content",
-                  "Basic downloads",
                 ].map((p) => (
                   <li key={p} className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -733,46 +732,34 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
+
+              {/* Per-download pricing */}
+              <div className="mt-6 pt-6 border-t border-border">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+                  <Download className="h-3.5 w-3.5" /> Pay per download
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Need just one PDF or Word file? Unlock a single download without a subscription.
+                </p>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {[
+                    { c: "Nigeria", p: "₦500" },
+                    { c: "Ghana", p: "500 CFA" },
+                    { c: "Kenya", p: "KSh 45" },
+                  ].map((x) => (
+                    <div key={x.c} className="rounded-lg border border-border bg-secondary/50 p-2.5 text-center">
+                      <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{x.c}</div>
+                      <div className="mt-0.5 text-sm font-bold text-navy">{x.p}</div>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">One-time unlock per file. No account required.</p>
+              </div>
             </motion.article>
 
             {/* Pro */}
-            <motion.article
-              variants={fadeUp}
-              whileHover={{ y: -6 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="relative rounded-2xl border-2 border-primary bg-card p-8 shadow-elevated"
-            >
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-primary text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-glow">
-                Most popular
-              </div>
-              <div className="text-sm font-bold uppercase tracking-wider text-primary">Professional</div>
-              <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-5xl font-bold text-navy">₦2,000</span>
-                <span className="text-muted-foreground">/ month</span>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Ghana: 2,000 CFA / month · Kenya: KSh 180 / month
-              </p>
-              <Button asChild className="mt-6 w-full h-11 bg-gradient-primary hover:opacity-90 shadow-glow">
-                <Link to="/auth?next=/account">
-                  <Sparkles className="h-4 w-4 mr-1.5" /> Subscribe
-                </Link>
-              </Button>
-              <ul className="mt-6 space-y-3 text-sm">
-                {[
-                  "Unlimited lesson generation",
-                  "Unlimited writing assessment",
-                  "PDF and Word downloads",
-                  "Inline editing",
-                  "Priority access",
-                  "No per-download fees",
-                ].map((p) => (
-                  <li key={p} className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <span className="text-navy font-medium">{p}</span>
-                  </li>
-                ))}
-              </ul>
+            <ProPricingCard />
+          </motion.div>
             </motion.article>
           </motion.div>
         </div>
