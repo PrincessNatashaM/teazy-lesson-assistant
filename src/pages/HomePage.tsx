@@ -20,7 +20,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import heroImg from "@/assets/hero-illustration.jpg";
+import heroImg from "@/assets/hero-teacher.jpg.asset.json";
 
 const FEATURES = [
   {
