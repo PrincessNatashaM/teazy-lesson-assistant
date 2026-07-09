@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
+import teazyLogo from "@/assets/teazy-logo.jpg";
 import {
   BookOpen,
   PenLine,
@@ -300,6 +302,87 @@ const FAQS = [
   { q: "Is there a free version?", a: "Yes. Lesson notes, quizzes, copying outputs and your first 2 writing assessments are free forever." },
 ];
 
+const PRO_PRICES_ROTATE = [
+  { country: "Nigeria", price: "₦2,000", period: "/ month" },
+  { country: "Ghana", price: "2,000 CFA", period: "/ month" },
+  { country: "Kenya", price: "KSh 180", period: "/ month" },
+];
+
+function ProPricingCard() {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setIdx((i) => (i + 1) % PRO_PRICES_ROTATE.length), 2500);
+    return () => clearInterval(t);
+  }, []);
+  const current = PRO_PRICES_ROTATE[idx];
+
+  return (
+    <motion.article
+      variants={fadeUp}
+      whileHover={{ y: -6 }}
+      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      className="relative rounded-2xl border-2 border-primary bg-card p-8 shadow-elevated flex flex-col"
+    >
+      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-primary text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-glow">
+        Most popular
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-bold uppercase tracking-wider text-primary">Professional</div>
+        <div className="flex items-center gap-1">
+          {PRO_PRICES_ROTATE.map((_, i) => (
+            <button
+              key={i}
+              aria-label={`Show price ${i + 1}`}
+              onClick={() => setIdx(i)}
+              className={`h-1.5 rounded-full transition-all ${i === idx ? "w-5 bg-primary" : "w-1.5 bg-border"}`}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-2 h-[76px] relative overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={current.country}
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -30, opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute inset-0"
+          >
+            <div className="flex items-baseline gap-1">
+              <span className="text-5xl font-bold text-navy">{current.price}</span>
+              <span className="text-muted-foreground">{current.period}</span>
+            </div>
+            <p className="mt-1 text-xs font-semibold text-primary uppercase tracking-wider">{current.country}</p>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      <Button asChild className="mt-6 w-full h-11 bg-gradient-primary hover:opacity-90 shadow-glow">
+        <Link to="/auth?next=/account">
+          <Sparkles className="h-4 w-4 mr-1.5" /> Subscribe
+        </Link>
+      </Button>
+      <ul className="mt-6 space-y-3 text-sm">
+        {[
+          "Unlimited lesson generation",
+          "Unlimited writing assessment",
+          "PDF and Word downloads",
+          "Inline editing",
+          "Priority access",
+          "No per-download fees",
+        ].map((p) => (
+          <li key={p} className="flex items-start gap-2">
+            <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+            <span className="text-navy font-medium">{p}</span>
+          </li>
+        ))}
+      </ul>
+    </motion.article>
+  );
+}
+
 /* -------------------------------------------------------------------------- */
 /* Page                                                                        */
 /* -------------------------------------------------------------------------- */
@@ -335,94 +418,61 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-hero" />
         <div className="absolute inset-0 bg-grid opacity-40 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,black,transparent)]" />
 
-        <div className="relative container mx-auto max-w-7xl px-4 pt-16 pb-20 sm:pt-24 sm:pb-28">
-          <motion.div
-            initial="hidden"
-            animate="show"
-            variants={stagger}
-            className="grid lg:grid-cols-[1.05fr_1fr] gap-12 lg:gap-16 items-center"
-          >
-            <div>
-              <motion.div variants={fadeUp}>
-                <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-                  <Sparkles className="h-3.5 w-3.5" /> Built specifically for African teachers
-                </span>
-              </motion.div>
+        <div className="relative container mx-auto max-w-4xl px-4 pt-20 pb-24 sm:pt-28 sm:pb-32 text-center">
+          <motion.div initial="hidden" animate="show" variants={stagger}>
+            <motion.div variants={fadeUp}>
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                <Sparkles className="h-3.5 w-3.5" /> Built specifically for African teachers
+              </span>
+            </motion.div>
 
-              <motion.h1
-                variants={fadeUp}
-                className="mt-6 text-5xl sm:text-6xl lg:text-7xl font-bold text-navy leading-[1.05] tracking-tight text-balance"
-              >
-                AI Teaching Assistant for{" "}
-                <span className="gradient-text">African Classrooms</span>
-              </motion.h1>
+            <motion.h1
+              variants={fadeUp}
+              className="mt-6 text-5xl sm:text-6xl lg:text-7xl font-bold text-navy leading-[1.05] tracking-tight text-balance"
+            >
+              AI Teaching Assistant for{" "}
+              <span className="gradient-text">African Classrooms</span>
+            </motion.h1>
 
-              <motion.p variants={fadeUp} className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-xl leading-relaxed">
-                Generate curriculum-aligned lesson notes, assessments, quizzes, presentations, and mark handwritten scripts in minutes.
-              </motion.p>
+            <motion.p variants={fadeUp} className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Generate curriculum-aligned lesson notes, assessments, quizzes, presentations, and mark handwritten scripts in minutes.
+            </motion.p>
 
-              <motion.p variants={fadeUp} className="mt-3 text-sm text-muted-foreground">
-                Built specifically for teachers in Nigeria, Ghana, Kenya and across Africa.
-              </motion.p>
+            <motion.p variants={fadeUp} className="mt-3 text-sm text-muted-foreground">
+              Built specifically for teachers in Nigeria, Ghana, Kenya and across Africa.
+            </motion.p>
 
-              <motion.div variants={fadeUp} className="mt-8 flex flex-wrap items-center gap-3">
-                <Button asChild size="lg" className="h-12 px-6 text-base bg-gradient-primary hover:opacity-90 shadow-glow transition-all hover:scale-[1.02]">
-                  <Link to="/app">
-                    Generate Lesson Notes <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="h-12 px-6 text-base">
-                  <a href="#showcase">
-                    <Play className="h-4 w-4" /> Watch Demo
-                  </a>
-                </Button>
-              </motion.div>
+            <motion.div variants={fadeUp} className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <Button asChild size="lg" className="h-12 px-6 text-base bg-gradient-primary hover:opacity-90 shadow-glow transition-all hover:scale-[1.02]">
+                <Link to="/app">
+                  Generate Lesson Notes <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="h-12 px-6 text-base">
+                <a href="#showcase">
+                  <Play className="h-4 w-4" /> Watch Demo
+                </a>
+              </Button>
+            </motion.div>
 
-              <motion.div variants={fadeUp} className="mt-8 flex items-center gap-4">
-                <div className="flex -space-x-2">
-                  {["A", "O", "M", "K"].map((c, i) => (
-                    <div
-                      key={i}
-                      className="h-8 w-8 rounded-full border-2 border-white bg-gradient-primary text-white text-xs font-bold flex items-center justify-center"
-                    >
-                      {c}
-                    </div>
+            <motion.div variants={fadeUp} className="mt-8 flex items-center justify-center gap-4">
+              <div className="flex -space-x-2">
+                {["A", "O", "M", "K"].map((c, i) => (
+                  <div
+                    key={i}
+                    className="h-8 w-8 rounded-full border-2 border-white bg-gradient-primary text-white text-xs font-bold flex items-center justify-center"
+                  >
+                    {c}
+                  </div>
+                ))}
+              </div>
+              <div className="text-sm text-muted-foreground text-left">
+                <div className="flex items-center gap-0.5 text-amber-500">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-3.5 w-3.5 fill-current" />
                   ))}
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  <div className="flex items-center gap-0.5 text-amber-500">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-3.5 w-3.5 fill-current" />
-                    ))}
-                  </div>
-                  Loved by teachers across 3 countries
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Mockup + floating chips */}
-            <motion.div variants={fadeUp} className="relative">
-              <div className="absolute -inset-8 bg-gradient-primary opacity-20 blur-3xl rounded-full" />
-              <div className="relative">
-                <HeroMockup />
-
-                {/* floating chips */}
-                {[
-                  { text: "Lesson Notes", pos: "-top-4 -left-4", delay: 0.4 },
-                  { text: "Handwriting Assessment", pos: "top-1/3 -right-6", delay: 0.6 },
-                  { text: "Quiz Generator", pos: "-bottom-4 left-8", delay: 0.8 },
-                  { text: "Curriculum Aligned", pos: "top-8 -right-4 lg:-right-10", delay: 1.0 },
-                ].map(({ text, pos, delay }) => (
-                  <motion.div
-                    key={text}
-                    initial={{ opacity: 0, scale: 0.8, y: 8 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                    className={`hidden md:flex absolute ${pos} items-center gap-1.5 px-3 py-1.5 rounded-full glass shadow-card text-xs font-semibold text-navy`}
-                  >
-                    <CheckCircle2 className="h-3.5 w-3.5 text-primary" /> {text}
-                  </motion.div>
-                ))}
+                Loved by teachers across 3 countries
               </div>
             </motion.div>
           </motion.div>
@@ -467,59 +517,61 @@ export default function HomePage() {
             whileInView="show"
             viewport={{ once: true, margin: "-60px" }}
             variants={stagger}
-            className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="mt-16 grid md:grid-cols-3 gap-6"
           >
-            {/* Card 1 */}
-            <motion.article
-              variants={fadeUp}
-              className="group rounded-2xl border border-border bg-card p-8 hover:shadow-card hover:-translate-y-1 transition-all duration-300"
-            >
-              <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:bg-gradient-primary group-hover:text-white transition-colors">
-                <BookOpen className="h-6 w-6" />
-              </div>
-              <h3 className="mt-5 text-xl font-bold text-navy">Generate Lesson Notes</h3>
-              <p className="mt-2 text-muted-foreground leading-relaxed">
-                Generate complete curriculum-aligned lesson notes in seconds — with objectives, set induction, presentation and evaluation.
-              </p>
-            </motion.article>
-
-            {/* Card 2 — flagship, spans 2 cols on lg */}
-            <motion.article
-              variants={fadeUp}
-              className="group relative rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 via-card to-card p-8 lg:row-span-1 lg:col-span-1 md:col-span-2 lg:col-span-1 hover:shadow-elevated hover:-translate-y-1 transition-all duration-300 overflow-hidden"
-            >
-              <span className="absolute top-4 right-4 bg-gradient-primary text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-glow">
-                Flagship
-              </span>
-              <div className="h-12 w-12 rounded-xl bg-gradient-primary text-white flex items-center justify-center shadow-glow">
-                <PenLine className="h-6 w-6" />
-              </div>
-              <h3 className="mt-5 text-2xl font-bold text-navy">Assess Handwritten Work</h3>
-              <p className="mt-2 text-muted-foreground leading-relaxed">
-                Upload handwritten essays, exams and theory answers. Receive marks, feedback and improvement suggestions instantly.
-              </p>
-              <div className="mt-6 flex flex-wrap gap-2">
-                {["OCR extraction", "Rubric grading", "Personal feedback"].map((t) => (
-                  <span key={t} className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white border border-primary/20 text-primary">
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </motion.article>
-
-            {/* Card 3 */}
-            <motion.article
-              variants={fadeUp}
-              className="group rounded-2xl border border-border bg-card p-8 hover:shadow-card hover:-translate-y-1 transition-all duration-300"
-            >
-              <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:bg-gradient-primary group-hover:text-white transition-colors">
-                <ListChecks className="h-6 w-6" />
-              </div>
-              <h3 className="mt-5 text-xl font-bold text-navy">Quiz Generator</h3>
-              <p className="mt-2 text-muted-foreground leading-relaxed">
-                Generate quizzes, tests and examination questions instantly — with answer keys ready for classroom use.
-              </p>
-            </motion.article>
+            {[
+              {
+                icon: BookOpen,
+                title: "Generate Lesson Notes",
+                body: "Complete curriculum-aligned lesson notes in seconds — objectives, set induction, presentation and evaluation.",
+                tags: ["NERDC", "NaCCA", "CBC"],
+                accent: "from-primary/10 to-primary/0",
+              },
+              {
+                icon: PenLine,
+                title: "Assess Handwritten Work",
+                body: "Upload handwritten essays and theory answers. Get marks, feedback and suggestions instantly.",
+                tags: ["OCR", "Rubric grading", "Feedback"],
+                accent: "from-primary/15 to-primary/0",
+                flagship: true,
+              },
+              {
+                icon: ListChecks,
+                title: "Quiz Generator",
+                body: "Generate quizzes, tests and exam questions instantly — with answer keys ready for the classroom.",
+                tags: ["MCQ", "Theory", "Answer keys"],
+                accent: "from-primary/10 to-primary/0",
+              },
+            ].map((c) => (
+              <motion.article
+                key={c.title}
+                variants={fadeUp}
+                className={`group relative rounded-2xl border ${
+                  c.flagship ? "border-primary/40 shadow-card" : "border-border"
+                } bg-card p-8 hover:shadow-elevated hover:-translate-y-1 transition-all duration-300 overflow-hidden`}
+              >
+                <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${c.accent} opacity-60`} />
+                <div className="relative">
+                  {c.flagship && (
+                    <span className="absolute -top-2 right-0 bg-gradient-primary text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-glow">
+                      Flagship
+                    </span>
+                  )}
+                  <div className="h-12 w-12 rounded-xl bg-gradient-primary text-white flex items-center justify-center shadow-glow">
+                    <c.icon className="h-6 w-6" />
+                  </div>
+                  <h3 className="mt-5 text-xl font-bold text-navy">{c.title}</h3>
+                  <p className="mt-2 text-muted-foreground leading-relaxed min-h-[72px]">{c.body}</p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {c.tags.map((t) => (
+                      <span key={t} className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white border border-primary/20 text-primary">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </motion.article>
+            ))}
           </motion.div>
         </div>
       </section>
@@ -614,14 +666,6 @@ export default function HomePage() {
                 <ShowcaseMockup title={s.title} kind={s.kind} />
               </motion.div>
             ))}
-            <motion.div
-              variants={fadeUp}
-              className="rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 flex flex-col items-center justify-center p-8 text-center"
-            >
-              <Sparkles className="h-8 w-8 text-primary" />
-              <h3 className="mt-3 font-bold text-navy">More coming soon</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Presentations, worksheets, scheme of work.</p>
-            </motion.div>
           </motion.div>
         </div>
       </section>
@@ -745,7 +789,7 @@ export default function HomePage() {
               variants={fadeUp}
               whileHover={{ y: -6 }}
               transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="rounded-2xl border border-border bg-card p-8"
+              className="rounded-2xl border border-border bg-card p-8 flex flex-col"
             >
               <div className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Free</div>
               <div className="mt-2 flex items-baseline gap-1">
@@ -762,7 +806,6 @@ export default function HomePage() {
                   "Limited handwriting assessment (2 free)",
                   "Quiz generator",
                   "Copy generated content",
-                  "Basic downloads",
                 ].map((p) => (
                   <li key={p} className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -770,47 +813,33 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
+
+              {/* Per-download pricing */}
+              <div className="mt-6 pt-6 border-t border-border">
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+                  <Download className="h-3.5 w-3.5" /> Pay per download
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Need just one PDF or Word file? Unlock a single download without a subscription.
+                </p>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {[
+                    { c: "Nigeria", p: "₦500" },
+                    { c: "Ghana", p: "500 CFA" },
+                    { c: "Kenya", p: "KSh 45" },
+                  ].map((x) => (
+                    <div key={x.c} className="rounded-lg border border-border bg-secondary/50 p-2.5 text-center">
+                      <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{x.c}</div>
+                      <div className="mt-0.5 text-sm font-bold text-navy">{x.p}</div>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">One-time unlock per file. No account required.</p>
+              </div>
             </motion.article>
 
             {/* Pro */}
-            <motion.article
-              variants={fadeUp}
-              whileHover={{ y: -6 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="relative rounded-2xl border-2 border-primary bg-card p-8 shadow-elevated"
-            >
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-primary text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-glow">
-                Most popular
-              </div>
-              <div className="text-sm font-bold uppercase tracking-wider text-primary">Professional</div>
-              <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-5xl font-bold text-navy">₦2,000</span>
-                <span className="text-muted-foreground">/ month</span>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Ghana: 2,000 CFA / month · Kenya: KSh 180 / month
-              </p>
-              <Button asChild className="mt-6 w-full h-11 bg-gradient-primary hover:opacity-90 shadow-glow">
-                <Link to="/auth?next=/account">
-                  <Sparkles className="h-4 w-4 mr-1.5" /> Subscribe
-                </Link>
-              </Button>
-              <ul className="mt-6 space-y-3 text-sm">
-                {[
-                  "Unlimited lesson generation",
-                  "Unlimited writing assessment",
-                  "PDF and Word downloads",
-                  "Inline editing",
-                  "Priority access",
-                  "No per-download fees",
-                ].map((p) => (
-                  <li key={p} className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <span className="text-navy font-medium">{p}</span>
-                  </li>
-                ))}
-              </ul>
-            </motion.article>
+            <ProPricingCard />
           </motion.div>
         </div>
       </section>
@@ -890,11 +919,9 @@ export default function HomePage() {
         <div className="container mx-auto max-w-6xl px-4 py-16">
           <div className="grid md:grid-cols-4 gap-10">
             <div>
-              <div className="flex items-center gap-2">
-                <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
-                  <GraduationCap className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-lg font-bold text-navy">Teazy AI</span>
+              <div className="flex items-center gap-2.5">
+                <img src={teazyLogo} alt="Teazy Tech logo" className="h-10 w-10 rounded-xl object-contain bg-white border border-border shadow-soft" />
+                <span className="text-lg font-bold text-navy">Teazy Tech</span>
               </div>
               <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
                 The AI teaching assistant built for African classrooms.
