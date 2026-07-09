@@ -436,59 +436,61 @@ export default function HomePage() {
             whileInView="show"
             viewport={{ once: true, margin: "-60px" }}
             variants={stagger}
-            className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="mt-16 grid md:grid-cols-3 gap-6"
           >
-            {/* Card 1 */}
-            <motion.article
-              variants={fadeUp}
-              className="group rounded-2xl border border-border bg-card p-8 hover:shadow-card hover:-translate-y-1 transition-all duration-300"
-            >
-              <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:bg-gradient-primary group-hover:text-white transition-colors">
-                <BookOpen className="h-6 w-6" />
-              </div>
-              <h3 className="mt-5 text-xl font-bold text-navy">Generate Lesson Notes</h3>
-              <p className="mt-2 text-muted-foreground leading-relaxed">
-                Generate complete curriculum-aligned lesson notes in seconds — with objectives, set induction, presentation and evaluation.
-              </p>
-            </motion.article>
-
-            {/* Card 2 — flagship, spans 2 cols on lg */}
-            <motion.article
-              variants={fadeUp}
-              className="group relative rounded-2xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 via-card to-card p-8 lg:row-span-1 lg:col-span-1 md:col-span-2 lg:col-span-1 hover:shadow-elevated hover:-translate-y-1 transition-all duration-300 overflow-hidden"
-            >
-              <span className="absolute top-4 right-4 bg-gradient-primary text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-glow">
-                Flagship
-              </span>
-              <div className="h-12 w-12 rounded-xl bg-gradient-primary text-white flex items-center justify-center shadow-glow">
-                <PenLine className="h-6 w-6" />
-              </div>
-              <h3 className="mt-5 text-2xl font-bold text-navy">Assess Handwritten Work</h3>
-              <p className="mt-2 text-muted-foreground leading-relaxed">
-                Upload handwritten essays, exams and theory answers. Receive marks, feedback and improvement suggestions instantly.
-              </p>
-              <div className="mt-6 flex flex-wrap gap-2">
-                {["OCR extraction", "Rubric grading", "Personal feedback"].map((t) => (
-                  <span key={t} className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white border border-primary/20 text-primary">
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </motion.article>
-
-            {/* Card 3 */}
-            <motion.article
-              variants={fadeUp}
-              className="group rounded-2xl border border-border bg-card p-8 hover:shadow-card hover:-translate-y-1 transition-all duration-300"
-            >
-              <div className="h-12 w-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:bg-gradient-primary group-hover:text-white transition-colors">
-                <ListChecks className="h-6 w-6" />
-              </div>
-              <h3 className="mt-5 text-xl font-bold text-navy">Quiz Generator</h3>
-              <p className="mt-2 text-muted-foreground leading-relaxed">
-                Generate quizzes, tests and examination questions instantly — with answer keys ready for classroom use.
-              </p>
-            </motion.article>
+            {[
+              {
+                icon: BookOpen,
+                title: "Generate Lesson Notes",
+                body: "Complete curriculum-aligned lesson notes in seconds — objectives, set induction, presentation and evaluation.",
+                tags: ["NERDC", "NaCCA", "CBC"],
+                accent: "from-primary/10 to-primary/0",
+              },
+              {
+                icon: PenLine,
+                title: "Assess Handwritten Work",
+                body: "Upload handwritten essays and theory answers. Get marks, feedback and suggestions instantly.",
+                tags: ["OCR", "Rubric grading", "Feedback"],
+                accent: "from-primary/15 to-primary/0",
+                flagship: true,
+              },
+              {
+                icon: ListChecks,
+                title: "Quiz Generator",
+                body: "Generate quizzes, tests and exam questions instantly — with answer keys ready for the classroom.",
+                tags: ["MCQ", "Theory", "Answer keys"],
+                accent: "from-primary/10 to-primary/0",
+              },
+            ].map((c) => (
+              <motion.article
+                key={c.title}
+                variants={fadeUp}
+                className={`group relative rounded-2xl border ${
+                  c.flagship ? "border-primary/40 shadow-card" : "border-border"
+                } bg-card p-8 hover:shadow-elevated hover:-translate-y-1 transition-all duration-300 overflow-hidden`}
+              >
+                <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${c.accent} opacity-60`} />
+                <div className="relative">
+                  {c.flagship && (
+                    <span className="absolute -top-2 right-0 bg-gradient-primary text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-glow">
+                      Flagship
+                    </span>
+                  )}
+                  <div className="h-12 w-12 rounded-xl bg-gradient-primary text-white flex items-center justify-center shadow-glow">
+                    <c.icon className="h-6 w-6" />
+                  </div>
+                  <h3 className="mt-5 text-xl font-bold text-navy">{c.title}</h3>
+                  <p className="mt-2 text-muted-foreground leading-relaxed min-h-[72px]">{c.body}</p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {c.tags.map((t) => (
+                      <span key={t} className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white border border-primary/20 text-primary">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </motion.article>
+            ))}
           </motion.div>
         </div>
       </section>
