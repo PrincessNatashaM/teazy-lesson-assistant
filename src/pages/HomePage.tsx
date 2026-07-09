@@ -337,94 +337,61 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-hero" />
         <div className="absolute inset-0 bg-grid opacity-40 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,black,transparent)]" />
 
-        <div className="relative container mx-auto max-w-7xl px-4 pt-16 pb-20 sm:pt-24 sm:pb-28">
-          <motion.div
-            initial="hidden"
-            animate="show"
-            variants={stagger}
-            className="grid lg:grid-cols-[1.05fr_1fr] gap-12 lg:gap-16 items-center"
-          >
-            <div>
-              <motion.div variants={fadeUp}>
-                <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-                  <Sparkles className="h-3.5 w-3.5" /> Built specifically for African teachers
-                </span>
-              </motion.div>
+        <div className="relative container mx-auto max-w-4xl px-4 pt-20 pb-24 sm:pt-28 sm:pb-32 text-center">
+          <motion.div initial="hidden" animate="show" variants={stagger}>
+            <motion.div variants={fadeUp}>
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
+                <Sparkles className="h-3.5 w-3.5" /> Built specifically for African teachers
+              </span>
+            </motion.div>
 
-              <motion.h1
-                variants={fadeUp}
-                className="mt-6 text-5xl sm:text-6xl lg:text-7xl font-bold text-navy leading-[1.05] tracking-tight text-balance"
-              >
-                AI Teaching Assistant for{" "}
-                <span className="gradient-text">African Classrooms</span>
-              </motion.h1>
+            <motion.h1
+              variants={fadeUp}
+              className="mt-6 text-5xl sm:text-6xl lg:text-7xl font-bold text-navy leading-[1.05] tracking-tight text-balance"
+            >
+              AI Teaching Assistant for{" "}
+              <span className="gradient-text">African Classrooms</span>
+            </motion.h1>
 
-              <motion.p variants={fadeUp} className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-xl leading-relaxed">
-                Generate curriculum-aligned lesson notes, assessments, quizzes, presentations, and mark handwritten scripts in minutes.
-              </motion.p>
+            <motion.p variants={fadeUp} className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Generate curriculum-aligned lesson notes, assessments, quizzes, presentations, and mark handwritten scripts in minutes.
+            </motion.p>
 
-              <motion.p variants={fadeUp} className="mt-3 text-sm text-muted-foreground">
-                Built specifically for teachers in Nigeria, Ghana, Kenya and across Africa.
-              </motion.p>
+            <motion.p variants={fadeUp} className="mt-3 text-sm text-muted-foreground">
+              Built specifically for teachers in Nigeria, Ghana, Kenya and across Africa.
+            </motion.p>
 
-              <motion.div variants={fadeUp} className="mt-8 flex flex-wrap items-center gap-3">
-                <Button asChild size="lg" className="h-12 px-6 text-base bg-gradient-primary hover:opacity-90 shadow-glow transition-all hover:scale-[1.02]">
-                  <Link to="/app">
-                    Generate Lesson Notes <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="outline" className="h-12 px-6 text-base">
-                  <a href="#showcase">
-                    <Play className="h-4 w-4" /> Watch Demo
-                  </a>
-                </Button>
-              </motion.div>
+            <motion.div variants={fadeUp} className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <Button asChild size="lg" className="h-12 px-6 text-base bg-gradient-primary hover:opacity-90 shadow-glow transition-all hover:scale-[1.02]">
+                <Link to="/app">
+                  Generate Lesson Notes <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="h-12 px-6 text-base">
+                <a href="#showcase">
+                  <Play className="h-4 w-4" /> Watch Demo
+                </a>
+              </Button>
+            </motion.div>
 
-              <motion.div variants={fadeUp} className="mt-8 flex items-center gap-4">
-                <div className="flex -space-x-2">
-                  {["A", "O", "M", "K"].map((c, i) => (
-                    <div
-                      key={i}
-                      className="h-8 w-8 rounded-full border-2 border-white bg-gradient-primary text-white text-xs font-bold flex items-center justify-center"
-                    >
-                      {c}
-                    </div>
+            <motion.div variants={fadeUp} className="mt-8 flex items-center justify-center gap-4">
+              <div className="flex -space-x-2">
+                {["A", "O", "M", "K"].map((c, i) => (
+                  <div
+                    key={i}
+                    className="h-8 w-8 rounded-full border-2 border-white bg-gradient-primary text-white text-xs font-bold flex items-center justify-center"
+                  >
+                    {c}
+                  </div>
+                ))}
+              </div>
+              <div className="text-sm text-muted-foreground text-left">
+                <div className="flex items-center gap-0.5 text-amber-500">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="h-3.5 w-3.5 fill-current" />
                   ))}
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  <div className="flex items-center gap-0.5 text-amber-500">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-3.5 w-3.5 fill-current" />
-                    ))}
-                  </div>
-                  Loved by teachers across 3 countries
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Mockup + floating chips */}
-            <motion.div variants={fadeUp} className="relative">
-              <div className="absolute -inset-8 bg-gradient-primary opacity-20 blur-3xl rounded-full" />
-              <div className="relative">
-                <HeroMockup />
-
-                {/* floating chips */}
-                {[
-                  { text: "Lesson Notes", pos: "-top-4 -left-4", delay: 0.4 },
-                  { text: "Handwriting Assessment", pos: "top-1/3 -right-6", delay: 0.6 },
-                  { text: "Quiz Generator", pos: "-bottom-4 left-8", delay: 0.8 },
-                  { text: "Curriculum Aligned", pos: "top-8 -right-4 lg:-right-10", delay: 1.0 },
-                ].map(({ text, pos, delay }) => (
-                  <motion.div
-                    key={text}
-                    initial={{ opacity: 0, scale: 0.8, y: 8 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                    className={`hidden md:flex absolute ${pos} items-center gap-1.5 px-3 py-1.5 rounded-full glass shadow-card text-xs font-semibold text-navy`}
-                  >
-                    <CheckCircle2 className="h-3.5 w-3.5 text-primary" /> {text}
-                  </motion.div>
-                ))}
+                Loved by teachers across 3 countries
               </div>
             </motion.div>
           </motion.div>
