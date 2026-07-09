@@ -296,7 +296,7 @@ const TESTIMONIALS = [
 
 const FAQS = [
   { q: "Can I use the Nigerian curriculum?", a: "Yes. Teazy AI generates Nigerian lesson notes that follow the NERDC structure — behavioural objectives, set induction, presentation, evaluation and assignment." },
-  { q: "Does it assess handwriting?", a: "Absolutely. Upload a photo of a handwritten essay, Teazy AI extracts the text with OCR and grades it using a rubric covering content, grammar, structure and originality." },
+  { q: "Does it assess handwriting?", a: "Absolutely. Upload a photo of a handwritten essay, Teazy AI extracts the text and grades it using a rubric covering content, grammar, structure and originality." },
   { q: "Can I edit generated lessons?", a: "Yes. Every generated lesson note is fully editable inside Teazy AI before you export it as Word or PDF." },
   { q: "Can I download Word and PDF?", a: "Word and PDF downloads are part of the Pro tier. Free users can generate and copy content freely, then upgrade when they need a formatted file." },
   { q: "Is there a free version?", a: "Yes. Lesson notes, quizzes, copying outputs and your first 2 writing assessments are free forever." },
@@ -449,8 +449,8 @@ export default function HomePage() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="h-12 px-6 text-base">
-                <a href="#showcase">
-                  <Play className="h-4 w-4" /> Watch Demo
+                <a href="#features">
+                  <Play className="h-4 w-4" /> See features
                 </a>
               </Button>
             </motion.div>
@@ -531,9 +531,8 @@ export default function HomePage() {
                 icon: PenLine,
                 title: "Assess Handwritten Work",
                 body: "Upload handwritten essays and theory answers. Get marks, feedback and suggestions instantly.",
-                tags: ["OCR", "Rubric grading", "Feedback"],
+                tags: ["Rubric grading", "Feedback"],
                 accent: "from-primary/15 to-primary/0",
-                flagship: true,
               },
               {
                 icon: ListChecks,
@@ -546,17 +545,10 @@ export default function HomePage() {
               <motion.article
                 key={c.title}
                 variants={fadeUp}
-                className={`group relative rounded-2xl border ${
-                  c.flagship ? "border-primary/40 shadow-card" : "border-border"
-                } bg-card p-8 hover:shadow-elevated hover:-translate-y-1 transition-all duration-300 overflow-hidden`}
+                className="group relative rounded-2xl border border-border bg-card p-8 hover:shadow-elevated hover:-translate-y-1 transition-all duration-300 overflow-hidden"
               >
                 <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${c.accent} opacity-60`} />
                 <div className="relative">
-                  {c.flagship && (
-                    <span className="absolute -top-2 right-0 bg-gradient-primary text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-glow">
-                      Flagship
-                    </span>
-                  )}
                   <div className="h-12 w-12 rounded-xl bg-gradient-primary text-white flex items-center justify-center shadow-glow">
                     <c.icon className="h-6 w-6" />
                   </div>
@@ -577,7 +569,7 @@ export default function HomePage() {
       </section>
 
       {/* ============================== HOW IT WORKS ============================== */}
-      <section className="py-24 bg-gradient-soft">
+      <section id="how-it-works" className="py-24 bg-gradient-soft">
         <div className="container mx-auto max-w-6xl px-4">
           <motion.div
             initial="hidden"
@@ -624,51 +616,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ============================== PRODUCT SHOWCASE ============================== */}
-      <section id="showcase" className="py-24 sm:py-32">
-        <div className="container mx-auto max-w-6xl px-4">
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-80px" }}
-            variants={fadeUp}
-            className="text-center max-w-2xl mx-auto"
-          >
-            <div className="text-xs font-bold uppercase tracking-wider text-primary mb-3">Product tour</div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-navy tracking-tight text-balance">
-              See Teazy AI in Action
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Real screens, real curriculum, real classroom output.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-40px" }}
-            variants={stagger}
-            className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {[
-              { title: "Lesson Generator", kind: "lesson" as const },
-              { title: "Writing Assessment", kind: "essay" as const },
-              { title: "Quiz Generator", kind: "quiz" as const },
-              { title: "Teacher Dashboard", kind: "dash" as const },
-              { title: "Downloads", kind: "download" as const },
-            ].map((s) => (
-              <motion.div
-                key={s.title}
-                variants={fadeUp}
-                whileHover={{ y: -6, scale: 1.01 }}
-                transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              >
-                <ShowcaseMockup title={s.title} kind={s.kind} />
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
 
       {/* ============================== OUTCOMES ============================== */}
       <section className="py-24 bg-gradient-soft">
@@ -941,7 +888,7 @@ export default function HomePage() {
             </div>
 
             {[
-              { title: "Product", links: [["Features", "#features"], ["Pricing", "#pricing"], ["Product tour", "#showcase"]] },
+              { title: "Product", links: [["Features", "#features"], ["Pricing", "#pricing"], ["How it works", "#how-it-works"]] },
               { title: "Company", links: [["About", "#"], ["Contact", "#"], ["Blog", "#"]] },
               { title: "Legal", links: [["Privacy Policy", "#"], ["Terms", "#"], ["Cookies", "#"]] },
             ].map((col) => (
