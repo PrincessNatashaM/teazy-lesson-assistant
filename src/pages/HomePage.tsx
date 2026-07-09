@@ -296,7 +296,7 @@ const TESTIMONIALS = [
 
 const FAQS = [
   { q: "Can I use the Nigerian curriculum?", a: "Yes. Teazy AI generates Nigerian lesson notes that follow the NERDC structure — behavioural objectives, set induction, presentation, evaluation and assignment." },
-  { q: "Does it assess handwriting?", a: "Absolutely. Upload a photo of a handwritten essay, Teazy AI extracts the text with OCR and grades it using a rubric covering content, grammar, structure and originality." },
+  { q: "Does it assess handwriting?", a: "Absolutely. Upload a photo of a handwritten essay, Teazy AI extracts the text and grades it using a rubric covering content, grammar, structure and originality." },
   { q: "Can I edit generated lessons?", a: "Yes. Every generated lesson note is fully editable inside Teazy AI before you export it as Word or PDF." },
   { q: "Can I download Word and PDF?", a: "Word and PDF downloads are part of the Pro tier. Free users can generate and copy content freely, then upgrade when they need a formatted file." },
   { q: "Is there a free version?", a: "Yes. Lesson notes, quizzes, copying outputs and your first 2 writing assessments are free forever." },
