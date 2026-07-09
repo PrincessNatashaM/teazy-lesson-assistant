@@ -760,8 +760,6 @@ export default function HomePage() {
             {/* Pro */}
             <ProPricingCard />
           </motion.div>
-            </motion.article>
-          </motion.div>
         </div>
       </section>
 
