@@ -297,8 +297,10 @@ export default function PaywallModal({ open, onClose, purpose: initialPurpose, l
               variant="outline"
               className="w-full"
               onClick={() => {
-                onClose();
-                navigate("/pricing");
+                setPromoApplied(null);
+                setPromoCode("");
+                setShowPromo(false);
+                setPurpose("subscription");
               }}
             >
               <Sparkles className="mr-2 h-4 w-4" />
