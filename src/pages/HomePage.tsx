@@ -838,11 +838,9 @@ export default function HomePage() {
         <div className="container mx-auto max-w-6xl px-4 py-16">
           <div className="grid md:grid-cols-4 gap-10">
             <div>
-              <div className="flex items-center gap-2">
-                <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
-                  <GraduationCap className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-lg font-bold text-navy">Teazy AI</span>
+              <div className="flex items-center gap-2.5">
+                <img src={teazyLogo} alt="Teazy Tech logo" className="h-10 w-10 rounded-xl object-contain bg-white border border-border shadow-soft" />
+                <span className="text-lg font-bold text-navy">Teazy Tech</span>
               </div>
               <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
                 The AI teaching assistant built for African classrooms.
