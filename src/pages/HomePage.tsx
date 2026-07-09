@@ -20,7 +20,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import heroImg from "@/assets/hero-illustration.jpg";
+import heroImg from "@/assets/hero-teacher.jpg.asset.json";
 
 const FEATURES = [
   {
@@ -236,11 +236,11 @@ export default function HomePage() {
           </div>
           <div className="relative">
             <img
-              src={heroImg}
+              src={heroImg.url}
               alt="Teacher using Teazy AI to generate lesson notes, quizzes and grade handwritten essays"
               width={1280}
               height={960}
-              className="w-full h-auto rounded-2xl shadow-2xl border border-border"
+              className="w-full h-auto rounded-2xl shadow-2xl border border-border object-cover"
             />
           </div>
         </div>
