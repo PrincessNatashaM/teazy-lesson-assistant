@@ -585,14 +585,6 @@ export default function HomePage() {
                 <ShowcaseMockup title={s.title} kind={s.kind} />
               </motion.div>
             ))}
-            <motion.div
-              variants={fadeUp}
-              className="rounded-2xl border-2 border-dashed border-primary/30 bg-primary/5 flex flex-col items-center justify-center p-8 text-center"
-            >
-              <Sparkles className="h-8 w-8 text-primary" />
-              <h3 className="mt-3 font-bold text-navy">More coming soon</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Presentations, worksheets, scheme of work.</p>
-            </motion.div>
           </motion.div>
         </div>
       </section>
