@@ -449,8 +449,8 @@ export default function HomePage() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="h-12 px-6 text-base">
-                <a href="#showcase">
-                  <Play className="h-4 w-4" /> Watch Demo
+                <a href="#features">
+                  <Play className="h-4 w-4" /> See features
                 </a>
               </Button>
             </motion.div>
@@ -569,7 +569,7 @@ export default function HomePage() {
       </section>
 
       {/* ============================== HOW IT WORKS ============================== */}
-      <section className="py-24 bg-gradient-soft">
+      <section id="how-it-works" className="py-24 bg-gradient-soft">
         <div className="container mx-auto max-w-6xl px-4">
           <motion.div
             initial="hidden"
@@ -888,7 +888,7 @@ export default function HomePage() {
             </div>
 
             {[
-              { title: "Product", links: [["Features", "#features"], ["Pricing", "#pricing"], ["Product tour", "#showcase"]] },
+              { title: "Product", links: [["Features", "#features"], ["Pricing", "#pricing"], ["How it works", "#how-it-works"]] },
               { title: "Company", links: [["About", "#"], ["Contact", "#"], ["Blog", "#"]] },
               { title: "Legal", links: [["Privacy Policy", "#"], ["Terms", "#"], ["Cookies", "#"]] },
             ].map((col) => (
