@@ -616,51 +616,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ============================== PRODUCT SHOWCASE ============================== */}
-      <section id="showcase" className="py-24 sm:py-32">
-        <div className="container mx-auto max-w-6xl px-4">
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-80px" }}
-            variants={fadeUp}
-            className="text-center max-w-2xl mx-auto"
-          >
-            <div className="text-xs font-bold uppercase tracking-wider text-primary mb-3">Product tour</div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-navy tracking-tight text-balance">
-              See Teazy AI in Action
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Real screens, real curriculum, real classroom output.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-40px" }}
-            variants={stagger}
-            className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {[
-              { title: "Lesson Generator", kind: "lesson" as const },
-              { title: "Writing Assessment", kind: "essay" as const },
-              { title: "Quiz Generator", kind: "quiz" as const },
-              { title: "Teacher Dashboard", kind: "dash" as const },
-              { title: "Downloads", kind: "download" as const },
-            ].map((s) => (
-              <motion.div
-                key={s.title}
-                variants={fadeUp}
-                whileHover={{ y: -6, scale: 1.01 }}
-                transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              >
-                <ShowcaseMockup title={s.title} kind={s.kind} />
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
 
       {/* ============================== OUTCOMES ============================== */}
       <section className="py-24 bg-gradient-soft">
