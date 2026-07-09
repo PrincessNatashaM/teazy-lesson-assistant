@@ -531,9 +531,8 @@ export default function HomePage() {
                 icon: PenLine,
                 title: "Assess Handwritten Work",
                 body: "Upload handwritten essays and theory answers. Get marks, feedback and suggestions instantly.",
-                tags: ["OCR", "Rubric grading", "Feedback"],
+                tags: ["Rubric grading", "Feedback"],
                 accent: "from-primary/15 to-primary/0",
-                flagship: true,
               },
               {
                 icon: ListChecks,
