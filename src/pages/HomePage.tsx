@@ -302,6 +302,87 @@ const FAQS = [
   { q: "Is there a free version?", a: "Yes. Lesson notes, quizzes, copying outputs and your first 2 writing assessments are free forever." },
 ];
 
+const PRO_PRICES_ROTATE = [
+  { country: "Nigeria", price: "₦2,000", period: "/ month" },
+  { country: "Ghana", price: "2,000 CFA", period: "/ month" },
+  { country: "Kenya", price: "KSh 180", period: "/ month" },
+];
+
+function ProPricingCard() {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setIdx((i) => (i + 1) % PRO_PRICES_ROTATE.length), 2500);
+    return () => clearInterval(t);
+  }, []);
+  const current = PRO_PRICES_ROTATE[idx];
+
+  return (
+    <motion.article
+      variants={fadeUp}
+      whileHover={{ y: -6 }}
+      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      className="relative rounded-2xl border-2 border-primary bg-card p-8 shadow-elevated flex flex-col"
+    >
+      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-primary text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-glow">
+        Most popular
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-bold uppercase tracking-wider text-primary">Professional</div>
+        <div className="flex items-center gap-1">
+          {PRO_PRICES_ROTATE.map((_, i) => (
+            <button
+              key={i}
+              aria-label={`Show price ${i + 1}`}
+              onClick={() => setIdx(i)}
+              className={`h-1.5 rounded-full transition-all ${i === idx ? "w-5 bg-primary" : "w-1.5 bg-border"}`}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-2 h-[76px] relative overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={current.country}
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -30, opacity: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute inset-0"
+          >
+            <div className="flex items-baseline gap-1">
+              <span className="text-5xl font-bold text-navy">{current.price}</span>
+              <span className="text-muted-foreground">{current.period}</span>
+            </div>
+            <p className="mt-1 text-xs font-semibold text-primary uppercase tracking-wider">{current.country}</p>
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      <Button asChild className="mt-6 w-full h-11 bg-gradient-primary hover:opacity-90 shadow-glow">
+        <Link to="/auth?next=/account">
+          <Sparkles className="h-4 w-4 mr-1.5" /> Subscribe
+        </Link>
+      </Button>
+      <ul className="mt-6 space-y-3 text-sm">
+        {[
+          "Unlimited lesson generation",
+          "Unlimited writing assessment",
+          "PDF and Word downloads",
+          "Inline editing",
+          "Priority access",
+          "No per-download fees",
+        ].map((p) => (
+          <li key={p} className="flex items-start gap-2">
+            <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+            <span className="text-navy font-medium">{p}</span>
+          </li>
+        ))}
+      </ul>
+    </motion.article>
+  );
+}
+
 /* -------------------------------------------------------------------------- */
 /* Page                                                                        */
 /* -------------------------------------------------------------------------- */
