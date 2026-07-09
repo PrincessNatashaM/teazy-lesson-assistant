@@ -545,17 +545,10 @@ export default function HomePage() {
               <motion.article
                 key={c.title}
                 variants={fadeUp}
-                className={`group relative rounded-2xl border ${
-                  c.flagship ? "border-primary/40 shadow-card" : "border-border"
-                } bg-card p-8 hover:shadow-elevated hover:-translate-y-1 transition-all duration-300 overflow-hidden`}
+                className="group relative rounded-2xl border border-border bg-card p-8 hover:shadow-elevated hover:-translate-y-1 transition-all duration-300 overflow-hidden"
               >
                 <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${c.accent} opacity-60`} />
                 <div className="relative">
-                  {c.flagship && (
-                    <span className="absolute -top-2 right-0 bg-gradient-primary text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-glow">
-                      Flagship
-                    </span>
-                  )}
                   <div className="h-12 w-12 rounded-xl bg-gradient-primary text-white flex items-center justify-center shadow-glow">
                     <c.icon className="h-6 w-6" />
                   </div>
