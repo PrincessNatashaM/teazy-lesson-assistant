@@ -53,6 +53,7 @@ const STEPS: { id: StepId; title: string; short: string }[] = [
 export default function WritingAssessmentPage() {
   const { toast } = useToast();
   const status = useAssessmentStatus();
+  const { user } = useAuth();
   const [showBuyPack, setShowBuyPack] = useState(false);
   const [step, setStep] = useState<StepId>(1);
 
