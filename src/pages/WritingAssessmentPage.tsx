@@ -1,15 +1,19 @@
 import { useMemo, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
 import {
   ArrowLeft, ArrowRight, Loader2, Camera, Upload, X, ImageIcon,
-  Check, FileText, PenLine, Sparkles, Wand2,
+  Check, FileText, PenLine, Sparkles, Wand2, Zap, Crown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useAssessmentStatus } from "@/hooks/useAssessmentStatus";
+import BuyPackModal from "@/components/BuyPackModal";
 import {
   CURRICULA, ASSESSMENT_TYPES, MARKING_STYLES,
   getCurriculum, type AssessmentTypeId, type MarkingStyleId,
