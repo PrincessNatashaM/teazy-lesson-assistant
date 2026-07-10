@@ -204,7 +204,7 @@ export default function BatchDetailPage() {
               <h2 className="text-xl font-bold text-navy">{openStudent.student_name}</h2>
               <button onClick={() => setOpenStudent(null)} className="text-muted-foreground hover:text-foreground">✕</button>
             </div>
-            <AssessmentResults result={openStudent.result_json as AssessmentResult} onReset={() => setOpenStudent(null)} />
+            <AssessmentResults data={openStudent.result_json as AssessmentResult} />
           </div>
         </div>
       )}
