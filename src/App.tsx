@@ -10,6 +10,9 @@ import HomePage from "./pages/HomePage";
 import LessonNotesPage from "./pages/LessonNotesPage";
 import QuizGeneratorPage from "./pages/QuizGeneratorPage";
 import WritingAssessmentPage from "./pages/WritingAssessmentPage";
+import BulkAssessmentPage from "./pages/BulkAssessmentPage";
+import BatchesListPage from "./pages/BatchesListPage";
+import BatchDetailPage from "./pages/BatchDetailPage";
 import PricingPage from "./pages/PricingPage";
 import AuthPage from "./pages/AuthPage";
 import AccountPage from "./pages/AccountPage";
@@ -38,6 +41,9 @@ const App = () => (
                   <Route index element={<LessonNotesPage />} />
                   <Route path="quiz" element={<QuizGeneratorPage />} />
                   <Route path="writing" element={<WritingAssessmentPage />} />
+                  <Route path="writing/bulk" element={<BulkAssessmentPage />} />
+                  <Route path="writing/batches" element={<BatchesListPage />} />
+                  <Route path="writing/batches/:id" element={<BatchDetailPage />} />
                   <Route path="marker" element={<Navigate to="/app/writing" replace />} />
                 </Route>
                 <Route path="/quiz" element={<Navigate to="/app/quiz" replace />} />
