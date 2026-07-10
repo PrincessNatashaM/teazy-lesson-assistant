@@ -12,7 +12,7 @@ import PaywallModal from "./PaywallModal";
 const NAV = [
   { to: "/app", label: "Lesson Notes", icon: BookOpen },
   { to: "/app/quiz", label: "Quiz Generator", icon: Brain },
-  { to: "/app/writing", label: "Writing Assessment", icon: PenLine },
+  { to: "/app/marker", label: "Assessment Marker", icon: PenLine },
 ];
 
 export default function Header() {

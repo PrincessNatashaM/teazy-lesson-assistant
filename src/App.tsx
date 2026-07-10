@@ -9,7 +9,7 @@ import AppShell from "./components/AppShell";
 import HomePage from "./pages/HomePage";
 import LessonNotesPage from "./pages/LessonNotesPage";
 import QuizGeneratorPage from "./pages/QuizGeneratorPage";
-import WritingAssessmentPage from "./pages/WritingAssessmentPage";
+import AssessmentMarkerPage from "./pages/AssessmentMarkerPage";
 import AuthPage from "./pages/AuthPage";
 import AccountPage from "./pages/AccountPage";
 import AdminPage from "./pages/AdminPage";
@@ -35,10 +35,11 @@ const App = () => (
                 <Route path="/app" element={<AppShell />}>
                   <Route index element={<LessonNotesPage />} />
                   <Route path="quiz" element={<QuizGeneratorPage />} />
-                  <Route path="writing" element={<WritingAssessmentPage />} />
+                  <Route path="marker" element={<AssessmentMarkerPage />} />
+                  <Route path="writing" element={<Navigate to="/app/marker" replace />} />
                 </Route>
                 <Route path="/quiz" element={<Navigate to="/app/quiz" replace />} />
-                <Route path="/writing" element={<Navigate to="/app/writing" replace />} />
+                <Route path="/writing" element={<Navigate to="/app/marker" replace />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
