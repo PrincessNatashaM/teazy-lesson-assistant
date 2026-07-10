@@ -894,7 +894,7 @@ export default function HomePage() {
                 <span className="text-white/80">Spend More Time Teaching.</span>
               </h2>
               <p className="mt-6 text-lg text-white/70 max-w-xl mx-auto">
-                Join teachers across Nigeria, Ghana and Kenya using Teazy AI to reclaim their evenings.
+                Join teachers across Africa using Teazy AI to reclaim their evenings.
               </p>
               <Button asChild size="lg" className="mt-10 h-14 px-8 text-base bg-white text-navy hover:bg-white/90 shadow-glow">
                 <Link to="/app">
