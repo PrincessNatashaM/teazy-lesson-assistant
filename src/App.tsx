@@ -17,6 +17,7 @@ import PricingPage from "./pages/PricingPage";
 import AuthPage from "./pages/AuthPage";
 import AccountPage from "./pages/AccountPage";
 import AdminPage from "./pages/AdminPage";
+import MyWorkspacePage from "./pages/MyWorkspacePage";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "./hooks/useAuth";
 
