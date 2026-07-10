@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Check, Crown, Sparkles, Zap } from "lucide-react";
+import { Check } from "lucide-react";
 import {
   STANDARD_PRICES,
   PRO_PRICES,
+  PER_DOWNLOAD_PRICES,
+  PACK_PRICES,
   resolveDisplayCurrency,
   type DisplayCurrency,
 } from "@/lib/pricing";
@@ -31,7 +33,7 @@ const STANDARD_FEATURES = [
 ];
 
 const PRO_FEATURES = [
-  "Everything in Standard",
+  "Everything in Teazy AI Pro",
   "Unlimited Writing Assessment uploads",
   "Bulk marking (multiple scripts at once)",
   "Mark against uploaded marking schemes",
@@ -61,7 +63,7 @@ export default function PricingPage() {
       key={c}
       onClick={() => setCountry(c)}
       className={`px-3 py-1 rounded-md text-xs font-semibold transition ${
-        country === c ? "bg-navy text-navy-foreground" : "bg-muted text-muted-foreground hover:bg-muted/70"
+        country === c ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-muted/70"
       }`}
     >
       {label}
@@ -72,16 +74,16 @@ export default function PricingPage() {
     <>
       <Helmet>
         <title>Pricing | Teazy AI</title>
-        <meta name="description" content="Simple, affordable pricing for African teachers. Free forever plan, Teazy AI Standard from ₦2,000/mo, and Assessment Pro for heavy assessment users." />
+        <meta name="description" content="Simple, affordable pricing for African teachers. Free forever plan, Teazy AI Pro from ₦2,000/mo, and Assessment Pro for heavy assessment users." />
       </Helmet>
 
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="text-center mb-10">
           <h1 className="text-3xl sm:text-5xl font-extrabold text-navy font-heading">Simple pricing that grows with you</h1>
           <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
-            Built for teachers in Nigeria, Ghana and Kenya. Start free — upgrade when you need more.
+            Built for teachers in Nigeria, Ghana and Kenya. Start free, upgrade when you need more.
           </p>
-          <div className="mt-5 inline-flex gap-1 bg-secondary/50 p-1 rounded-lg">
+          <div className="mt-5 inline-flex gap-1 bg-secondary p-1 rounded-lg">
             {currencyBtn("NGN", "₦ Naira")}
             {currencyBtn("GHS", "GH₵ Cedi")}
             {currencyBtn("KES", "KSh Shilling")}
@@ -92,11 +94,12 @@ export default function PricingPage() {
           {/* FREE */}
           <PlanCard
             title="Free"
-            price="₦0"
+            price={{ NGN: "₦0", GHS: "GH₵0", KES: "KSh0" }[country]}
             period="forever"
             tagline="For teachers exploring Teazy AI."
             features={FREE_FEATURES}
             limits={FREE_LIMITS}
+            note={`Pay-per-download available at ${PER_DOWNLOAD_PRICES[country].display}.`}
             cta={
               plan === "free" ? (
                 <Button variant="outline" className="w-full" disabled>Current plan</Button>
@@ -106,26 +109,25 @@ export default function PricingPage() {
             }
           />
 
-          {/* STANDARD */}
+          {/* STANDARD => Teazy AI Pro */}
           <PlanCard
-            title="Teazy AI Standard"
+            title="Teazy AI Pro"
             price={STANDARD_PRICES[country].display.split("/")[0]}
             period="per month"
             tagline="For everyday classroom teachers."
             features={STANDARD_FEATURES}
-            icon={<Sparkles className="h-4 w-4" />}
             cta={
               plan === "standard" ? (
                 <Button className="w-full" disabled>Current plan</Button>
               ) : (
-                <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSubscribe}>
+                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90" onClick={handleSubscribe}>
                   Subscribe
                 </Button>
               )
             }
           />
 
-          {/* PRO */}
+          {/* PRO => Assessment Pro */}
           <PlanCard
             title="Assessment Pro"
             price={PRO_PRICES[country].display.split("/")[0]}
@@ -133,13 +135,12 @@ export default function PricingPage() {
             tagline="Best for teachers who grade frequently."
             features={PRO_FEATURES}
             highlight
-            icon={<Crown className="h-4 w-4" />}
             badge="Recommended for schools"
             cta={
               plan === "pro" ? (
                 <Button className="w-full" disabled>Current plan</Button>
               ) : (
-                <Button className="w-full bg-navy text-navy-foreground hover:bg-navy/90" onClick={handleSubscribe}>
+                <Button className="w-full bg-accent text-accent-foreground hover:bg-accent/90" onClick={handleSubscribe}>
                   Upgrade to Pro
                 </Button>
               )
@@ -148,26 +149,25 @@ export default function PricingPage() {
         </div>
 
         {/* Upload packs */}
-        <section className="mt-14 border border-border rounded-2xl p-6 bg-secondary/30">
-          <h2 className="text-xl font-bold text-navy font-heading flex items-center gap-2">
-            <Zap className="h-5 w-5 text-accent" /> Additional upload packs
+        <section className="mt-14 border border-border rounded-2xl p-6 bg-secondary">
+          <h2 className="text-xl font-bold text-navy font-heading">
+            Additional upload packs
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            For Standard users only. Extra uploads never expire and are used after your monthly 40 are exhausted.
+            For Teazy AI Pro users. Extra uploads never expire and are used after your monthly 40 are exhausted.
           </p>
           <div className="grid sm:grid-cols-3 gap-4 mt-4">
-            <PackCard label="5 uploads" price={{ NGN: "₦500", GHS: "GH₵ 5", KES: "KSh 45" }[country]} />
-            <PackCard label="10 uploads" price={{ NGN: "₦1,000", GHS: "GH₵ 10", KES: "KSh 90" }[country]} />
-            <PackCard label="30 uploads" price={{ NGN: "₦2,000", GHS: "GH₵ 20", KES: "KSh 180" }[country]} />
-
+            <PackCard label="5 uploads" price={PACK_PRICES.assessment_pack_5[country].display} />
+            <PackCard label="10 uploads" price={PACK_PRICES.assessment_pack_10[country].display} />
+            <PackCard label="30 uploads" price={PACK_PRICES.assessment_pack_30[country].display} />
           </div>
           <p className="text-xs text-muted-foreground mt-3">
-            Buy upload packs from the Writing Assessment page once you're on the Standard plan.
+            Buy upload packs from the Writing Assessment page once you're on Teazy AI Pro.
           </p>
         </section>
 
         <p className="text-center text-xs text-muted-foreground mt-8">
-          All plans billed via Paystack in your local currency (NGN, GH₵ or KSh).
+          All plans billed in your local currency (NGN, GH₵ or KSh).
         </p>
       </div>
 
@@ -182,7 +182,7 @@ export default function PricingPage() {
 }
 
 function PlanCard({
-  title, price, period, tagline, features, limits, cta, highlight, icon, badge,
+  title, price, period, tagline, features, limits, cta, highlight, badge, note,
 }: {
   title: string;
   price: string;
@@ -192,8 +192,8 @@ function PlanCard({
   limits?: string[];
   cta: React.ReactNode;
   highlight?: boolean;
-  icon?: React.ReactNode;
   badge?: string;
+  note?: string;
 }) {
   return (
     <div
@@ -206,10 +206,7 @@ function PlanCard({
           {badge}
         </span>
       )}
-      <div className="flex items-center gap-2">
-        {icon}
-        <h3 className="text-lg font-bold text-navy font-heading">{title}</h3>
-      </div>
+      <h3 className="text-lg font-bold text-navy font-heading">{title}</h3>
       <div className="mt-3 flex items-baseline gap-1">
         <span className="text-4xl font-extrabold text-navy font-heading">{price}</span>
         <span className="text-sm text-muted-foreground">{period}</span>
@@ -231,6 +228,8 @@ function PlanCard({
         ))}
       </ul>
 
+      {note && <p className="mt-4 text-xs text-muted-foreground">{note}</p>}
+
       <div className="mt-6">{cta}</div>
     </div>
   );
@@ -244,3 +243,4 @@ function PackCard({ label, price }: { label: string; price: string }) {
     </div>
   );
 }
+
