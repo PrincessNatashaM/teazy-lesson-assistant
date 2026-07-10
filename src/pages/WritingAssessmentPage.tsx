@@ -245,12 +245,12 @@ export default function AssessmentMarkerPage() {
   return (
     <div>
       <Helmet>
-        <title>AI Assessment Marker | Teazy AI</title>
+        <title>Writing Assessment | Teazy AI</title>
         <meta name="description" content="Upload handwritten exam scripts and receive AI-assisted marking, curriculum-aligned scoring and classroom-ready reports." />
       </Helmet>
 
       <header className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">AI Assessment Marker</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">Writing Assessment</h1>
         <p className="mt-2 text-muted-foreground max-w-2xl">
           Upload handwritten exam scripts and receive AI-assisted marking, curriculum-aligned scoring, detailed
           feedback, and classroom-ready reports.
