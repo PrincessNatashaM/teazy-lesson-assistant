@@ -62,7 +62,7 @@ export default function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">
-          {NAV.map(({ to, label, icon: Icon }) => (
+          {(user ? PRIVATE_NAV : PUBLIC_NAV).map(({ to, label, icon: Icon }) => (
             <NavLink key={to} to={to} end={to === "/app"} className={linkClass}>
               <Icon className="h-4 w-4" />
               {label}
