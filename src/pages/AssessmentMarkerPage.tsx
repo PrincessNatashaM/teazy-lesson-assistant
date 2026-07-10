@@ -609,7 +609,7 @@ export default function AssessmentMarkerPage() {
 
       {assessment && (
         <div id="assessment-output" className="mt-8">
-          <WritingAssessmentOutput data={assessment} />
+          <AssessmentResults data={assessment} onChange={setAssessment} />
         </div>
       )}
     </div>
