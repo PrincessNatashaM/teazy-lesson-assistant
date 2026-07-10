@@ -266,12 +266,56 @@ const TRUST = [
   { icon: Shield, label: "Trusted by Educators" },
 ];
 
-const OUTCOMES = [
+const OUTCOMES: {
+  stat: string;
+  label: string;
+  sub: string;
+  rotatePrices?: { country: string; price: string }[];
+}[] = [
   { stat: "10+ hrs", label: "Saved every week", sub: "Cut prep time from evenings to minutes." },
   { stat: "5×", label: "Faster essay marking", sub: "Upload handwritten scripts, get rubric feedback." },
   { stat: "3", label: "Curricula supported", sub: "NERDC, NaCCA and CBC out of the box." },
-  { stat: "₦2,000", label: "Affordable Pro tier", sub: "Priced for teachers, not enterprise budgets." },
+  {
+    stat: "₦2,000",
+    label: "Affordable Pro tier",
+    sub: "Priced for teachers, not enterprise budgets.",
+    rotatePrices: [
+      { country: "Nigeria", price: "₦2,000" },
+      { country: "Ghana", price: "GH₵20" },
+      { country: "Kenya", price: "KSh200" },
+    ],
+  },
 ];
+
+function RotatingStat({ prices }: { prices: { country: string; price: string }[] }) {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setIdx((i) => (i + 1) % prices.length), 2200);
+    return () => clearInterval(t);
+  }, [prices.length]);
+  const current = prices[idx];
+  return (
+    <div className="relative h-11 overflow-hidden">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={current.country}
+          initial={{ y: 18, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -18, opacity: 0 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-0"
+        >
+          <div className="text-4xl font-bold gradient-text tracking-tight leading-none">
+            {current.price}
+          </div>
+          <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+            {current.country}
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
 
 const TESTIMONIALS = [
   {
