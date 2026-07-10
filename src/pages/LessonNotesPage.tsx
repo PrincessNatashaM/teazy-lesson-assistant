@@ -173,6 +173,8 @@ export default function LessonNotesPage() {
           }
         }
       }
+      // Persist final content to workspace
+      if (fullText) await persistLesson(fullText);
     } catch (e) {
       console.error(e);
       toast({ title: "Error", description: "Failed to generate lesson note. Please try again.", variant: "destructive" });
