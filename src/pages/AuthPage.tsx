@@ -94,6 +94,11 @@ export default function AuthPage() {
               ? "Sign in to access Pro features, downloads and unlocks."
               : "Free to start. Upgrade anytime for unlimited downloads."}
           </p>
+          {notice && (
+            <div className="mt-4 rounded-md bg-accent/10 border border-accent/30 text-accent-foreground/90 px-3 py-2 text-sm text-center">
+              {notice}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             {mode === "signup" && (
