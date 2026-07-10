@@ -6,19 +6,44 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Server-side price table (source of truth)
-const UNLOCK = { NGN: 50000, KES: 4500 };
-const PRO = { NGN: 200000, KES: 18000 };
-const PACK_6 = { NGN: 50000, KES: 4500 };
-const PACK_11 = { NGN: 100000, KES: 9000 };
+// Server-side price table (source of truth). Prices are in minor units.
+const SUB_STANDARD = { NGN: 200000, KES: 18000 };
+const SUB_PRO = { NGN: 500000, KES: 45000 };
+const PACK_5 = { NGN: 50000, KES: 4500 };
+const PACK_10 = { NGN: 100000, KES: 9000 };
+const PACK_30 = { NGN: 200000, KES: 18000 };
 
-function priceFor(purpose: string, displayCurrency: string): { minor: number; charge_currency: "NGN" | "KES" } {
-  const charge: "NGN" | "KES" = displayCurrency === "KES" ? "KES" : "NGN";
-  if (purpose === "subscription") return { minor: PRO[charge], charge_currency: charge };
-  if (purpose === "assessment_pack_6") return { minor: PACK_6[charge], charge_currency: charge };
-  if (purpose === "assessment_pack_11") return { minor: PACK_11[charge], charge_currency: charge };
-  return { minor: UNLOCK[charge], charge_currency: charge };
+// Legacy per-file unlock price (kept so old paywall paths still work)
+const LEGACY_UNLOCK = { NGN: 50000, KES: 4500 };
+const LEGACY_PRO = { NGN: 200000, KES: 18000 };
+const LEGACY_PACK_6 = { NGN: 50000, KES: 4500 };
+const LEGACY_PACK_11 = { NGN: 100000, KES: 9000 };
+
+type Charge = "NGN" | "KES";
+
+function priceFor(purpose: string, displayCurrency: string): { minor: number; charge_currency: Charge } {
+  const charge: Charge = displayCurrency === "KES" ? "KES" : "NGN";
+  switch (purpose) {
+    case "sub_standard": return { minor: SUB_STANDARD[charge], charge_currency: charge };
+    case "sub_pro":      return { minor: SUB_PRO[charge], charge_currency: charge };
+    case "assessment_pack_5":  return { minor: PACK_5[charge], charge_currency: charge };
+    case "assessment_pack_10": return { minor: PACK_10[charge], charge_currency: charge };
+    case "assessment_pack_30": return { minor: PACK_30[charge], charge_currency: charge };
+    // Legacy
+    case "subscription":       return { minor: LEGACY_PRO[charge], charge_currency: charge };
+    case "assessment_pack_6":  return { minor: LEGACY_PACK_6[charge], charge_currency: charge };
+    case "assessment_pack_11": return { minor: LEGACY_PACK_11[charge], charge_currency: charge };
+    default:                   return { minor: LEGACY_UNLOCK[charge], charge_currency: charge };
+  }
 }
+
+const VALID_PURPOSES = new Set([
+  "sub_standard", "sub_pro",
+  "assessment_pack_5", "assessment_pack_10", "assessment_pack_30",
+  // Legacy fallbacks:
+  "download_pdf", "download_docx", "edit_unlock",
+  "subscription", "assessment_pack_6", "assessment_pack_11",
+]);
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -40,25 +65,37 @@ Deno.serve(async (req) => {
     const promoCode: string | null = body.promo_code ?? null;
     const displayCurrency = String(body.display_currency || "NGN");
 
-    if (!["download_pdf", "download_docx", "edit_unlock", "subscription", "assessment_pack_6", "assessment_pack_11"].includes(purpose))
-      return json({ error: "Invalid purpose" }, 400);
+    if (!VALID_PURPOSES.has(purpose)) return json({ error: "Invalid purpose" }, 400);
 
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
     let { minor, charge_currency } = priceFor(purpose, displayCurrency);
     let promo: any = null;
 
-    // Validate promo server-side (re-check, don't trust client)
+    // Prorate upgrade Standard → Pro (credit remaining days of Standard sub)
+    if (purpose === "sub_pro") {
+      const { data: sub } = await admin
+        .from("subscriptions")
+        .select("plan,status,current_period_end")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (sub?.status === "active" && sub.plan === "standard" && sub.current_period_end) {
+        const remainingMs = new Date(sub.current_period_end).getTime() - Date.now();
+        const remainingDays = Math.max(0, remainingMs / 86400000);
+        const standardMinor = SUB_STANDARD[charge_currency];
+        const credit = Math.round((remainingDays / 30) * standardMinor);
+        minor = Math.max(1000, minor - credit); // never below 10 units
+      }
+    }
+
+    // Validate promo server-side
     if (promoCode) {
       const { data: p } = await admin
-        .from("promo_codes")
-        .select("*")
-        .eq("code", promoCode.toUpperCase())
-        .eq("active", true)
-        .maybeSingle();
+        .from("promo_codes").select("*")
+        .eq("code", promoCode.toUpperCase()).eq("active", true).maybeSingle();
       if (p && (!p.expires_at || new Date(p.expires_at) > new Date()) &&
           (!p.max_uses || p.used_count < p.max_uses) &&
-          p.applies_to.includes(purpose)) {
+          (p.applies_to?.includes(purpose))) {
         promo = p;
         if (p.kind === "free_access" || p.kind === "pro_days") {
           minor = 0;
@@ -72,18 +109,14 @@ Deno.serve(async (req) => {
       }
     }
 
-    // If free via promo → grant immediately, no Paystack call
-    if (minor === 0 && promo && (promo.kind === "free_access" || promo.kind === "pro_days" ||
-        (promo.kind === "fixed_off") || (promo.kind === "percent_off"))) {
+    if (minor === 0 && promo) {
       await grantAccess(admin, user.id, purpose, lessonHash, promo);
       return json({ granted_free: true });
     }
 
-    // Create Paystack transaction (init)
     const reference = `tzy_${user.id.slice(0, 8)}_${Date.now()}`;
     const { data: payment, error: payErr } = await admin
-      .from("payments")
-      .insert({
+      .from("payments").insert({
         user_id: user.id,
         paystack_reference: reference,
         amount_minor: minor,
@@ -93,9 +126,7 @@ Deno.serve(async (req) => {
         promo_code_id: promo?.id ?? null,
         status: "pending",
         metadata: { display_currency: displayCurrency, promo_kind: promo?.kind ?? null, promo_value: promo?.value ?? null },
-      })
-      .select()
-      .single();
+      }).select().single();
     if (payErr) throw payErr;
 
     return json({
@@ -110,53 +141,51 @@ Deno.serve(async (req) => {
   }
 });
 
+const PACK_UPLOAD_COUNT: Record<string, number> = {
+  assessment_pack_5: 5,
+  assessment_pack_10: 10,
+  assessment_pack_30: 30,
+  assessment_pack_6: 6,
+  assessment_pack_11: 11,
+};
+
 async function grantAccess(admin: any, userId: string, purpose: string, lessonHash: string | null, promo: any) {
-  if (purpose === "subscription") {
-    const days = promo.kind === "pro_days" ? Number(promo.value) : 30;
+  if (purpose === "sub_standard" || purpose === "sub_pro" || purpose === "subscription") {
+    const days = promo?.kind === "pro_days" ? Number(promo.value) : 30;
     const end = new Date(Date.now() + days * 86400 * 1000);
+    const plan = purpose === "sub_standard" ? "standard" : "pro";
     await admin.from("subscriptions").upsert({
-      user_id: userId,
-      status: "active",
-      plan: "pro_monthly",
-      current_period_end: end.toISOString(),
+      user_id: userId, status: "active", plan, current_period_end: end.toISOString(),
     }, { onConflict: "user_id" });
-  } else if (purpose === "assessment_pack_6" || purpose === "assessment_pack_11") {
-    const add = purpose === "assessment_pack_6" ? 6 : 11;
+  } else if (purpose in PACK_UPLOAD_COUNT) {
+    const add = PACK_UPLOAD_COUNT[purpose];
     const { data: existing } = await admin.from("assessment_credits").select("remaining").eq("user_id", userId).maybeSingle();
     await admin.from("assessment_credits").upsert({
-      user_id: userId,
-      remaining: (existing?.remaining ?? 0) + add,
+      user_id: userId, remaining: (existing?.remaining ?? 0) + add,
     }, { onConflict: "user_id" });
   } else if (lessonHash) {
     await admin.from("entitlements").upsert({
-      user_id: userId,
-      lesson_hash: lessonHash,
-      kind: purpose,
+      user_id: userId, lesson_hash: lessonHash, kind: purpose,
     }, { onConflict: "user_id,lesson_hash,kind" });
   }
 
-  // Bonus assessment credits
-  if (promo.kind === "bonus_assessments") {
+  if (promo?.kind === "bonus_assessments") {
     const { data: existing } = await admin.from("assessment_credits").select("remaining").eq("user_id", userId).maybeSingle();
     await admin.from("assessment_credits").upsert({
-      user_id: userId,
-      remaining: (existing?.remaining ?? 0) + Number(promo.value),
+      user_id: userId, remaining: (existing?.remaining ?? 0) + Number(promo.value),
     }, { onConflict: "user_id" });
   }
 
-  // Log redemption + increment usage
-  await admin.from("promo_redemptions").insert({
-    promo_code_id: promo.id,
-    user_id: userId,
-    purpose,
-    feature_unlocked: purpose,
-  });
-  await admin.from("promo_codes").update({ used_count: promo.used_count + 1 }).eq("id", promo.id);
+  if (promo) {
+    await admin.from("promo_redemptions").insert({
+      promo_code_id: promo.id, user_id: userId, purpose, feature_unlocked: purpose,
+    });
+    await admin.from("promo_codes").update({ used_count: promo.used_count + 1 }).eq("id", promo.id);
+  }
 }
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    status, headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 }
