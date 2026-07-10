@@ -34,7 +34,7 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
   useEffect(() => {
     if (!open || !user) return;
     supabase.from("profiles").select("country").eq("id", user.id).maybeSingle().then(({ data }) => {
-      if (data?.country) setCountry(detectCurrency(data.country));
+      setCountry(resolveDisplayCurrency({ profileCountry: data?.country }));
     });
   }, [open, user]);
 
