@@ -48,8 +48,10 @@ const STEPS: { id: StepId; title: string; short: string }[] = [
   { id: 8, title: "Choose marking style", short: "Style" },
 ];
 
-export default function AssessmentMarkerPage() {
+export default function WritingAssessmentPage() {
   const { toast } = useToast();
+  const status = useAssessmentStatus();
+  const [showBuyPack, setShowBuyPack] = useState(false);
   const [step, setStep] = useState<StepId>(1);
 
   const [curriculumId, setCurriculumId] = useState<string>("");
