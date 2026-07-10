@@ -25,7 +25,8 @@ import { loadPaystack } from "@/lib/paystack";
 import {
   STANDARD_PRICES,
   PRO_PRICES,
-  detectCurrency,
+  resolveDisplayCurrency,
+  paystackChannelsFor,
   formatMinor,
   type DisplayCurrency,
   type SubPurpose,
