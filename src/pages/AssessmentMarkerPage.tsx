@@ -80,8 +80,8 @@ export default function AssessmentMarkerPage() {
     8: !!markingStyle,
   };
 
-  const goNext = () => setStep((s) => Math.min(8, (s + 1) as StepId));
-  const goPrev = () => setStep((s) => Math.max(1, (s - 1) as StepId));
+  const goNext = () => setStep((s) => (Math.min(8, s + 1) as StepId));
+  const goPrev = () => setStep((s) => (Math.max(1, s - 1) as StepId));
 
   // ---------------- Upload + OCR ----------------
   const readFile = (file: File): Promise<{ dataUrl: string; base64: string; mime: string }> =>
