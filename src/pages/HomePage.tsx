@@ -304,7 +304,7 @@ const FAQS = [
 
 const PRO_PRICES_ROTATE = [
   { country: "Nigeria", price: "₦2,000", period: "/ month" },
-  { country: "Ghana", price: "2,000 CFA", period: "/ month" },
+  { country: "Ghana", price: "GH₵ 20", period: "/ month" },
   { country: "Kenya", price: "KSh 180", period: "/ month" },
 ];
 
