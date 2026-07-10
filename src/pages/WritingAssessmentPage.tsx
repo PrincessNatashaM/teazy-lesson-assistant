@@ -278,12 +278,22 @@ export default function WritingAssessmentPage() {
         <meta name="description" content="Upload handwritten exam scripts and receive AI-assisted marking, curriculum-aligned scoring and classroom-ready reports." />
       </Helmet>
 
-      <header className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">Writing Assessment</h1>
-        <p className="mt-2 text-muted-foreground max-w-2xl">
-          Upload handwritten exam scripts and receive AI-assisted marking, curriculum-aligned scoring, detailed
-          feedback, and classroom-ready reports.
-        </p>
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">Writing Assessment</h1>
+          <p className="mt-2 text-muted-foreground max-w-2xl">
+            Upload handwritten exam scripts and receive AI-assisted marking, curriculum-aligned scoring, detailed
+            feedback, and classroom-ready reports.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Link to="/app/writing/batches" className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-navy hover:bg-muted">
+            My batches
+          </Link>
+          <Link to="/app/writing/bulk" className="inline-flex items-center gap-1 rounded-md bg-accent/10 border border-accent/30 px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent/20">
+            <Crown className="h-3 w-3" /> Bulk marking (Pro)
+          </Link>
+        </div>
       </header>
 
       <UsageMeter status={status} onBuyPack={() => setShowBuyPack(true)} />
