@@ -295,7 +295,7 @@ const TESTIMONIALS = [
 ];
 
 const FAQS = [
-  { q: "Can I use the Nigerian curriculum?", a: "Yes. Teazy AI generates Nigerian lesson notes that follow the NERDC structure — behavioural objectives, set induction, presentation, evaluation and assignment." },
+  { q: "Can I use the Nigerian curriculum?", a: "Yes. Teazy AI generates Nigerian lesson notes that follow the NERDC structure: behavioural objectives, set induction, presentation, evaluation and assignment." },
   { q: "Does it assess handwriting?", a: "Absolutely. Upload a photo of a handwritten essay, Teazy AI extracts the text and grades it using a rubric covering content, grammar, structure and originality." },
   { q: "Can I edit generated lessons?", a: "Yes. Every generated lesson note is fully editable inside Teazy AI before you export it as Word or PDF." },
   { q: "Can I download Word and PDF?", a: "Word and PDF downloads are part of the Pro tier. Free users can generate and copy content freely, then upgrade when they need a formatted file." },
@@ -304,8 +304,8 @@ const FAQS = [
 
 const PRO_PRICES_ROTATE = [
   { country: "Nigeria", price: "₦2,000", period: "/ month" },
-  { country: "Ghana", price: "GH₵ 20", period: "/ month" },
-  { country: "Kenya", price: "KSh 180", period: "/ month" },
+  { country: "Ghana", price: "GH₵20", period: "/ month" },
+  { country: "Kenya", price: "KSh200", period: "/ month" },
 ];
 
 function ProPricingCard() {
@@ -523,7 +523,7 @@ export default function HomePage() {
               {
                 icon: BookOpen,
                 title: "Generate Lesson Notes",
-                body: "Complete curriculum-aligned lesson notes in seconds — objectives, set induction, presentation and evaluation.",
+                body: "Complete curriculum-aligned lesson notes in seconds: objectives, set induction, presentation and evaluation.",
                 tags: ["NERDC", "NaCCA", "CBC"],
                 accent: "from-primary/10 to-primary/0",
               },
@@ -537,7 +537,7 @@ export default function HomePage() {
               {
                 icon: ListChecks,
                 title: "Quiz Generator",
-                body: "Generate quizzes, tests and exam questions instantly — with answer keys ready for the classroom.",
+                body: "Generate quizzes, tests and exam questions instantly, with answer keys ready for the classroom.",
                 tags: ["MCQ", "Theory", "Answer keys"],
                 accent: "from-primary/10 to-primary/0",
               },
@@ -772,8 +772,8 @@ export default function HomePage() {
                 <div className="mt-3 grid grid-cols-3 gap-2">
                   {[
                     { c: "Nigeria", p: "₦500" },
-                    { c: "Ghana", p: "GH₵ 5" },
-                    { c: "Kenya", p: "KSh 45" },
+                    { c: "Ghana", p: "GH₵5" },
+                    { c: "Kenya", p: "KSh50" },
                   ].map((x) => (
                     <div key={x.c} className="rounded-lg border border-border bg-secondary/50 p-2.5 text-center">
                       <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{x.c}</div>
@@ -889,19 +889,30 @@ export default function HomePage() {
 
             {[
               { title: "Product", links: [["Features", "#features"], ["Pricing", "#pricing"], ["How it works", "#how-it-works"]] },
-              { title: "Company", links: [["About", "#"], ["Contact", "#"], ["Blog", "#"]] },
+              { title: "Company", links: [
+                ["About", "https://www.teazytech.org/about"],
+                ["Contact", "https://www.teazytech.org/contact"],
+                ["Blog", "https://www.teazytech.org/blog"],
+              ] },
               { title: "Legal", links: [["Privacy Policy", "#"], ["Terms", "#"], ["Cookies", "#"]] },
             ].map((col) => (
               <div key={col.title}>
                 <div className="text-sm font-bold text-navy uppercase tracking-wider">{col.title}</div>
                 <ul className="mt-4 space-y-3">
-                  {col.links.map(([label, href]) => (
-                    <li key={label}>
-                      <a href={href} className="text-sm text-muted-foreground hover:text-primary transition-colors">
-                        {label}
-                      </a>
-                    </li>
-                  ))}
+                  {col.links.map(([label, href]) => {
+                    const external = href.startsWith("http");
+                    return (
+                      <li key={label}>
+                        <a
+                          href={href}
+                          {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                          className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                        >
+                          {label}
+                        </a>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             ))}
@@ -909,7 +920,7 @@ export default function HomePage() {
 
           <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} Teazy Tech — Empowering teachers with technology.
+              © {new Date().getFullYear()} Teazy Tech. Empowering teachers with technology.
             </p>
             <p className="text-xs text-muted-foreground">Made with care for African classrooms.</p>
           </div>
