@@ -156,9 +156,10 @@ export default function PricingPage() {
             For Standard users only. Extra uploads never expire and are used after your monthly 40 are exhausted.
           </p>
           <div className="grid sm:grid-cols-3 gap-4 mt-4">
-            <PackCard label="5 uploads" price={{ NGN: "₦500", CFA: "500 CFA", KES: "KSh 45" }[country]} />
-            <PackCard label="10 uploads" price={{ NGN: "₦1,000", CFA: "1,000 CFA", KES: "KSh 90" }[country]} />
-            <PackCard label="30 uploads" price={{ NGN: "₦2,000", CFA: "2,000 CFA", KES: "KSh 180" }[country]} />
+            <PackCard label="5 uploads" price={{ NGN: "₦500", GHS: "GH₵ 5", KES: "KSh 45" }[country]} />
+            <PackCard label="10 uploads" price={{ NGN: "₦1,000", GHS: "GH₵ 10", KES: "KSh 90" }[country]} />
+            <PackCard label="30 uploads" price={{ NGN: "₦2,000", GHS: "GH₵ 20", KES: "KSh 180" }[country]} />
+
           </div>
           <p className="text-xs text-muted-foreground mt-3">
             Buy upload packs from the Writing Assessment page once you're on the Standard plan.
