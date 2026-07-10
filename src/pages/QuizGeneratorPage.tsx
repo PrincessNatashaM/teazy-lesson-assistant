@@ -73,6 +73,19 @@ Generate a quiz suitable for this topic and level.`;
       }
       const data = await resp.json();
       setQuiz(data);
+      // Auto-save to workspace
+      if (user && data?.multipleChoice) {
+        supabase.from("saved_quizzes").insert({
+          user_id: user.id,
+          title: `Quiz · ${topic}`,
+          curriculum: curriculum || null,
+          subject: null,
+          class_level: classLevel || null,
+          topic,
+          language,
+          quiz: data,
+        }).then(({ error }) => { if (error) console.error("save quiz failed", error); });
+      }
     } catch (e) {
       console.error(e);
       toast({ title: "Error", description: "Failed to generate quiz. Please try again.", variant: "destructive" });
