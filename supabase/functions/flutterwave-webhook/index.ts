@@ -71,21 +71,12 @@ Deno.serve(async (req) => {
       return new Response("Payment not found", { status: 404 });
     }
 
-    // Optional amount/currency sanity check
-    if (
-      payment.amount &&
-      Number(tx.amount) < Number(payment.amount)
-    ) {
-      return new Response("Amount mismatch", { status: 400 });
-    }
-
     if (payment.status !== "success") {
       await admin
         .from("payments")
         .update({
           status: "success",
-          gateway: "flutterwave",
-          metadata: { ...(payment.metadata ?? {}), webhook: tx },
+          metadata: { ...(payment.metadata ?? {}), gateway: "flutterwave", webhook: tx },
         })
         .eq("id", payment.id);
       await grant(admin, payment);
