@@ -89,7 +89,7 @@ export default function PaywallModal({ open, onClose, purpose, onSuccess }: Prop
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (data?.country) setCountry(detectCurrency(data.country));
+        setCountry(resolveDisplayCurrency({ profileCountry: data?.country }));
       });
   }, [open, user]);
 
