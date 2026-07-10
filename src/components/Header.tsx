@@ -74,9 +74,9 @@ export default function Header() {
           {user ? (
             <>
               {proActive ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-success/20 text-success text-xs font-bold">
-                  <BadgeCheck className="h-3.5 w-3.5" /> Pro
-                </span>
+                <Button asChild size="sm" variant="ghost" className="text-navy-foreground hover:bg-navy-foreground/10">
+                  <Link to="/account"><BadgeCheck className="mr-1 h-4 w-4 text-success" /> Manage Subscription</Link>
+                </Button>
               ) : (
                 <Button
                   size="sm"
