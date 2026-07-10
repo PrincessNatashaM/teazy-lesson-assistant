@@ -56,7 +56,7 @@ const HEADLINES: Record<Purpose, { title: string; message: string }> = {
   },
   subscription: {
     title: "Upgrade to Pro",
-    message: "Unlimited editing, PDF and Word downloads, and writing assessments.",
+    message: "Unlimited editing, PDF and Word downloads, and assessment marking.",
   },
 };
 
