@@ -22,11 +22,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { loadPaystack } from "@/lib/paystack";
+import { loadFlutterwave, flutterwavePaymentOptionsFor } from "@/lib/flutterwave";
 import {
   STANDARD_PRICES,
   PRO_PRICES,
   resolveDisplayCurrency,
   paystackChannelsFor,
+  gatewayFor,
   formatMinor,
   type DisplayCurrency,
   type SubPurpose,
