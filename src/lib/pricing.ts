@@ -16,14 +16,14 @@ interface PriceRow {
 /** Monthly subscription prices */
 export const STANDARD_PRICES: Record<DisplayCurrency, PriceRow> = {
   NGN: { display: "₦2,000/month", chargeCurrency: "NGN", chargeMinor: 200000 },
-  GHS: { display: "GH₵ 20/month",  chargeCurrency: "GHS", chargeMinor: 2000 },
-  KES: { display: "KSh 180/month", chargeCurrency: "KES", chargeMinor: 18000 },
+  GHS: { display: "GH₵ 40/month",  chargeCurrency: "GHS", chargeMinor: 4000 },
+  KES: { display: "KSh 200/month", chargeCurrency: "KES", chargeMinor: 20000 },
 };
 
 export const PRO_PRICES: Record<DisplayCurrency, PriceRow> = {
   NGN: { display: "₦5,000/month", chargeCurrency: "NGN", chargeMinor: 500000 },
-  GHS: { display: "GH₵ 50/month",  chargeCurrency: "GHS", chargeMinor: 5000 },
-  KES: { display: "KSh 450/month", chargeCurrency: "KES", chargeMinor: 45000 },
+  GHS: { display: "GH₵ 100/month",  chargeCurrency: "GHS", chargeMinor: 10000 },
+  KES: { display: "KSh 500/month", chargeCurrency: "KES", chargeMinor: 50000 },
 };
 
 /** Upload packs — Standard-only add-on, uploads never expire */
