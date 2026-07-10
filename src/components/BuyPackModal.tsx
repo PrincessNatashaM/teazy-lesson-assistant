@@ -56,6 +56,7 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
         email: user.email,
         amount: init.amount_minor,
         currency: init.currency,
+        channels: paystackChannelsFor(country),
         ref: init.reference,
         onClose: () => setPaying(false),
         callback: (response: any) => {
