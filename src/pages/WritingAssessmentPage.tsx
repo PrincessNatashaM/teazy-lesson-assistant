@@ -295,13 +295,13 @@ export default function WritingAssessmentPage() {
   return (
     <div>
       <Helmet>
-        <title>Assessment Marker | Teazy AI</title>
+        <title>Writing Assessment | Teazy AI</title>
         <meta name="description" content="Upload handwritten exam scripts and receive AI-assisted marking in three steps." />
       </Helmet>
 
       <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">Assessment Marker</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">Writing Assessment</h1>
           <p className="mt-2 text-muted-foreground max-w-2xl">
             Three quick steps: pick your curriculum, pick the subject, upload the script.
             The AI handles the rest.
@@ -712,7 +712,7 @@ function UsageMeter({
     <div className="mb-6 rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-3 flex-wrap">
       <div className="text-sm">
         <span className="font-semibold text-navy">{Math.max(0, limit - used)} of {limit}</span>
-        <span className="text-muted-foreground"> free Assessment Marker uploads left.</span>
+        <span className="text-muted-foreground"> free Writing Assessment uploads left.</span>
       </div>
       <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
         <Link to="/pricing"><Sparkles className="mr-1 h-3.5 w-3.5" /> Upgrade</Link>

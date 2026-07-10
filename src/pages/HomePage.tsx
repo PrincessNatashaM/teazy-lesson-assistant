@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
-import teazyLogo from "@/assets/teazy-logo.jpg";
+import teazyLogo from "@/assets/teazy-logo.png";
 import {
   BookOpen,
   PenLine,
