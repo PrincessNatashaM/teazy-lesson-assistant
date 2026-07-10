@@ -750,7 +750,7 @@ export default function HomePage() {
               <ul className="mt-6 space-y-3 text-sm">
                 {[
                   "Unlimited lesson note generation",
-                  "Limited assessment marking (2 free)",
+                  "2 free Writing Assessment uploads",
                   "Quiz generator",
                   "Copy generated content",
                 ].map((p) => (
