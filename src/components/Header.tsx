@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { Menu, X, UserCircle2, BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
-import teazyLogo from "@/assets/teazy-logo.png";
+import teazyLogo from "@/assets/teazy-logo.jpg";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
