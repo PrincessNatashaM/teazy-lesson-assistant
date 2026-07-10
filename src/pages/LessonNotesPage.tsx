@@ -46,10 +46,48 @@ export default function LessonNotesPage() {
   const [images, setImages] = useState<string[]>([]);
   const [imagesLoading, setImagesLoading] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const savedIdRef = useRef<string | null>(null);
+  const lastMetaRef = useRef<LessonFormData | null>(null);
 
   const loadingMessage = useMemo(() => loadingMessageFor(subject), [subject]);
 
+  const persistLesson = async (content: string) => {
+    if (!user || !content || content.length < 100) return;
+    const meta = lastMetaRef.current;
+    if (!meta) return;
+    const title = `${meta.subject || "Lesson"} · ${meta.topic || "Untitled"}`;
+    try {
+      if (savedIdRef.current) {
+        await supabase.from("saved_lessons").update({ content, title }).eq("id", savedIdRef.current);
+      } else {
+        const { data } = await supabase.from("saved_lessons").insert({
+          user_id: user.id,
+          title,
+          curriculum: meta.curriculum,
+          subject: meta.subject,
+          class_level: meta.classLevel,
+          topic: meta.topic,
+          language: meta.language,
+          content,
+        }).select("id").single();
+        if (data?.id) savedIdRef.current = data.id;
+      }
+    } catch (e) {
+      console.error("save lesson failed", e);
+    }
+  };
+
   const handleGenerate = async (data: LessonFormData) => {
+    setIsLoading(true);
+    setLessonPlan("");
+    setImages([]);
+    setImagesLoading(false);
+    setLanguage(data.language);
+    setSubject(data.subject);
+    setTopic(data.topic);
+    savedIdRef.current = null;
+    lastMetaRef.current = data;
     setIsLoading(true);
     setLessonPlan("");
     setImages([]);
