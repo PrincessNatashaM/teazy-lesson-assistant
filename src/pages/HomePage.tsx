@@ -299,7 +299,7 @@ const FAQS = [
   { q: "Does it assess handwriting?", a: "Absolutely. Upload a photo of a handwritten essay, Teazy AI extracts the text and grades it using a rubric covering content, grammar, structure and originality." },
   { q: "Can I edit generated lessons?", a: "Yes. Every generated lesson note is fully editable inside Teazy AI before you export it as Word or PDF." },
   { q: "Can I download Word and PDF?", a: "Word and PDF downloads are part of the Pro tier. Free users can generate and copy content freely, then upgrade when they need a formatted file." },
-  { q: "Is there a free version?", a: "Yes. Lesson notes, quizzes, copying outputs and your first 2 writing assessments are free forever." },
+  { q: "Is there a free version?", a: "Yes. Lesson notes, quizzes, copying outputs and your first 2 assessment markings are free forever." },
 ];
 
 const PRO_PRICES_ROTATE = [
@@ -367,7 +367,7 @@ function ProPricingCard() {
       <ul className="mt-6 space-y-3 text-sm">
         {[
           "Unlimited lesson generation",
-          "Unlimited writing assessment",
+          "Unlimited assessment marking",
           "PDF and Word downloads",
           "Inline editing",
           "Priority access",
@@ -750,7 +750,7 @@ export default function HomePage() {
               <ul className="mt-6 space-y-3 text-sm">
                 {[
                   "Unlimited lesson note generation",
-                  "Limited handwriting assessment (2 free)",
+                  "Limited assessment marking (2 free)",
                   "Quiz generator",
                   "Copy generated content",
                 ].map((p) => (

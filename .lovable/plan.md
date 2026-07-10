@@ -1,128 +1,95 @@
-# Teazy AI — Monetization & Subscription System (Paystack)
 
-This is a large feature. Before I start, two quick decisions are needed (see "Open questions" at the bottom). Everything else is laid out below.
+# Assessment Marker — Expansion Plan
 
-## 1. Authentication (foundation)
+Transform the existing Writing Assessment into a comprehensive, curriculum-first **Assessment Marker** for Nigerian (NERDC/WAEC/NECO), Kenyan CBC, and Ghanaian teachers. This is a large build — I'll ship it in phased milestones so you can review as we go.
 
-Monetization needs accounts so we can track entitlements, subscriptions, promo usage, and free-tier counters across devices.
+## Phase 1 — Rename & Navigation (small)
+- Rename route/label "Writing Assessment" → **Assessment Marker** everywhere (nav in `AppShell`, homepage feature cards, footer links, page title, meta).
+- Keep route `/app/writing` working via redirect; primary route becomes `/app/marker`.
+- New landing header on the page: "AI Assessment Marker" + subtitle from spec.
 
-- Email + password sign-in (default) and Google sign-in
-- `/auth` page (sign in / sign up), `/account` page (status, usage, manage subscription)
-- "Upgrade to Pro" button in the navbar
-- `profiles` table linked to `auth.users` (display name, country for currency detection)
-- Separate `user_roles` table with `app_role` enum (`admin`, `user`) and `has_role()` security-definer function — used to gate admin pages
+## Phase 2 — Curriculum data model (foundation)
+Create `src/lib/curricula.ts` as the single source of truth. Structure:
+```ts
+CURRICULA = {
+  "nigeria-nerdc": { label, flag, subjects[], classes[], terminology },
+  "waec":          { ... },
+  "neco":          { ... },
+  "kenya-cbc":     { ... },
+  "ghana":         { ... },
+}
+```
+Each subject carries a `markingProfile` key (math / sciences / english / literature / geography / history / general) that drives subject-specific grading rules on the backend.
 
-## 2. Database schema (new tables)
+Assessment types (shared across all curricula): Essay/Creative Writing, Theory, CA, Homework, Classwork, End-of-Term, Mid-Term, Practical Report, Project, Mixed Script.
+
+## Phase 3 — Stepper UI (the core UX)
+Replace the current single form with a guided 8-step wizard in `AssessmentMarkerPage.tsx`, using existing shadcn components + Teazy blue/navy tokens. Steps:
 
 ```text
-profiles              user_id, display_name, country (NG|GH|KE|OTHER)
-user_roles            user_id, role (admin|user)
-subscriptions         user_id, status (active|canceled|expired), plan, current_period_end, paystack_subscription_code, paystack_customer_code
-entitlements          user_id, lesson_hash, kind (download_pdf|download_docx), expires_at  -- per-lesson unlocks
-usage_counters        user_id, kind (writing_assessment), period_start, count
-assessment_credits    user_id, remaining  -- one-off packs (6 or 11 essays)
-promo_codes           code, kind (percent|fixed|free|bonus_uploads), value, currency, max_uses, used_count, expires_at, active
-promo_redemptions     code_id, user_id, payment_id, redeemed_at
-payments              user_id, paystack_reference, amount, currency, purpose (download|pack6|pack11|subscription), promo_code_id, status, metadata, created_at
-app_settings          key, value (JSON) — pricing, free-tier limits, feature flags (admin-editable)
+[1 Curriculum] → [2 Subject] → [3 Class] → [4 What are you marking?]
+[5 Upload scripts] → [6 Question paper + Marking scheme (optional)]
+[7 OCR review & approve] → [8 Marking style] → [Grade]
 ```
+- Step 1: curriculum cards with flag emojis.
+- Step 2: subject dropdown, populated from selected curriculum only.
+- Step 3: class list from curriculum.
+- Step 4: "What are you marking today?" chip picker.
+- Step 5: drag-and-drop uploader (JPG/PNG/PDF, multi-page, multi-file, camera). Page previews shown.
+- Step 6: optional question paper + marking scheme (upload / paste / AI-generate rubric with edit).
+- Step 7: OCR pass on all pages, editable extracted text, "Approve & continue".
+- Step 8: Strict / Standard / Lenient with explanations.
 
-All tables get RLS — users read/write only their own rows; `app_settings`, `promo_codes`, all payments visible to admins via `has_role()`.
+Progress bar + Back/Next controls. State kept in a single reducer.
 
-## 3. Paywall — PDF / Word downloads
+## Phase 4 — Backend (edge functions)
+Extend/add functions:
+- `ocr-handwriting` (exists) — extend to accept PDFs (split to images) and batches. Return per-page text.
+- `generate-marking-rubric` (new) — AI generates a rubric from curriculum + subject + class + assessment type + question paper.
+- `assess-script` (new; supersedes `assess-writing`) — inputs: curriculum, subject, class, assessment type, marking style, approved text, optional question paper text, optional marking scheme. Uses subject `markingProfile` to select a specialised system prompt (math/science/English/etc.). Returns structured JSON: overallScore, percentage, grade, confidence, perQuestion[], strengths[], improvements[], commonErrors[], suggestedIntervention, suggestedHomework, curriculumObjectives[].
+- Keep `assess-writing` alive as a thin wrapper for backwards compatibility.
 
-- "Download PDF" / "Download Word" in `LessonOutput` and `QuizSection` check entitlement first
-- Entitlement = active subscription OR a `entitlements` row for this lesson hash
-- If neither → open `PaywallModal`:
-  - Headline "Unlock Download Access"
-  - Pricing in user's local currency (₦500 / 500 CFA / KSh 45), detected from `profiles.country` with a manual switcher
-  - "Pay with Paystack" + "Enter Promo Code"
-- After verified payment → insert `entitlements` row → download fires automatically, no page refresh
+Prompts encode curriculum-specific marking rules and subject profile. If a marking scheme is supplied, the system prompt is instructed to prioritise it over inference.
 
-## 4. Writing Assessment paywall
+## Phase 5 — Results dashboard
+New `AssessmentResults.tsx`:
+- Header: Overall score, %, grade, confidence badge (with the <75% manual-review warning).
+- Per-question accordion with score + feedback + teacher edit.
+- Strengths / Improvements / Common errors / Suggested intervention / Suggested homework / Curriculum objectives to reinforce.
+- Teacher controls: edit any score, override final grade, edit feedback, "Approve final grading", save to history (localStorage for now; DB-ready shape).
+- Export buttons: PDF, Word, Printable student report, Teacher summary — reuse existing paywall via `useEntitlements` and `PaywallModal`.
 
-- First 2 uploads free per account (tracked in `usage_counters`)
-- After that, `WritingAssessmentForm` submit is intercepted by `AssessmentPaywallModal`:
-  - Pack A: ₦500 / 500 CFA / KSh 45 → +6 credits
-  - Pack B: ₦1,000 / 1,000 CFA / KSh 90 → +11 credits
-  - Pro Subscription: ₦2,000 / 2,000 CFA / KSh 180 per month → unlimited
-- Pro users skip all paywalls; pack credits decrement on each assessment
+## Phase 6 — Bulk Marking (Pro)
+Behind Pro entitlement:
+- Multi-script upload with per-script progress.
+- Aggregate view: class average, high/low, distribution chart (simple bars), per-question difficulty, common misconceptions.
+- Exports: Excel (via `xlsx`), CSV, PDF summary.
+Non-Pro users see the tab with an upgrade CTA.
 
-## 5. Subscription page (`/pricing`)
+## Phase 7 — Monetisation wiring
+Reuse existing entitlements/paywall:
+- Free = 2 assessment uploads (new counter `assessment_uploads` in `usage_counters`).
+- Unlock packs: ₦500 = 6, ₦1,000 = 11 (new Paystack SKUs in `paystack-initialize`).
+- Pro ₦5,000/month unlocks unlimited + bulk + advanced analytics + priority.
+- Promo codes flow through existing `validate-promo` unchanged.
 
-Two-column comparison:
+## Phase 8 — Forward-compatible architecture
+Type the results object and edge-function contract so future features slot in without redesign: report-card comments, parent reports, school dashboards, mastery tracking, LMS/SIS integrations. Persist assessments in a new `assessments` table (Postgres) keyed by user, with JSONB payload — laid down in this phase so history/analytics work later.
 
-- **Free**: lesson notes, quizzes, 2 writing assessments, copy outputs
-- **Pro** (highlighted "Best for active teachers"): unlimited assessments, unlimited PDF + Word downloads, faster processing, premium access
-- Monthly pricing in NGN / CFA / KES, currency toggle
-- Small caption: "Designed to remain affordable for teachers across Nigeria, Ghana, and Kenya."
+---
 
-## 6. Paystack integration
+## Technical notes
+- All colour usage stays on existing semantic tokens (blue primary, navy headings, light-blue gradients) — no hardcoded colours.
+- PDF → image: use `pdfjs-dist` client-side for previews and to send page images to OCR (keeps edge function simple).
+- Excel export: `xlsx` (SheetJS). PDF export: reuse existing PDF path in `LessonOutput`.
+- New DB migration (Phase 8) will include GRANTs + RLS scoped to `auth.uid()`.
+- Everything server-side uses Lovable AI Gateway (`google/gemini-3-flash-preview`) — no new secrets required.
 
-- Frontend: `@paystack/inline-js` popup, initialized with `PAYSTACK_PUBLIC_KEY` (publishable, fine in code)
-- Backend edge functions (all with CORS, Zod validation, JWT-verified):
-  - `paystack-initialize` — creates a transaction, returns reference + access code; accepts `{purpose, lesson_hash?, promo_code?}` and computes server-side price (never trust client price)
-  - `paystack-verify` — verifies reference via Paystack API, writes `payments` row, grants entitlement / credits / activates subscription
-  - `paystack-webhook` — handles `charge.success`, `subscription.create`, `subscription.disable`, `invoice.payment_failed`; signature-verified with HMAC-SHA512 of `PAYSTACK_SECRET_KEY`
-  - `validate-promo` — checks code validity, returns adjusted price
-- `PAYSTACK_SECRET_KEY` stored in Lovable Cloud secrets, never sent to frontend
+## Suggested build order (what I'll ship first)
+1. Phases 1–3 (rename, curriculum model, stepper UI + upload + OCR review) — biggest visible change, safe to ship together.
+2. Phase 4 + 5 (new assess-script backend + results dashboard with subject-aware grading and teacher edits).
+3. Phase 7 (usage counter + unlock packs + Pro gating on exports).
+4. Phase 6 (bulk marking).
+5. Phase 8 (persistence table + analytics-ready schema).
 
-## 7. Promo codes
-
-- Field on every paywall modal: "Enter promo code"
-- `validate-promo` returns `{valid, adjusted_amount, kind}` → modal updates price live
-- On verify, `paystack-verify` re-validates and records redemption (prevents race / replay)
-- Admins create/edit codes in admin panel
-
-## 8. Admin panel (`/admin`, gated by `has_role(admin)`)
-
-- Pricing editor (writes `app_settings`)
-- Promo code CRUD (expiration, max uses, kind, value)
-- Free-tier limit editor (default 2 assessments)
-- Payments + subscriptions table view (read-only)
-- First admin: I'll provide a one-line SQL snippet for the user to run via the admin tools to grant themselves the `admin` role after signup
-
-## 9. UX indicators
-
-- Account chip in navbar: "Pro" badge OR "2 free uploads left"
-- Inline banners on writing page: "1 free upload remaining" / "Pro subscription active" / "5 essay credits left"
-- Download buttons show a small lock icon when locked
-- Toast: "Payment Successful 🎉" + auto-unlock
-
-## 10. Homepage messaging cleanup
-
-- Replace "Free for Teachers" / "Completely Free" / "100% Free" with **"Start Free. Upgrade When You Need More."**
-- Replace CTA "Get Started Free Forever" with **"Start Generating Lesson Notes"**
-- Add a Free-vs-Premium comparison section
-- Add transparent line: *"Only pay when you need downloads or additional assessments."*
-
-## Technical details
-
-- Currency: stored everywhere as `{amount_minor, currency}` (NGN/XOF/KES); Paystack accepts NGN, GHS, KES, USD, ZAR — for CFA we'll charge in Paystack's nearest supported currency (likely GHS for West Africa users) or display CFA but charge in NGN equivalent. **Need confirmation — see Q2.**
-- All price decisions happen server-side from `app_settings`; frontend only displays
-- Subscriptions use Paystack Plans + webhook-driven status; cron-free since webhook covers renewal/cancel
-- Existing `cached_lessons` / `cached_quizzes` untouched; lesson hash for entitlements = SHA-256 of generated content (already computed in current code)
-- Auth state via `onAuthStateChange` listener set up before `getSession()` (Lovable Cloud rule)
-
-## Build order
-
-1. Auth (profiles, user_roles, /auth, /account, navbar account chip)
-2. DB schema + RLS for all monetization tables
-3. Paystack edge functions + frontend SDK wiring
-4. Subscription/pricing page + paywall modals (downloads + assessments)
-5. Promo code system end-to-end
-6. Admin panel
-7. Homepage copy rewrite + Free-vs-Premium section
-8. Usage indicators + lock states polish
-
-## Open questions
-
-**Q1 — Profiles:** I'll add a `profiles` table with `display_name` and `country` (for currency detection). OK?
-
-**Q2 — CFA currency:** Paystack does not natively process XOF/XAF. Three options:
-  - (a) Display "500 CFA" but actually charge the NGN equivalent via Paystack NGN
-  - (b) Charge in GHS (Paystack Ghana) for West Africa users
-  - (c) Show CFA pricing but disable Paystack for CFA users until we add Flutterwave later
-  Which do you want?
-
-Once you confirm Q1 + Q2, I'll start shipping in the build order above.
+Reply "go" to start with milestone 1, or tell me to reorder / drop anything.

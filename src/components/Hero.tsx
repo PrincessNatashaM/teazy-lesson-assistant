@@ -10,8 +10,8 @@ const SLIDES = [
     subtitle: "Turn any topic into engaging quizzes with answers in seconds.",
   },
   {
-    title: "Grade Student Writing with AI Support",
-    subtitle: "Upload handwritten essays and get structured feedback instantly.",
+    title: "Mark Handwritten Exam Scripts with AI",
+    subtitle: "Upload student scripts and get curriculum-aligned scoring, feedback and classroom-ready reports.",
   },
   {
     title: "Save Hours on Teaching Preparation",
