@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
-import { Menu, X, BookOpen, Brain, PenLine, Sparkles, UserCircle2, BadgeCheck } from "lucide-react";
+import { Menu, X, BookOpen, Brain, PenLine, Sparkles, UserCircle2, BadgeCheck, FolderKanban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import teazyLogo from "@/assets/teazy-logo.jpg";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ const NAV = [
   { to: "/app", label: "Lesson Notes", icon: BookOpen },
   { to: "/app/quiz", label: "Quiz Generator", icon: Brain },
   { to: "/app/writing", label: "Writing Assessment", icon: PenLine },
+  { to: "/app/workspace", label: "My Workspace", icon: FolderKanban },
 ];
 
 export default function Header() {
