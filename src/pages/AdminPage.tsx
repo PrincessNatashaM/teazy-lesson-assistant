@@ -37,7 +37,7 @@ const KINDS = [
   { value: "pro_days", label: "Free Pro Days" },
 ];
 
-const PURPOSES = ["download_pdf", "download_docx", "edit_unlock", "assessment_pack_6", "assessment_pack_11", "subscription"];
+const PURPOSES = ["sub_standard", "sub_pro", "assessment_pack_5", "assessment_pack_10", "assessment_pack_30", "download_pdf", "download_docx", "edit_unlock", "subscription", "assessment_pack_6", "assessment_pack_11"];
 
 export default function AdminPage() {
   const { user, isAdmin, roleLoading } = useAuth();
