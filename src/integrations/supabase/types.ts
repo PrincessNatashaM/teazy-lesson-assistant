@@ -491,6 +491,147 @@ export type Database = {
           },
         ]
       }
+      saved_assessments: {
+        Row: {
+          assessment_type: string | null
+          awarded: number | null
+          class_level: string | null
+          created_at: string
+          curriculum: string | null
+          grade: string | null
+          id: string
+          max_score: number | null
+          percent: number | null
+          result: Json
+          script_text: string | null
+          student_name: string | null
+          subject: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assessment_type?: string | null
+          awarded?: number | null
+          class_level?: string | null
+          created_at?: string
+          curriculum?: string | null
+          grade?: string | null
+          id?: string
+          max_score?: number | null
+          percent?: number | null
+          result: Json
+          script_text?: string | null
+          student_name?: string | null
+          subject?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assessment_type?: string | null
+          awarded?: number | null
+          class_level?: string | null
+          created_at?: string
+          curriculum?: string | null
+          grade?: string | null
+          id?: string
+          max_score?: number | null
+          percent?: number | null
+          result?: Json
+          script_text?: string | null
+          student_name?: string | null
+          subject?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saved_lessons: {
+        Row: {
+          class_level: string | null
+          content: string
+          created_at: string
+          curriculum: string | null
+          id: string
+          language: string | null
+          subject: string | null
+          title: string
+          topic: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          class_level?: string | null
+          content: string
+          created_at?: string
+          curriculum?: string | null
+          id?: string
+          language?: string | null
+          subject?: string | null
+          title: string
+          topic?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          class_level?: string | null
+          content?: string
+          created_at?: string
+          curriculum?: string | null
+          id?: string
+          language?: string | null
+          subject?: string | null
+          title?: string
+          topic?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      saved_quizzes: {
+        Row: {
+          class_level: string | null
+          created_at: string
+          curriculum: string | null
+          id: string
+          language: string | null
+          quiz: Json
+          subject: string | null
+          title: string
+          topic: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          class_level?: string | null
+          created_at?: string
+          curriculum?: string | null
+          id?: string
+          language?: string | null
+          quiz: Json
+          subject?: string | null
+          title: string
+          topic?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          class_level?: string | null
+          created_at?: string
+          curriculum?: string | null
+          id?: string
+          language?: string | null
+          quiz?: Json
+          subject?: string | null
+          title?: string
+          topic?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string
