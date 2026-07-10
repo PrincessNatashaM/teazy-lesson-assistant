@@ -14,7 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { loadPaystack } from "@/lib/paystack";
 import {
-  PACK_PRICES, PACK_UPLOADS, detectCurrency,
+  PACK_PRICES, PACK_UPLOADS, resolveDisplayCurrency, paystackChannelsFor,
   type DisplayCurrency, type PackId,
 } from "@/lib/pricing";
 
