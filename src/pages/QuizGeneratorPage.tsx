@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Brain, Eye, EyeOff, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const CURRICULA = ["Nigeria (NERDC)", "Ghana", "Kenya"];
 const CLASS_OPTIONS: Record<string, string[]> = {
@@ -34,6 +36,7 @@ export default function QuizGeneratorPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showAnswers, setShowAnswers] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const classes = curriculum ? CLASS_OPTIONS[curriculum] || [] : [];
 
@@ -70,6 +73,19 @@ Generate a quiz suitable for this topic and level.`;
       }
       const data = await resp.json();
       setQuiz(data);
+      // Auto-save to workspace
+      if (user && data?.multipleChoice) {
+        supabase.from("saved_quizzes").insert({
+          user_id: user.id,
+          title: `Quiz · ${topic}`,
+          curriculum: curriculum || null,
+          subject: null,
+          class_level: classLevel || null,
+          topic,
+          language,
+          quiz: data,
+        }).then(({ error }) => { if (error) console.error("save quiz failed", error); });
+      }
     } catch (e) {
       console.error(e);
       toast({ title: "Error", description: "Failed to generate quiz. Please try again.", variant: "destructive" });

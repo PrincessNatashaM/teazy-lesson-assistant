@@ -6,7 +6,7 @@ import { Check, Crown, Sparkles, Zap } from "lucide-react";
 import {
   STANDARD_PRICES,
   PRO_PRICES,
-  detectCurrency,
+  resolveDisplayCurrency,
   type DisplayCurrency,
 } from "@/lib/pricing";
 import PaywallModal from "@/components/PaywallModal";
@@ -46,8 +46,8 @@ export default function PricingPage() {
   const { user } = useAuth();
   const { plan } = useEntitlements(null);
   const navigate = useNavigate();
-  const [country, setCountry] = useState<DisplayCurrency>(
-    detectCurrency(typeof navigator !== "undefined" && navigator.language?.includes("KE") ? "KE" : "NG")
+  const [country, setCountry] = useState<DisplayCurrency>(() =>
+    resolveDisplayCurrency({})
   );
   const [paywall, setPaywall] = useState(false);
 
@@ -83,7 +83,7 @@ export default function PricingPage() {
           </p>
           <div className="mt-5 inline-flex gap-1 bg-secondary/50 p-1 rounded-lg">
             {currencyBtn("NGN", "₦ Naira")}
-            {currencyBtn("CFA", "CFA Franc")}
+            {currencyBtn("GHS", "GH₵ Cedi")}
             {currencyBtn("KES", "KSh Shilling")}
           </div>
         </div>
@@ -156,9 +156,10 @@ export default function PricingPage() {
             For Standard users only. Extra uploads never expire and are used after your monthly 40 are exhausted.
           </p>
           <div className="grid sm:grid-cols-3 gap-4 mt-4">
-            <PackCard label="5 uploads" price={{ NGN: "₦500", CFA: "500 CFA", KES: "KSh 45" }[country]} />
-            <PackCard label="10 uploads" price={{ NGN: "₦1,000", CFA: "1,000 CFA", KES: "KSh 90" }[country]} />
-            <PackCard label="30 uploads" price={{ NGN: "₦2,000", CFA: "2,000 CFA", KES: "KSh 180" }[country]} />
+            <PackCard label="5 uploads" price={{ NGN: "₦500", GHS: "GH₵ 5", KES: "KSh 45" }[country]} />
+            <PackCard label="10 uploads" price={{ NGN: "₦1,000", GHS: "GH₵ 10", KES: "KSh 90" }[country]} />
+            <PackCard label="30 uploads" price={{ NGN: "₦2,000", GHS: "GH₵ 20", KES: "KSh 180" }[country]} />
+
           </div>
           <p className="text-xs text-muted-foreground mt-3">
             Buy upload packs from the Writing Assessment page once you're on the Standard plan.
@@ -166,7 +167,7 @@ export default function PricingPage() {
         </section>
 
         <p className="text-center text-xs text-muted-foreground mt-8">
-          Prices shown are approximate equivalents. All plans billed in NGN or KES via Paystack.
+          All plans billed via Paystack in your local currency (NGN, GH₵ or KSh).
         </p>
       </div>
 

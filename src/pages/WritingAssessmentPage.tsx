@@ -13,6 +13,8 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useAssessmentStatus } from "@/hooks/useAssessmentStatus";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import BuyPackModal from "@/components/BuyPackModal";
 import {
   CURRICULA, ASSESSMENT_TYPES, MARKING_STYLES,
@@ -51,6 +53,7 @@ const STEPS: { id: StepId; title: string; short: string }[] = [
 export default function WritingAssessmentPage() {
   const { toast } = useToast();
   const status = useAssessmentStatus();
+  const { user } = useAuth();
   const [showBuyPack, setShowBuyPack] = useState(false);
   const [step, setStep] = useState<StepId>(1);
 
@@ -253,6 +256,25 @@ export default function WritingAssessmentPage() {
       const data = (await resp.json()) as AssessmentResult;
       setAssessment(data);
       await status.refresh();
+      // Auto-save to workspace
+      if (user) {
+        const title = `${subject?.label || "Assessment"} · ${new Date().toLocaleDateString()}`;
+        supabase.from("saved_assessments").insert({
+          user_id: user.id,
+          title,
+          curriculum: curriculum?.label ?? null,
+          subject: subject?.label ?? null,
+          class_level: classLevel || null,
+          assessment_type: assessmentType || null,
+          student_name: null,
+          awarded: data.overallScore ?? null,
+          max_score: data.maxScore ?? null,
+          percent: data.percentage ?? null,
+          grade: data.grade ?? null,
+          result: data as any,
+          script_text: combinedText,
+        }).then(({ error }) => { if (error) console.error("save assessment failed", error); });
+      }
       setTimeout(() => document.getElementById("assessment-output")?.scrollIntoView({ behavior: "smooth" }), 100);
     } catch (e) {
       console.error(e);

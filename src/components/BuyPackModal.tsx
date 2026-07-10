@@ -14,7 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { loadPaystack } from "@/lib/paystack";
 import {
-  PACK_PRICES, PACK_UPLOADS, detectCurrency,
+  PACK_PRICES, PACK_UPLOADS, resolveDisplayCurrency, paystackChannelsFor,
   type DisplayCurrency, type PackId,
 } from "@/lib/pricing";
 
@@ -34,7 +34,7 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
   useEffect(() => {
     if (!open || !user) return;
     supabase.from("profiles").select("country").eq("id", user.id).maybeSingle().then(({ data }) => {
-      if (data?.country) setCountry(detectCurrency(data.country));
+      setCountry(resolveDisplayCurrency({ profileCountry: data?.country }));
     });
   }, [open, user]);
 
@@ -56,6 +56,7 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
         email: user.email,
         amount: init.amount_minor,
         currency: init.currency,
+        channels: paystackChannelsFor(country),
         ref: init.reference,
         onClose: () => setPaying(false),
         callback: (response: any) => {
@@ -100,7 +101,7 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
               <SelectTrigger id="pack-country"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="NGN">Nigeria (₦)</SelectItem>
-                <SelectItem value="CFA">Ghana / West Africa (CFA)</SelectItem>
+                <SelectItem value="GHS">Ghana (GH₵)</SelectItem>
                 <SelectItem value="KES">Kenya (KSh)</SelectItem>
               </SelectContent>
             </Select>

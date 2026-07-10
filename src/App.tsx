@@ -17,6 +17,7 @@ import PricingPage from "./pages/PricingPage";
 import AuthPage from "./pages/AuthPage";
 import AccountPage from "./pages/AccountPage";
 import AdminPage from "./pages/AdminPage";
+import MyWorkspacePage from "./pages/MyWorkspacePage";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "./hooks/useAuth";
 
@@ -44,6 +45,7 @@ const App = () => (
                   <Route path="writing/bulk" element={<BulkAssessmentPage />} />
                   <Route path="writing/batches" element={<BatchesListPage />} />
                   <Route path="writing/batches/:id" element={<BatchDetailPage />} />
+                  <Route path="workspace" element={<MyWorkspacePage />} />
                   <Route path="marker" element={<Navigate to="/app/writing" replace />} />
                 </Route>
                 <Route path="/quiz" element={<Navigate to="/app/quiz" replace />} />

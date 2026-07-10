@@ -25,7 +25,8 @@ import { loadPaystack } from "@/lib/paystack";
 import {
   STANDARD_PRICES,
   PRO_PRICES,
-  detectCurrency,
+  resolveDisplayCurrency,
+  paystackChannelsFor,
   formatMinor,
   type DisplayCurrency,
   type SubPurpose,
@@ -88,7 +89,7 @@ export default function PaywallModal({ open, onClose, purpose, onSuccess }: Prop
       .eq("id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (data?.country) setCountry(detectCurrency(data.country));
+        setCountry(resolveDisplayCurrency({ profileCountry: data?.country }));
       });
   }, [open, user]);
 
@@ -168,6 +169,7 @@ export default function PaywallModal({ open, onClose, purpose, onSuccess }: Prop
         email: user.email,
         amount: init.amount_minor,
         currency: init.currency,
+        channels: paystackChannelsFor(country),
         ref: init.reference,
         onClose: () => setPaying(false),
         callback: (response: any) => {
@@ -223,7 +225,7 @@ export default function PaywallModal({ open, onClose, purpose, onSuccess }: Prop
               <SelectTrigger id="paywall-country"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="NGN">Nigeria (₦)</SelectItem>
-                <SelectItem value="CFA">Ghana / West Africa (CFA)</SelectItem>
+                <SelectItem value="GHS">Ghana (GH₵)</SelectItem>
                 <SelectItem value="KES">Kenya (KSh)</SelectItem>
               </SelectContent>
             </Select>
