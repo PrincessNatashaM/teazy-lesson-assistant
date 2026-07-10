@@ -13,6 +13,8 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useAssessmentStatus } from "@/hooks/useAssessmentStatus";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import BuyPackModal from "@/components/BuyPackModal";
 import {
   CURRICULA, ASSESSMENT_TYPES, MARKING_STYLES,
