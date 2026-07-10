@@ -101,6 +101,14 @@ export function paystackChannelsFor(currency: DisplayCurrency): string[] {
   }
 }
 
+/** Payment gateway routing by display currency.
+ *  Nigeria → Paystack (strong local rails)
+ *  Ghana / Kenya → Flutterwave (better mobile money coverage) */
+export type Gateway = "paystack" | "flutterwave";
+export function gatewayFor(currency: DisplayCurrency): Gateway {
+  return currency === "NGN" ? "paystack" : "flutterwave";
+}
+
 export function formatMinor(amountMinor: number, currency: string): string {
   const major = amountMinor / 100;
   const sym =
