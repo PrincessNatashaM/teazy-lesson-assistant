@@ -601,18 +601,44 @@ export default function WritingAssessmentPage() {
               <SummaryRow label="Marking scheme" value={markingScheme ? "Provided" : "Not provided"} />
             </div>
 
-            <Button
-              type="button"
-              onClick={runAssessment}
-              disabled={isAssessing}
-              className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base h-12"
-            >
-              {isAssessing ? (
-                <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Grading script…</>
-              ) : (
-                <><Sparkles className="mr-2 h-5 w-5" /> Grade Assessment</>
-              )}
-            </Button>
+            {quotaExhausted ? (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 space-y-3">
+                <div className="font-semibold text-destructive">
+                  You've reached your {status.plan === "free" ? "free" : "monthly"} Writing Assessment limit.
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {status.plan === "free"
+                    ? "Upgrade to Teazy AI Standard for 40 assessments per month, or Assessment Pro for unlimited."
+                    : "Buy an upload pack (never expires) or upgrade to Assessment Pro for unlimited uploads."}
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {status.plan === "standard" && (
+                    <Button onClick={() => setShowBuyPack(true)} variant="outline">
+                      <Zap className="mr-2 h-4 w-4" /> Buy upload pack
+                    </Button>
+                  )}
+                  <Button asChild className={status.plan === "standard" ? "" : "col-span-2"}>
+                    <Link to="/pricing">
+                      <Crown className="mr-2 h-4 w-4" />
+                      {status.plan === "free" ? "See plans" : "Upgrade to Pro"}
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                onClick={runAssessment}
+                disabled={isAssessing}
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base h-12"
+              >
+                {isAssessing ? (
+                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Grading script…</>
+                ) : (
+                  <><Sparkles className="mr-2 h-5 w-5" /> Grade Assessment</>
+                )}
+              </Button>
+            )}
           </div>
         )}
 
@@ -643,6 +669,66 @@ export default function WritingAssessmentPage() {
           <AssessmentResults data={assessment} onChange={setAssessment} />
         </div>
       )}
+
+      <BuyPackModal open={showBuyPack} onClose={() => setShowBuyPack(false)} onSuccess={() => status.refresh()} />
+    </div>
+  );
+}
+
+function UsageMeter({
+  status,
+  onBuyPack,
+}: {
+  status: ReturnType<typeof useAssessmentStatus>;
+  onBuyPack: () => void;
+}) {
+  if (status.loading) return null;
+  if (status.plan === "pro") {
+    return (
+      <div className="mb-6 flex items-center gap-3 rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-sm">
+        <Crown className="h-4 w-4 text-accent" />
+        <span className="font-semibold text-navy">Assessment Pro</span>
+        <span className="text-muted-foreground">— unlimited uploads.</span>
+      </div>
+    );
+  }
+  if (status.plan === "standard") {
+    const used = status.monthlyUsed ?? 0;
+    const limit = status.monthlyLimit ?? 40;
+    const remaining = Math.max(0, limit - used);
+    const pct = Math.min(100, Math.round((used / limit) * 100));
+    return (
+      <div className="mb-6 rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between text-sm">
+          <div>
+            <span className="font-semibold text-navy">{remaining} / {limit}</span>
+            <span className="text-muted-foreground"> uploads remaining this month</span>
+            {status.packRemaining > 0 && (
+              <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-success/10 text-success text-xs font-semibold px-2 py-0.5">
+                <Zap className="h-3 w-3" /> +{status.packRemaining} pack
+              </span>
+            )}
+          </div>
+          <Button size="sm" variant="outline" onClick={onBuyPack}>
+            <Zap className="mr-1 h-3.5 w-3.5" /> Buy more
+          </Button>
+        </div>
+        <Progress value={pct} className="mt-2 h-1.5" />
+      </div>
+    );
+  }
+  // Free
+  const used = status.freeUsed ?? 0;
+  const limit = status.freeLimit ?? 2;
+  return (
+    <div className="mb-6 rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-3 flex-wrap">
+      <div className="text-sm">
+        <span className="font-semibold text-navy">{Math.max(0, limit - used)} of {limit}</span>
+        <span className="text-muted-foreground"> free Writing Assessment uploads left.</span>
+      </div>
+      <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+        <Link to="/pricing"><Sparkles className="mr-1 h-3.5 w-3.5" /> Upgrade</Link>
+      </Button>
     </div>
   );
 }
