@@ -101,7 +101,7 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
               <SelectTrigger id="pack-country"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="NGN">Nigeria (₦)</SelectItem>
-                <SelectItem value="CFA">Ghana / West Africa (CFA)</SelectItem>
+                <SelectItem value="GHS">Ghana (GH₵)</SelectItem>
                 <SelectItem value="KES">Kenya (KSh)</SelectItem>
               </SelectContent>
             </Select>
