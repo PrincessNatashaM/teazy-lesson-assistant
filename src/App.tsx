@@ -45,6 +45,7 @@ const App = () => (
                   <Route path="writing/bulk" element={<BulkAssessmentPage />} />
                   <Route path="writing/batches" element={<BatchesListPage />} />
                   <Route path="writing/batches/:id" element={<BatchDetailPage />} />
+                  <Route path="workspace" element={<MyWorkspacePage />} />
                   <Route path="marker" element={<Navigate to="/app/writing" replace />} />
                 </Route>
                 <Route path="/quiz" element={<Navigate to="/app/quiz" replace />} />
