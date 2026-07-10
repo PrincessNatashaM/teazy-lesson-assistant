@@ -167,7 +167,7 @@ export default function PricingPage() {
         </section>
 
         <p className="text-center text-xs text-muted-foreground mt-8">
-          Prices shown are approximate equivalents. All plans billed in NGN or KES via Paystack.
+          All plans billed via Paystack in your local currency (NGN, GH₵ or KSh).
         </p>
       </div>
 
