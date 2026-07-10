@@ -83,7 +83,7 @@ export default function PricingPage() {
           </p>
           <div className="mt-5 inline-flex gap-1 bg-secondary/50 p-1 rounded-lg">
             {currencyBtn("NGN", "₦ Naira")}
-            {currencyBtn("CFA", "CFA Franc")}
+            {currencyBtn("GHS", "GH₵ Cedi")}
             {currencyBtn("KES", "KSh Shilling")}
           </div>
         </div>
