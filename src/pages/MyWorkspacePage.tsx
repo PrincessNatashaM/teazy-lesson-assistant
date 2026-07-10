@@ -417,12 +417,15 @@ export default function MyWorkspacePage() {
   const tab = params.get("tab") || "lessons";
 
   if (loading) return <div className="py-10 text-center"><Loader2 className="h-5 w-5 animate-spin inline" /></div>;
-  if (!user) return (
-    <div className="py-14 text-center">
-      <p className="text-navy font-semibold">Sign in to access your workspace</p>
-      <Link to="/auth" className="text-primary underline text-sm">Sign in</Link>
-    </div>
-  );
+  if (!user) {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(
+        "auth_notice",
+        "Please sign in to access your saved lesson notes, quizzes and assessment history.",
+      );
+    }
+    return <Navigate to="/auth?next=/app/workspace" replace />;
+  }
 
   return (
     <div>
