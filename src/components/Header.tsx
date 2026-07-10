@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { Menu, X, UserCircle2, BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
-import teazyLogo from "@/assets/teazy-logo.jpg";
+import teazyLogo from "@/assets/teazy-logo.png";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +11,7 @@ import PaywallModal from "./PaywallModal";
 const PUBLIC_NAV = [
   { to: "/app", label: "Lesson Notes" },
   { to: "/app/quiz", label: "Quiz Generator" },
-  { to: "/app/writing", label: "Assessment Marker" },
+  { to: "/app/writing", label: "Writing Assessment" },
 ];
 const PRIVATE_NAV = [
   ...PUBLIC_NAV,

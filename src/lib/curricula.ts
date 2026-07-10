@@ -60,6 +60,7 @@ const NIGERIA_SUBJECTS: Subject[] = [
   s("yoruba", "Yoruba", "languages"),
   s("home-economics", "Home Economics", "general"),
   s("history", "History", "history"),
+  s("phe", "Physical & Health Education (PHE)", "general"),
 ];
 
 const NIGERIA_CLASSES = [

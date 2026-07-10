@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
-import teazyLogo from "@/assets/teazy-logo.jpg";
+import teazyLogo from "@/assets/teazy-logo.png";
 import {
   BookOpen,
   PenLine,
@@ -266,12 +266,56 @@ const TRUST = [
   { icon: Shield, label: "Trusted by Educators" },
 ];
 
-const OUTCOMES = [
+const OUTCOMES: {
+  stat: string;
+  label: string;
+  sub: string;
+  rotatePrices?: { country: string; price: string }[];
+}[] = [
   { stat: "10+ hrs", label: "Saved every week", sub: "Cut prep time from evenings to minutes." },
   { stat: "5×", label: "Faster essay marking", sub: "Upload handwritten scripts, get rubric feedback." },
   { stat: "3", label: "Curricula supported", sub: "NERDC, NaCCA and CBC out of the box." },
-  { stat: "₦2,000", label: "Affordable Pro tier", sub: "Priced for teachers, not enterprise budgets." },
+  {
+    stat: "₦2,000",
+    label: "Affordable Pro tier",
+    sub: "Priced for teachers, not enterprise budgets.",
+    rotatePrices: [
+      { country: "Nigeria", price: "₦2,000" },
+      { country: "Ghana", price: "GH₵20" },
+      { country: "Kenya", price: "KSh200" },
+    ],
+  },
 ];
+
+function RotatingStat({ prices }: { prices: { country: string; price: string }[] }) {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setIdx((i) => (i + 1) % prices.length), 2200);
+    return () => clearInterval(t);
+  }, [prices.length]);
+  const current = prices[idx];
+  return (
+    <div className="relative h-11 overflow-hidden">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={current.country}
+          initial={{ y: 18, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -18, opacity: 0 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-0"
+        >
+          <div className="text-4xl font-bold gradient-text tracking-tight leading-none">
+            {current.price}
+          </div>
+          <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+            {current.country}
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
 
 const TESTIMONIALS = [
   {
@@ -592,17 +636,14 @@ export default function HomePage() {
             className="mt-16 grid md:grid-cols-3 gap-6 relative"
           >
             {[
-              { n: 1, title: "Choose subject & topic", body: "Pick your curriculum, class and topic. Teazy AI adapts to your syllabus.", icon: BookOpen },
-              { n: 2, title: "Generate or upload", body: "Generate AI content, or upload handwritten work for instant grading.", icon: Sparkles },
-              { n: 3, title: "Download or share", body: "Export as Word or PDF, edit inline, or share with your class.", icon: Download },
+              { n: 1, title: "Choose subject & topic", body: "Pick your curriculum, class and topic. Teazy AI adapts to your syllabus." },
+              { n: 2, title: "Generate or upload", body: "Generate AI content, or upload handwritten work for instant grading." },
+              { n: 3, title: "Download or share", body: "Export as Word or PDF, edit inline, or share with your class." },
             ].map((s, i) => (
               <motion.div key={s.n} variants={fadeUp} className="relative">
                 <div className="rounded-2xl bg-card border border-border p-8 h-full hover:shadow-card transition-shadow">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-gradient-primary text-white font-bold flex items-center justify-center shadow-glow">
-                      {s.n}
-                    </div>
-                    <s.icon className="h-5 w-5 text-primary" />
+                  <div className="h-10 w-10 rounded-xl bg-gradient-primary text-white font-bold flex items-center justify-center shadow-glow">
+                    {s.n}
                   </div>
                   <h3 className="mt-5 text-xl font-bold text-navy">{s.title}</h3>
                   <p className="mt-2 text-muted-foreground leading-relaxed">{s.body}</p>
@@ -646,7 +687,11 @@ export default function HomePage() {
                 variants={fadeUp}
                 className="rounded-2xl bg-card border border-border p-6 hover:shadow-card hover:-translate-y-1 transition-all"
               >
-                <div className="text-4xl font-bold gradient-text tracking-tight">{o.stat}</div>
+                {o.rotatePrices ? (
+                  <RotatingStat prices={o.rotatePrices} />
+                ) : (
+                  <div className="text-4xl font-bold gradient-text tracking-tight">{o.stat}</div>
+                )}
                 <div className="mt-2 font-semibold text-navy">{o.label}</div>
                 <div className="mt-1 text-sm text-muted-foreground">{o.sub}</div>
               </motion.div>
@@ -849,7 +894,7 @@ export default function HomePage() {
                 <span className="text-white/80">Spend More Time Teaching.</span>
               </h2>
               <p className="mt-6 text-lg text-white/70 max-w-xl mx-auto">
-                Join teachers across Nigeria, Ghana and Kenya using Teazy AI to reclaim their evenings.
+                Join teachers across Africa using Teazy AI to reclaim their evenings.
               </p>
               <Button asChild size="lg" className="mt-10 h-14 px-8 text-base bg-white text-navy hover:bg-white/90 shadow-glow">
                 <Link to="/app">
