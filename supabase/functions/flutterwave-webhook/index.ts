@@ -103,7 +103,6 @@ async function grant(admin: any, payment: any) {
         status: "active",
         plan,
         current_period_end: end.toISOString(),
-        gateway: "flutterwave",
       },
       { onConflict: "user_id" },
     );
