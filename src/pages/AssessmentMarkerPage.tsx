@@ -14,10 +14,11 @@ import {
   CURRICULA, ASSESSMENT_TYPES, MARKING_STYLES,
   getCurriculum, type AssessmentTypeId, type MarkingStyleId,
 } from "@/lib/curricula";
-import WritingAssessmentOutput, { type AssessmentData } from "@/components/WritingAssessmentOutput";
+import AssessmentResults, { type AssessmentResult } from "@/components/AssessmentResults";
 
 const OCR_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-handwriting`;
-const ASSESS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-writing`;
+const ASSESS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-script`;
+const RUBRIC_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-writing`;
 const AUTH_HEADER = { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` };
 
 type StepId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
@@ -58,7 +59,7 @@ export default function AssessmentMarkerPage() {
   const [markingStyle, setMarkingStyle] = useState<MarkingStyleId>("standard");
 
   const [isAssessing, setIsAssessing] = useState(false);
-  const [assessment, setAssessment] = useState<AssessmentData | null>(null);
+  const [assessment, setAssessment] = useState<AssessmentResult | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -165,20 +166,19 @@ export default function AssessmentMarkerPage() {
     if (!curriculum || !subject || !classLevel || !assessmentType) return;
     setRubricLoading(true);
     try {
-      const resp = await fetch(ASSESS_URL, {
+      const resp = await fetch(RUBRIC_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...AUTH_HEADER },
         body: JSON.stringify({
           curriculum: curriculum.label,
           classLevel,
-          writingType: `RUBRIC GENERATION — subject: ${subject.label}, assessment: ${assessmentType}`,
+          writingType: `RUBRIC — ${subject.label} · ${assessmentType}`,
           language: "English",
-          studentWriting: `Generate a concise marking rubric (bulleted, max 12 lines) for a ${classLevel} ${subject.label} ${assessmentType} under the ${curriculum.label} curriculum. Focus on what a teacher should look for and typical mark allocations. Return only the rubric text, no JSON.`,
+          studentWriting: `Generate a concise marking rubric (bulleted, max 12 lines) for a ${classLevel} ${subject.label} ${assessmentType} under the ${curriculum.label} curriculum. Focus on what a teacher should look for and typical mark allocations. Return only the rubric text.`,
         }),
       });
       if (!resp.ok) throw new Error("rubric failed");
       const data = await resp.json();
-      // The endpoint returns structured feedback — use teacherComment as the rubric body if present.
       const rubricText = data.teacherComment || data.suggestedRewrite || JSON.stringify(data, null, 2);
       setMarkingScheme(rubricText);
       toast({ title: "Rubric generated", description: "Review and edit before grading." });
@@ -198,17 +198,6 @@ export default function AssessmentMarkerPage() {
       return;
     }
 
-    // Build a rich contextual payload for the current assess-writing endpoint.
-    const context = [
-      `Subject: ${subject.label}`,
-      `Class: ${classLevel}`,
-      `Assessment type: ${assessmentType}`,
-      `Marking style: ${markingStyle}`,
-      questionPaper.trim() ? `Question paper:\n${questionPaper.trim()}` : "",
-      markingScheme.trim() ? `Marking scheme (PRIORITISE OVER INFERENCE):\n${markingScheme.trim()}` : "",
-      `Student script (from OCR, review-approved):\n${combinedText}`,
-    ].filter(Boolean).join("\n\n");
-
     setIsAssessing(true);
     setAssessment(null);
     try {
@@ -217,10 +206,15 @@ export default function AssessmentMarkerPage() {
         headers: { "Content-Type": "application/json", ...AUTH_HEADER },
         body: JSON.stringify({
           curriculum: curriculum.label,
+          subject: subject.label,
+          subjectProfile: subject.profile,
           classLevel,
-          writingType: `${subject.label} — ${assessmentType}`,
+          assessmentType,
+          markingStyle,
+          questionPaper: questionPaper.trim() || undefined,
+          markingScheme: markingScheme.trim() || undefined,
+          studentScript: combinedText,
           language: "English",
-          studentWriting: context,
         }),
       });
       if (!resp.ok) {
@@ -228,9 +222,8 @@ export default function AssessmentMarkerPage() {
         toast({ title: "Error", description: err.error, variant: "destructive" });
         return;
       }
-      const data = await resp.json();
+      const data = (await resp.json()) as AssessmentResult;
       setAssessment(data);
-      // Scroll to output
       setTimeout(() => document.getElementById("assessment-output")?.scrollIntoView({ behavior: "smooth" }), 100);
     } catch (e) {
       console.error(e);
@@ -239,6 +232,7 @@ export default function AssessmentMarkerPage() {
       setIsAssessing(false);
     }
   };
+
 
   const resetWizard = () => {
     setStep(1);
@@ -615,7 +609,7 @@ export default function AssessmentMarkerPage() {
 
       {assessment && (
         <div id="assessment-output" className="mt-8">
-          <WritingAssessmentOutput data={assessment} />
+          <AssessmentResults data={assessment} onChange={setAssessment} />
         </div>
       )}
     </div>
