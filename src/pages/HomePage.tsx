@@ -772,7 +772,7 @@ export default function HomePage() {
                 <div className="mt-3 grid grid-cols-3 gap-2">
                   {[
                     { c: "Nigeria", p: "₦500" },
-                    { c: "Ghana", p: "500 CFA" },
+                    { c: "Ghana", p: "GH₵ 5" },
                     { c: "Kenya", p: "KSh 45" },
                   ].map((x) => (
                     <div key={x.c} className="rounded-lg border border-border bg-secondary/50 p-2.5 text-center">
