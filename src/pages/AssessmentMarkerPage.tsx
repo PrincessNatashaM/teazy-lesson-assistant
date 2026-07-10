@@ -59,7 +59,7 @@ export default function AssessmentMarkerPage() {
   const [markingStyle, setMarkingStyle] = useState<MarkingStyleId>("standard");
 
   const [isAssessing, setIsAssessing] = useState(false);
-  const [assessment, setAssessment] = useState<AssessmentData | null>(null);
+  const [assessment, setAssessment] = useState<AssessmentResult | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
