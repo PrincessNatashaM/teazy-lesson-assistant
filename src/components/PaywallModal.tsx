@@ -141,6 +141,12 @@ export default function PaywallModal({ open, onClose, purpose, onSuccess }: Prop
     }
   };
 
+  const finishSuccess = () => {
+    toast({ title: "Payment successful 🎉", description: "Your plan is now active." });
+    onSuccess?.();
+    onClose();
+  };
+
   const handlePay = async () => {
     if (!user) {
       navigate("/auth?next=" + encodeURIComponent(window.location.pathname));
@@ -148,11 +154,16 @@ export default function PaywallModal({ open, onClose, purpose, onSuccess }: Prop
     }
     setPaying(true);
     try {
-      const { data: init, error } = await supabase.functions.invoke("paystack-initialize", {
+      const gateway = gatewayFor(country);
+      const initFn = gateway === "flutterwave" ? "flutterwave-initialize" : "paystack-initialize";
+      const verifyFn = gateway === "flutterwave" ? "flutterwave-verify" : "paystack-verify";
+
+      const { data: init, error } = await supabase.functions.invoke(initFn, {
         body: {
           purpose: selected,
           promo_code: promoApplied ? promoCode.trim().toUpperCase() : null,
           display_currency: country,
+          redirect_url: window.location.href,
         },
       });
       if (error || !init) throw new Error(error?.message || "Could not start payment");
@@ -163,7 +174,36 @@ export default function PaywallModal({ open, onClose, purpose, onSuccess }: Prop
         onClose();
         return;
       }
-      if (!init.public_key) throw new Error("Paystack not configured. Contact support.");
+      if (!init.public_key) throw new Error("Payment gateway not configured. Contact support.");
+
+      if (gateway === "flutterwave") {
+        const FlutterwaveCheckout = await loadFlutterwave();
+        FlutterwaveCheckout({
+          public_key: init.public_key,
+          tx_ref: init.reference,
+          amount: init.amount_minor / 100,
+          currency: init.currency,
+          payment_options: flutterwavePaymentOptionsFor(country),
+          customer: { email: user.email, name: user.user_metadata?.display_name || user.email },
+          customizations: { title: "Teazy AI", description: selected.replace(/_/g, " ") },
+          onclose: () => setPaying(false),
+          callback: (response: any) => {
+            supabase.functions
+              .invoke(verifyFn, {
+                body: { reference: init.reference, transaction_id: response?.transaction_id },
+              })
+              .then(({ data: v, error: vErr }) => {
+                setPaying(false);
+                if (vErr || !v?.success) {
+                  toast({ title: "Payment verification failed", description: vErr?.message || "Please contact support.", variant: "destructive" });
+                  return;
+                }
+                finishSuccess();
+              });
+          },
+        });
+        return;
+      }
 
       const Paystack = await loadPaystack();
       const handler = Paystack.setup({
@@ -176,20 +216,14 @@ export default function PaywallModal({ open, onClose, purpose, onSuccess }: Prop
         onClose: () => setPaying(false),
         callback: (response: any) => {
           supabase.functions
-            .invoke("paystack-verify", { body: { reference: response.reference } })
+            .invoke(verifyFn, { body: { reference: response.reference } })
             .then(({ data: verifyData, error: vErr }) => {
               setPaying(false);
               if (vErr || !verifyData?.success) {
-                toast({
-                  title: "Payment verification failed",
-                  description: vErr?.message || "Please contact support.",
-                  variant: "destructive",
-                });
+                toast({ title: "Payment verification failed", description: vErr?.message || "Please contact support.", variant: "destructive" });
                 return;
               }
-              toast({ title: "Payment successful 🎉", description: "Your plan is now active." });
-              onSuccess?.();
-              onClose();
+              finishSuccess();
             });
         },
       });
