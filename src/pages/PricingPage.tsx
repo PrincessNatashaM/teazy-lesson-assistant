@@ -6,7 +6,7 @@ import { Check, Crown, Sparkles, Zap } from "lucide-react";
 import {
   STANDARD_PRICES,
   PRO_PRICES,
-  detectCurrency,
+  resolveDisplayCurrency,
   type DisplayCurrency,
 } from "@/lib/pricing";
 import PaywallModal from "@/components/PaywallModal";
