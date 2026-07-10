@@ -14,10 +14,11 @@ import {
   CURRICULA, ASSESSMENT_TYPES, MARKING_STYLES,
   getCurriculum, type AssessmentTypeId, type MarkingStyleId,
 } from "@/lib/curricula";
-import WritingAssessmentOutput, { type AssessmentData } from "@/components/WritingAssessmentOutput";
+import AssessmentResults, { type AssessmentResult } from "@/components/AssessmentResults";
 
 const OCR_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-handwriting`;
-const ASSESS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-writing`;
+const ASSESS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-script`;
+const RUBRIC_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-writing`;
 const AUTH_HEADER = { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` };
 
 type StepId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
