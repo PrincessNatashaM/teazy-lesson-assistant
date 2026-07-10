@@ -32,6 +32,137 @@ export type Database = {
         }
         Relationships: []
       }
+      assessment_batch_items: {
+        Row: {
+          awarded: number | null
+          batch_id: string
+          confidence: number | null
+          created_at: string
+          error: string | null
+          grade: string | null
+          id: string
+          max_score: number | null
+          ocr_text: string | null
+          percent: number | null
+          result_json: Json | null
+          source_file: string | null
+          status: string
+          student_name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          awarded?: number | null
+          batch_id: string
+          confidence?: number | null
+          created_at?: string
+          error?: string | null
+          grade?: string | null
+          id?: string
+          max_score?: number | null
+          ocr_text?: string | null
+          percent?: number | null
+          result_json?: Json | null
+          source_file?: string | null
+          status?: string
+          student_name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          awarded?: number | null
+          batch_id?: string
+          confidence?: number | null
+          created_at?: string
+          error?: string | null
+          grade?: string | null
+          id?: string
+          max_score?: number | null
+          ocr_text?: string | null
+          percent?: number | null
+          result_json?: Json | null
+          source_file?: string | null
+          status?: string
+          student_name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_batch_items_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_batches: {
+        Row: {
+          assessment_type: string | null
+          avg_percent: number | null
+          class_level: string
+          completed_count: number
+          created_at: string
+          curriculum: string
+          failed_count: number
+          id: string
+          language: string | null
+          marking_scheme: string | null
+          marking_style: string | null
+          name: string
+          question_paper: string | null
+          script_count: number
+          status: string
+          subject: string
+          subject_profile: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assessment_type?: string | null
+          avg_percent?: number | null
+          class_level: string
+          completed_count?: number
+          created_at?: string
+          curriculum: string
+          failed_count?: number
+          id?: string
+          language?: string | null
+          marking_scheme?: string | null
+          marking_style?: string | null
+          name: string
+          question_paper?: string | null
+          script_count?: number
+          status?: string
+          subject: string
+          subject_profile?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assessment_type?: string | null
+          avg_percent?: number | null
+          class_level?: string
+          completed_count?: number
+          created_at?: string
+          curriculum?: string
+          failed_count?: number
+          id?: string
+          language?: string | null
+          marking_scheme?: string | null
+          marking_style?: string | null
+          name?: string
+          question_paper?: string | null
+          script_count?: number
+          status?: string
+          subject?: string
+          subject_profile?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       assessment_credits: {
         Row: {
           created_at: string
@@ -142,6 +273,30 @@ export type Database = {
           id?: string
           kind?: string
           lesson_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      feature_flags: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          flag: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          flag: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          flag?: string
+          id?: string
           user_id?: string
         }
         Relationships: []

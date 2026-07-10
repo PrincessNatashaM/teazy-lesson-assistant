@@ -1,97 +1,84 @@
+# Milestone 2 — Assessment Pro features
 
-# Rename + New Monetisation Model
+Build the Pro-tier capabilities that were gated (badge + upgrade CTA) in the previous milestone. Everything here is behind `plan === "pro"`; Standard/Free see the upgrade paywall.
 
-Two changes bundled:
-1. Rename **Assessment Marker → Writing Assessment** everywhere.
-2. Replace the current pricing model with a 3-tier subscription plan (Free / Standard / Pro) + Standard-only upload packs.
+## Scope
 
----
+1. **Bulk marking (multi-script upload)**
+   - New "Bulk mode" toggle on the Writing Assessment page.
+   - Upload up to 30 scripts in one batch (images or PDFs, one script per file OR multi-page PDF per student).
+   - Optional single question paper + marking scheme applied to the whole batch.
+   - Optional CSV of student names to auto-label scripts; otherwise use filenames.
+   - Batch runs OCR + `assess-script` per student in parallel (capped concurrency = 4) with a live progress panel (queued / marking / done / failed).
+   - Each script counts against the Pro upload counter (Pro = unlimited, but still logged for analytics).
 
-## Part 1 — Rename
+2. **Mark-against-scheme comparison view**
+   - When a marking scheme is provided, render a side-by-side "Scheme vs Student" panel per question in results, highlighting matched keywords / missed points.
+   - Add a "Compare to question paper" tab that shows question coverage (which questions the student attempted / skipped).
 
-Revert the previous rename. Change every user-facing reference from **Assessment Marker** back to **Writing Assessment**.
-- Nav item, homepage cards/FAQ/copy, Hero slide, page title + meta, `PaywallModal` copy.
-- Route: primary becomes `/app/writing` again; keep `/app/marker` as a redirect for anyone with the link.
-- Rename `AssessmentMarkerPage.tsx` → `WritingAssessmentPage.tsx`.
-- Curriculum/results files keep their names — they're internal.
+3. **Batch results dashboard**
+   - New route `/app/writing/batches` listing past batches (name, date, class, subject, #scripts, avg %, top/bottom scorer).
+   - Batch detail page: sortable table of students with score, %, grade, confidence, flags (needs manual review, missing pages, low OCR quality). Click a row → single-script results (reuses `AssessmentResults`).
 
----
+4. **Advanced analytics + student performance reports**
+   - Per-batch charts: score distribution histogram, grade breakdown pie, per-question average, common errors word-cloud/list, recommended reteach topics.
+   - Per-student report (printable): trend across batches for the same class, mastery vs curriculum objectives, teacher comment history.
+   - Class-level report: aggregate strengths/weaknesses, intervention list.
 
-## Part 2 — New pricing model
+5. **Excel / CSV export**
+   - Batch table → CSV and XLSX (student, score, %, grade, confidence, per-question marks as columns).
+   - Per-student report → PDF (reuses existing PDF pipeline) and DOCX.
+   - Class analytics → XLSX with multiple sheets (summary, per-student, per-question).
 
-### Plans
+6. **Priority processing**
+   - Pro requests get a higher-priority queue key; free/standard use the default. Implemented in `assess-script` and the new `assess-batch` function via a queue-priority header + faster model tier where available.
 
-| | **Free** | **Teazy AI Standard** — ₦2,000/mo | **Assessment Pro** — ₦5,000/mo |
-|---|---|---|---|
-| Price equivalents | — | ~2,000 CFA · KSh 180 | ~5,000 CFA · KSh 450 |
-| Lesson notes | Unlimited generate + copy | Unlimited + editing | Everything in Standard |
-| Quizzes | Unlimited generate | Unlimited | + |
-| PDF / Word downloads | ✗ | Unlimited | + |
-| Writing Assessment uploads | 2 lifetime free | **40 / calendar month** | **Unlimited** |
-| Assessment history | ✗ | ✓ | ✓ |
-| Faster AI responses | ✗ | ✓ | ✓ (priority) |
-| Bulk marking, multi-script upload | ✗ | ✗ | ✓ |
-| Mark against uploaded schemes / question paper comparison | ✗ | ✗ | ✓ |
-| Advanced analytics + student performance reports | ✗ | ✗ | ✓ |
-| Excel / CSV export | ✗ | ✗ | ✓ |
-| Early access to new assessment features | ✗ | ✗ | ✓ |
+7. **Early-access flag**
+   - `feature_flags` table (`user_id`, `flag`, `enabled`). Pro users auto-flagged for `early_access`. UI: "Early access" badge on the Writing Assessment page for these users; feature-gated experimental toggles read this flag.
 
-Tagline for the Pro card: *"Best for teachers who grade frequently."*
+## Data model
 
-### Upload packs (Standard-only add-on)
-Purchased uploads **never expire** and are consumed after the monthly 40 is used up.
+- `assessment_batches(id, user_id, name, curriculum, subject, class_level, assessment_type, marking_style, question_paper, marking_scheme, script_count, status, avg_percent)` + timestamps.
+- `assessment_batch_items(id, batch_id, user_id, student_name, source_file, ocr_text, result_json, awarded, max, percent, grade, confidence, status, error)` + timestamps.
+- `student_reports` view: joins batch items by `student_name` within a `class_level` for a user, exposes trend data.
+- `feature_flags(id, user_id, flag text, enabled bool)` — unique(user_id, flag).
+- All tables: `GRANT` to `authenticated` + `service_role`, RLS scoped to `auth.uid()`, `updated_at` trigger.
+- Storage bucket `assessment-uploads` (private) for original script files; signed URLs on demand.
 
-| Pack | Price |
-|---|---|
-| 5 uploads | ₦500 |
-| 10 uploads | ₦1,000 |
-| 30 uploads | ₦2,000 |
+## Backend
 
-### Usage meter behaviour (Standard)
-- Show `X / 40 uploads remaining this month` on the Writing Assessment page.
-- If pack credits exist, show `+ N extra pack uploads` beside it.
-- When both the monthly quota and pack credits are exhausted → block the "Grade Assessment" button and show:
-  > "You've reached your monthly Writing Assessment limit."
-  with two CTAs: **Buy upload pack** and **Upgrade to Assessment Pro**.
-
----
-
-## Data model changes
-
-Extend the existing tables (schema migration + one small backfill):
-
-- `subscriptions.plan` → allowed values: `free`, `standard`, `pro` (was `pro_monthly`). Migrate existing `pro_monthly` rows → `pro`.
-- New table `monthly_assessment_usage(user_id, period_start, uploads_used)` — tracks the 40/month Standard quota. Reset by comparing `period_start` to the current month.
-- `assessment_credits.remaining` stays for pack purchases (already exists).
-- `payments.purpose` new values: `sub_standard`, `sub_pro`, `assessment_pack_5`, `assessment_pack_10`, `assessment_pack_30`. Deprecate old `sub_monthly`, `assessment_pack_6`, `assessment_pack_11` (leave old rows intact for history).
-
-All new tables get `GRANT` + RLS scoped to `auth.uid()`.
-
-## Backend (edge functions)
-
-- `paystack-initialize` — extend switch statement with the new SKUs (5 upload/₦500, 10/₦1000, 30/₦2000, Standard ₦2000, Pro ₦5000). Keep promo-code path and prorated upgrade support (upgrade Standard→Pro credits remaining days).
-- `paystack-webhook` — on successful `sub_standard` / `sub_pro`, upsert subscription with correct `plan` and 30-day `current_period_end`. On upload packs, add to `assessment_credits.remaining`.
-- New `check-assessment-quota` (or inline in Writing Assessment page) — returns `{ plan, monthlyUsed, monthlyLimit, packRemaining, canUpload }`. Called before grading.
-- `assess-script` — increment the correct counter (monthly first, then pack) atomically via a Postgres function.
+- New edge function `assess-batch`:
+  - Auth required, `plan === 'pro'` gate.
+  - Accepts `batch_id` + array of item ids to process; runs OCR then `assess-script` internal call per item, updates `assessment_batch_items` incrementally. Concurrency cap = 4.
+  - Emits progress via row updates (frontend subscribes with realtime).
+- Extend `assess-script` to accept an internal service-role call bypassing quota when invoked by `assess-batch` (batch already counted).
+- New `export-batch` function: builds XLSX/CSV server-side and returns a signed URL.
 
 ## Frontend
 
-- New `/pricing` page listing all three plans side-by-side. Pro highlighted as "Recommended for schools & high-volume users". Currency toggle: **₦ / CFA / KSh** on the price line.
-- `useEntitlements` hook returns `{ plan: 'free'|'standard'|'pro', monthlyUsed, monthlyLimit, packRemaining, canDownload, canEdit }`.
-- `PaywallModal` rewrite: when a free user hits a download/edit lock, offer **Upgrade to Standard** (₦2,000/mo) as primary CTA and **Upgrade to Pro** as secondary. Old per-download "unlock this file" flow removed — downloads are subscription-gated now (per spec).
-- Writing Assessment page: usage meter component + limit-reached modal with two CTAs.
-- Account page: show current plan, renewal date, pack credits remaining, "Manage / Cancel" link and "Upgrade" CTA.
+- `WritingAssessmentPage`: add `Mode` tabs — "Single script" (existing) and "Bulk (Pro)". Non-Pro users see paywall for the Bulk tab.
+- New components: `BulkUploadDropzone`, `BatchProgressPanel`, `BatchResultsTable`, `AnalyticsCharts` (recharts), `SchemeCompareView`, `StudentReportPrintable`.
+- New pages: `/app/writing/batches`, `/app/writing/batches/:id`, `/app/writing/students/:name`.
+- Header: add "Batches" sub-link under Writing Assessment for Pro users.
+- Account page: show "Early access" badge if flagged.
 
-## Build order (single milestone, ships as one PR)
+## Technical notes
 
-1. Rename revert.
-2. Migration (subscriptions.plan values, new `monthly_assessment_usage` table, quota RPC).
-3. Update Paystack initialize + webhook for new SKUs.
-4. Update `useEntitlements` + `PaywallModal`.
-5. New `/pricing` page with currency toggle.
-6. Writing Assessment usage meter + limit gate.
-7. Account page shows plan + credits.
+- Use existing `recharts` for charts; add `xlsx` (SheetJS) for XLSX generation server-side.
+- PDF export reuses the current `jspdf` pipeline; add a batch-report template.
+- Realtime: enable on `assessment_batch_items` so the progress panel is live.
+- Priority: pass `x-priority: high` header to Lovable AI gateway for Pro; keep default for others.
+- OCR cost control: reject files > 10 MB, cap batch at 30 scripts, warn if total pages > 120.
 
-Small caveat: **Bulk marking / Excel / CSV export / advanced analytics** are Pro-tier features that don't exist yet — this milestone gates them (Pro badge + upgrade CTA on the Writing Assessment page) but doesn't build them. That belongs in the previously-planned bulk marking milestone.
+## Build order (single milestone)
 
-Reply "go" to build all of the above, or tell me to trim/split.
+1. Migration: batches + items + feature_flags + storage bucket + RLS/grants.
+2. `assess-batch` edge function + `assess-script` internal-call path.
+3. `BulkUploadDropzone` + batch creation flow on Writing Assessment page (Pro-gated).
+4. `BatchProgressPanel` with realtime updates.
+5. Batches list + batch detail pages with `BatchResultsTable` and `SchemeCompareView`.
+6. `AnalyticsCharts` + student/class reports.
+7. `export-batch` function + CSV/XLSX/PDF/DOCX download buttons.
+8. `feature_flags` + early-access badge + priority header wiring.
+
+Reply "go" to build, or tell me to trim/split (e.g. ship bulk + exports first, analytics second).
