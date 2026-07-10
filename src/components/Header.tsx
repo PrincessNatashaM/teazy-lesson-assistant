@@ -9,10 +9,13 @@ import { useEffect, useState as useReactState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import PaywallModal from "./PaywallModal";
 
-const NAV = [
+const PUBLIC_NAV = [
   { to: "/app", label: "Lesson Notes", icon: BookOpen },
   { to: "/app/quiz", label: "Quiz Generator", icon: Brain },
-  { to: "/app/writing", label: "Writing Assessment", icon: PenLine },
+  { to: "/app/writing", label: "Assessment Marker", icon: PenLine },
+];
+const PRIVATE_NAV = [
+  ...PUBLIC_NAV,
   { to: "/app/workspace", label: "My Workspace", icon: FolderKanban },
 ];
 
@@ -59,7 +62,7 @@ export default function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">
-          {NAV.map(({ to, label, icon: Icon }) => (
+          {(user ? PRIVATE_NAV : PUBLIC_NAV).map(({ to, label, icon: Icon }) => (
             <NavLink key={to} to={to} end={to === "/app"} className={linkClass}>
               <Icon className="h-4 w-4" />
               {label}
@@ -71,9 +74,9 @@ export default function Header() {
           {user ? (
             <>
               {proActive ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-success/20 text-success text-xs font-bold">
-                  <BadgeCheck className="h-3.5 w-3.5" /> Pro
-                </span>
+                <Button asChild size="sm" variant="ghost" className="text-navy-foreground hover:bg-navy-foreground/10">
+                  <Link to="/account"><BadgeCheck className="mr-1 h-4 w-4 text-success" /> Manage Subscription</Link>
+                </Button>
               ) : (
                 <Button
                   size="sm"
@@ -115,7 +118,7 @@ export default function Header() {
 
       {open && (
         <nav className="md:hidden border-t border-navy-foreground/10 bg-navy px-4 py-3 flex flex-col gap-1 animate-fade-in">
-          {NAV.map(({ to, label, icon: Icon }) => (
+          {(user ? PRIVATE_NAV : PUBLIC_NAV).map(({ to, label, icon: Icon }) => (
             <NavLink key={to} to={to} end={to === "/app"} onClick={() => setOpen(false)} className={linkClass}>
               <Icon className="h-4 w-4" />
               {label}

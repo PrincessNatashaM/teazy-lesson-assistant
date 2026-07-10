@@ -18,6 +18,12 @@ const schema = z.object({
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [notice, setNotice] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const n = sessionStorage.getItem("auth_notice");
+    if (n) { setNotice(n); sessionStorage.removeItem("auth_notice"); }
+  }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -88,6 +94,11 @@ export default function AuthPage() {
               ? "Sign in to access Pro features, downloads and unlocks."
               : "Free to start. Upgrade anytime for unlimited downloads."}
           </p>
+          {notice && (
+            <div className="mt-4 rounded-md bg-accent/10 border border-accent/30 text-accent-foreground/90 px-3 py-2 text-sm text-center">
+              {notice}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             {mode === "signup" && (

@@ -1,15 +1,17 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import {
-  ArrowLeft, ArrowRight, Loader2, Camera, Upload, X, ImageIcon,
-  Check, FileText, PenLine, Sparkles, Wand2, Zap, Crown,
+  Loader2, Camera, Upload, X, Check, Sparkles, Wand2, Zap, Crown,
+  ChevronDown, FileText, Settings2, Brain,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import {
+  Collapsible, CollapsibleContent, CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useAssessmentStatus } from "@/hooks/useAssessmentStatus";
@@ -27,11 +29,9 @@ const ASSESS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-scr
 const RUBRIC_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-writing`;
 const AUTH_HEADER = { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` };
 
-type StepId = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-
 interface ScriptPage {
   id: string;
-  preview: string; // data url
+  preview: string;
   mime: string;
   base64: string;
   extractedText: string;
@@ -39,39 +39,58 @@ interface ScriptPage {
   ocrDone: boolean;
 }
 
-const STEPS: { id: StepId; title: string; short: string }[] = [
-  { id: 1, title: "Select curriculum", short: "Curriculum" },
-  { id: 2, title: "Select subject", short: "Subject" },
-  { id: 3, title: "Select class / grade", short: "Class" },
-  { id: 4, title: "What are you marking today?", short: "Type" },
-  { id: 5, title: "Upload exam scripts", short: "Upload" },
-  { id: 6, title: "Question paper & marking scheme (optional)", short: "Guides" },
-  { id: 7, title: "Review extracted text", short: "OCR" },
-  { id: 8, title: "Choose marking style", short: "Style" },
-];
+// Heuristic to infer assessment type from combined OCR text + subject profile.
+function inferAssessmentType(
+  text: string,
+  subjectProfile?: string,
+): { id: AssessmentTypeId; confidence: "high" | "low" } {
+  const t = text.toLowerCase();
+  const hasNumbered = /(^|\n)\s*(?:q?\d{1,2}[.)a-c]|\b(?:question|q)\s*\d)/i.test(text);
+  const hasCalc = /[=+\-×÷*/]\s*\d|\d\s*[=+\-×÷*/]|\bequation\b|\bsolve\b/.test(t);
+  const hasChem = /\b(mol|reaction|acid|base|hcl|naoh|→|->)\b|[A-Z][a-z]?\d/.test(text);
+  const longParas = text.split(/\n{2,}/).some((p) => p.trim().split(/\s+/).length > 80);
+  const wordCount = text.trim().split(/\s+/).length;
+
+  if (subjectProfile === "math" || hasCalc) return { id: "theory", confidence: "high" };
+  if (subjectProfile === "sciences" && (hasChem || hasNumbered)) return { id: "theory", confidence: "high" };
+  if (subjectProfile === "english" || subjectProfile === "literature") {
+    if (longParas || wordCount > 200) return { id: "essay", confidence: "high" };
+  }
+  if (longParas && !hasNumbered) return { id: "essay", confidence: "high" };
+  if (hasNumbered) return { id: "theory", confidence: "high" };
+  if (wordCount > 40) return { id: "mixed", confidence: "low" };
+  return { id: "mixed", confidence: "low" };
+}
 
 export default function WritingAssessmentPage() {
   const { toast } = useToast();
   const status = useAssessmentStatus();
   const { user } = useAuth();
   const [showBuyPack, setShowBuyPack] = useState(false);
-  const [step, setStep] = useState<StepId>(1);
 
-  const [curriculumId, setCurriculumId] = useState<string>("");
-  const [subjectId, setSubjectId] = useState<string>("");
-  const [classLevel, setClassLevel] = useState<string>("");
-  const [assessmentType, setAssessmentType] = useState<AssessmentTypeId | "">("");
+  // Primary inputs
+  const [curriculumId, setCurriculumId] = useState("");
+  const [subjectId, setSubjectId] = useState("");
+  const [classLevel, setClassLevel] = useState("");
   const [pages, setPages] = useState<ScriptPage[]>([]);
+
+  // Advanced (optional)
+  const [assessmentType, setAssessmentType] = useState<AssessmentTypeId | "">("");
+  const [markingStyle, setMarkingStyle] = useState<MarkingStyleId>("standard");
   const [questionPaper, setQuestionPaper] = useState("");
   const [markingScheme, setMarkingScheme] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showOcrReview, setShowOcrReview] = useState(false);
   const [rubricLoading, setRubricLoading] = useState(false);
-  const [markingStyle, setMarkingStyle] = useState<MarkingStyleId>("standard");
 
   const [isAssessing, setIsAssessing] = useState(false);
   const [assessment, setAssessment] = useState<AssessmentResult | null>(null);
+  const [confirmType, setConfirmType] = useState<AssessmentTypeId | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const qpFileRef = useRef<HTMLInputElement>(null);
+  const msFileRef = useRef<HTMLInputElement>(null);
 
   const curriculum = useMemo(() => getCurriculum(curriculumId), [curriculumId]);
   const subject = useMemo(
@@ -79,21 +98,15 @@ export default function WritingAssessmentPage() {
     [curriculum, subjectId],
   );
 
-  const canAdvance: Record<StepId, boolean> = {
-    1: !!curriculumId,
-    2: !!subjectId,
-    3: !!classLevel,
-    4: !!assessmentType,
-    5: pages.length > 0,
-    6: true,
-    7: pages.length > 0 && pages.every((p) => p.ocrDone && p.extractedText.trim().length > 0),
-    8: !!markingStyle,
-  };
+  // Auto-pick a sensible default class for the curriculum
+  useEffect(() => {
+    if (curriculum && !classLevel) {
+      const cls = curriculum.classes.find((c) => /jss?\s*2|grade\s*7|jhs\s*2|ss\s*1/i.test(c))
+        || curriculum.classes[Math.floor(curriculum.classes.length / 2)];
+      setClassLevel(cls);
+    }
+  }, [curriculum, classLevel]);
 
-  const goNext = () => setStep((s) => (Math.min(8, s + 1) as StepId));
-  const goPrev = () => setStep((s) => (Math.max(1, s - 1) as StepId));
-
-  // ---------------- Upload + OCR ----------------
   const readFile = (file: File): Promise<{ dataUrl: string; base64: string; mime: string }> =>
     new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -105,55 +118,30 @@ export default function WritingAssessmentPage() {
       reader.readAsDataURL(file);
     });
 
-  const runOcr = async (pageId: string) => {
-    setPages((prev) => prev.map((p) => (p.id === pageId ? { ...p, ocrLoading: true } : p)));
-    const target = pages.find((p) => p.id === pageId);
-    const current = target || undefined;
-    // read fresh state via functional update below
-    setPages((prev) => {
-      const found = prev.find((p) => p.id === pageId);
-      if (!found) return prev;
-      // fire and forget
-      (async () => {
-        try {
-          const resp = await fetch(OCR_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", ...AUTH_HEADER },
-            body: JSON.stringify({ imageBase64: found.base64, mimeType: found.mime }),
-          });
-          if (!resp.ok) {
-            const err = await resp.json().catch(() => ({ error: "OCR failed" }));
-            toast({ title: "OCR Error", description: err.error, variant: "destructive" });
-            setPages((p2) => p2.map((p) => (p.id === pageId ? { ...p, ocrLoading: false } : p)));
-            return;
-          }
-          const data = await resp.json();
-          const text = data.extractedText || "";
-          setPages((p2) => p2.map((p) =>
-            p.id === pageId
-              ? {
-                  ...p,
-                  extractedText: text === "[UNREADABLE]" ? "" : text,
-                  ocrLoading: false,
-                  ocrDone: true,
-                }
-              : p,
-          ));
-        } catch (e) {
-          console.error(e);
-          setPages((p2) => p2.map((p) => (p.id === pageId ? { ...p, ocrLoading: false } : p)));
-        }
-      })();
-      return prev;
-    });
-    void current;
+  const runOcr = async (pageId: string, base64: string, mime: string) => {
+    setPages((prev) => prev.map((p) => p.id === pageId ? { ...p, ocrLoading: true } : p));
+    try {
+      const resp = await fetch(OCR_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...AUTH_HEADER },
+        body: JSON.stringify({ imageBase64: base64, mimeType: mime }),
+      });
+      const data = await resp.json();
+      const text = data.extractedText === "[UNREADABLE]" ? "" : (data.extractedText || "");
+      setPages((prev) => prev.map((p) => p.id === pageId
+        ? { ...p, extractedText: text, ocrLoading: false, ocrDone: true } : p));
+    } catch {
+      setPages((prev) => prev.map((p) => p.id === pageId ? { ...p, ocrLoading: false } : p));
+    }
   };
 
   const handleFiles = async (files: FileList | File[]) => {
     const arr = Array.from(files);
     for (const file of arr) {
-      if (!file.type.startsWith("image/")) {
-        toast({ title: "Unsupported file", description: `${file.name} is not an image. PDF support coming soon — for now upload page photos.`, variant: "destructive" });
+      const isImage = file.type.startsWith("image/");
+      const isPdf = file.type === "application/pdf";
+      if (!isImage && !isPdf) {
+        toast({ title: "Unsupported file", description: `${file.name} — upload an image or PDF.`, variant: "destructive" });
         continue;
       }
       if (file.size > 10 * 1024 * 1024) {
@@ -162,17 +150,15 @@ export default function WritingAssessmentPage() {
       }
       const { dataUrl, base64, mime } = await readFile(file);
       const id = crypto.randomUUID();
-      setPages((prev) => [...prev, { id, preview: dataUrl, mime, base64, extractedText: "", ocrLoading: false, ocrDone: false }]);
-      // trigger OCR immediately so text is ready by Step 7
-      setTimeout(() => runOcr(id), 50);
+      setPages((prev) => [...prev, { id, preview: isImage ? dataUrl : "", mime, base64, extractedText: "", ocrLoading: false, ocrDone: false }]);
+      setTimeout(() => runOcr(id, base64, mime), 30);
     }
   };
 
   const removePage = (id: string) => setPages((prev) => prev.filter((p) => p.id !== id));
 
-  // ---------------- Rubric generation ----------------
   const generateRubric = async () => {
-    if (!curriculum || !subject || !classLevel || !assessmentType) return;
+    if (!curriculum || !subject || !classLevel) return;
     setRubricLoading(true);
     try {
       const resp = await fetch(RUBRIC_URL, {
@@ -181,24 +167,22 @@ export default function WritingAssessmentPage() {
         body: JSON.stringify({
           curriculum: curriculum.label,
           classLevel,
-          writingType: `RUBRIC — ${subject.label} · ${assessmentType}`,
+          writingType: `RUBRIC — ${subject.label}`,
           language: "English",
-          studentWriting: `Generate a concise marking rubric (bulleted, max 12 lines) for a ${classLevel} ${subject.label} ${assessmentType} under the ${curriculum.label} curriculum. Focus on what a teacher should look for and typical mark allocations. Return only the rubric text.`,
+          studentWriting: `Generate a concise marking rubric (bulleted, max 12 lines) for a ${classLevel} ${subject.label} assessment under the ${curriculum.label} curriculum.`,
         }),
       });
-      if (!resp.ok) throw new Error("rubric failed");
       const data = await resp.json();
       const rubricText = data.teacherComment || data.suggestedRewrite || JSON.stringify(data, null, 2);
       setMarkingScheme(rubricText);
       toast({ title: "Rubric generated", description: "Review and edit before grading." });
     } catch {
-      toast({ title: "Couldn't generate rubric", description: "Try again or paste your own.", variant: "destructive" });
+      toast({ title: "Couldn't generate rubric", variant: "destructive" });
     } finally {
       setRubricLoading(false);
     }
   };
 
-  // ---------------- Grade ----------------
   const quotaExhausted =
     !status.loading &&
     (
@@ -208,22 +192,38 @@ export default function WritingAssessmentPage() {
         (status.packRemaining ?? 0) <= 0)
     );
 
-  const runAssessment = async () => {
+  const runAssessment = async (typeOverride?: AssessmentTypeId) => {
     if (!curriculum || !subject) return;
     const combinedText = pages.map((p, i) => `--- Page ${i + 1} ---\n${p.extractedText.trim()}`).join("\n\n");
     if (combinedText.trim().length < 20) {
-      toast({ title: "Not enough text", description: "Review OCR — extracted text is very short.", variant: "destructive" });
+      toast({ title: "Not enough text extracted", description: "Try clearer photos or open OCR review in Advanced Options.", variant: "destructive" });
       return;
     }
     if (quotaExhausted) {
-      toast({ title: "You've reached your Writing Assessment limit.", description: "Buy an upload pack or upgrade to Pro.", variant: "destructive" });
+      toast({ title: "You've reached your Assessment limit.", variant: "destructive" });
       return;
     }
+
+    // Infer type if not manually set
+    let finalType: AssessmentTypeId;
+    if (typeOverride) {
+      finalType = typeOverride;
+    } else if (assessmentType) {
+      finalType = assessmentType;
+    } else {
+      const inferred = inferAssessmentType(combinedText, subject.profile);
+      if (inferred.confidence === "low") {
+        setConfirmType(inferred.id);
+        return;
+      }
+      finalType = inferred.id;
+    }
+    setConfirmType(null);
 
     setIsAssessing(true);
     setAssessment(null);
     try {
-      const { data: { session } } = await (await import("@/integrations/supabase/client")).supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       const authHeader = session?.access_token
         ? { Authorization: `Bearer ${session.access_token}` }
         : AUTH_HEADER;
@@ -235,7 +235,7 @@ export default function WritingAssessmentPage() {
           subject: subject.label,
           subjectProfile: subject.profile,
           classLevel,
-          assessmentType,
+          assessmentType: finalType,
           markingStyle,
           questionPaper: questionPaper.trim() || undefined,
           markingScheme: markingScheme.trim() || undefined,
@@ -246,7 +246,7 @@ export default function WritingAssessmentPage() {
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: "Grading failed" }));
         if (resp.status === 402) {
-          toast({ title: "Upload limit reached", description: err.error || "Buy a pack or upgrade to Pro.", variant: "destructive" });
+          toast({ title: "Upload limit reached", description: err.error, variant: "destructive" });
           await status.refresh();
           return;
         }
@@ -256,16 +256,15 @@ export default function WritingAssessmentPage() {
       const data = (await resp.json()) as AssessmentResult;
       setAssessment(data);
       await status.refresh();
-      // Auto-save to workspace
       if (user) {
-        const title = `${subject?.label || "Assessment"} · ${new Date().toLocaleDateString()}`;
+        const title = `${subject.label} · ${new Date().toLocaleDateString()}`;
         supabase.from("saved_assessments").insert({
           user_id: user.id,
           title,
-          curriculum: curriculum?.label ?? null,
-          subject: subject?.label ?? null,
+          curriculum: curriculum.label,
+          subject: subject.label,
           class_level: classLevel || null,
-          assessment_type: assessmentType || null,
+          assessment_type: finalType,
           student_name: null,
           awarded: data.overallScore ?? null,
           max_score: data.maxScore ?? null,
@@ -284,34 +283,32 @@ export default function WritingAssessmentPage() {
     }
   };
 
-
-  const resetWizard = () => {
-    setStep(1);
-    setCurriculumId(""); setSubjectId(""); setClassLevel(""); setAssessmentType("");
-    setPages([]); setQuestionPaper(""); setMarkingScheme(""); setMarkingStyle("standard");
-    setAssessment(null);
+  const resetAll = () => {
+    setCurriculumId(""); setSubjectId(""); setClassLevel("");
+    setPages([]); setAssessmentType(""); setQuestionPaper(""); setMarkingScheme("");
+    setMarkingStyle("standard"); setAssessment(null); setShowAdvanced(false); setShowOcrReview(false);
   };
 
-  // ---------------- Render ----------------
+  const uploadReady = pages.length > 0 && pages.every((p) => p.ocrDone);
+  const readyToGrade = !!(curriculum && subject && classLevel && uploadReady && pages.some((p) => p.extractedText.trim().length > 20));
+
   return (
     <div>
       <Helmet>
-        <title>Writing Assessment | Teazy AI</title>
-        <meta name="description" content="Upload handwritten exam scripts and receive AI-assisted marking, curriculum-aligned scoring and classroom-ready reports." />
+        <title>Assessment Marker | Teazy AI</title>
+        <meta name="description" content="Upload handwritten exam scripts and receive AI-assisted marking in three steps." />
       </Helmet>
 
       <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">Writing Assessment</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">Assessment Marker</h1>
           <p className="mt-2 text-muted-foreground max-w-2xl">
-            Upload handwritten exam scripts and receive AI-assisted marking, curriculum-aligned scoring, detailed
-            feedback, and classroom-ready reports.
+            Three quick steps — pick your curriculum, pick the subject, upload the script.
+            The AI handles the rest.
           </p>
         </div>
         <div className="flex gap-2">
-          <Link to="/app/writing/batches" className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-navy hover:bg-muted">
-            My batches
-          </Link>
+          <Link to="/app/writing/batches" className="inline-flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-medium text-navy hover:bg-muted">My batches</Link>
           <Link to="/app/writing/bulk" className="inline-flex items-center gap-1 rounded-md bg-accent/10 border border-accent/30 px-3 py-1.5 text-xs font-semibold text-accent hover:bg-accent/20">
             <Crown className="h-3 w-3" /> Bulk marking (Pro)
           </Link>
@@ -320,47 +317,9 @@ export default function WritingAssessmentPage() {
 
       <UsageMeter status={status} onBuyPack={() => setShowBuyPack(true)} />
 
-      {/* Stepper */}
-      <div className="mb-6 overflow-x-auto">
-        <ol className="flex items-center gap-2 min-w-max">
-          {STEPS.map((s) => {
-            const active = s.id === step;
-            const done = s.id < step;
-            return (
-              <li key={s.id} className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => (done ? setStep(s.id) : undefined)}
-                  disabled={!done && !active}
-                  className={cn(
-                    "flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium border transition-colors",
-                    active && "bg-accent text-accent-foreground border-accent",
-                    done && !active && "bg-accent/10 text-accent border-accent/30 hover:bg-accent/20",
-                    !active && !done && "bg-muted text-muted-foreground border-border",
-                  )}
-                >
-                  <span className={cn(
-                    "h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold",
-                    active ? "bg-white/20" : done ? "bg-accent/20" : "bg-muted-foreground/10",
-                  )}>
-                    {done ? <Check className="h-3 w-3" /> : s.id}
-                  </span>
-                  <span className="hidden sm:inline">{s.short}</span>
-                </button>
-                {s.id < 8 && <span className="text-muted-foreground/40">→</span>}
-              </li>
-            );
-          })}
-        </ol>
-      </div>
-
-      <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-sm">
-        <h2 className="text-lg font-semibold text-navy mb-4">
-          Step {step}. {STEPS[step - 1].title}
-        </h2>
-
-        {/* STEP 1 - Curriculum */}
-        {step === 1 && (
+      <div className="space-y-6">
+        {/* STEP 1 — Curriculum */}
+        <StepCard n={1} title="Select curriculum" done={!!curriculumId}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {CURRICULA.map((c) => (
               <button
@@ -375,20 +334,14 @@ export default function WritingAssessmentPage() {
                 <div className="text-3xl mb-2">{c.flag}</div>
                 <div className="font-semibold text-navy">{c.label}</div>
                 <div className="text-xs text-muted-foreground mt-0.5">{c.country}</div>
-                <div className="text-xs text-muted-foreground mt-2">
-                  {c.subjects.length} subjects · {c.classes.length} {c.terminology.class.toLowerCase()} levels
-                </div>
               </button>
             ))}
           </div>
-        )}
+        </StepCard>
 
-        {/* STEP 2 - Subject */}
-        {step === 2 && curriculum && (
-          <div>
-            <p className="text-sm text-muted-foreground mb-3">
-              Showing subjects for <span className="font-medium text-foreground">{curriculum.label}</span>.
-            </p>
+        {/* STEP 2 — Subject (+ optional class inline) */}
+        {curriculum && (
+          <StepCard n={2} title="Select subject" done={!!subjectId}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {curriculum.subjects.map((sub) => (
                 <button
@@ -406,88 +359,64 @@ export default function WritingAssessmentPage() {
                 </button>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* STEP 3 - Class */}
-        {step === 3 && curriculum && (
-          <div>
-            <p className="text-sm text-muted-foreground mb-3">
-              Select the {curriculum.terminology.class.toLowerCase()} for this script.
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-              {curriculum.classes.map((cls) => (
-                <button
-                  key={cls}
-                  type="button"
-                  onClick={() => setClassLevel(cls)}
-                  className={cn(
-                    "rounded-lg border px-3 py-2.5 text-sm transition-colors",
-                    classLevel === cls
-                      ? "border-accent bg-accent/10 text-accent font-semibold"
-                      : "border-border hover:bg-muted",
-                  )}
+            {subjectId && (
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <Label className="text-xs text-muted-foreground">{curriculum.terminology.class}:</Label>
+                <select
+                  className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                  value={classLevel}
+                  onChange={(e) => setClassLevel(e.target.value)}
                 >
-                  {cls}
-                </button>
-              ))}
-            </div>
-          </div>
+                  {curriculum.classes.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+            )}
+          </StepCard>
         )}
 
-        {/* STEP 4 - What are you marking today */}
-        {step === 4 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {ASSESSMENT_TYPES.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => setAssessmentType(t.id)}
-                className={cn(
-                  "text-left rounded-xl border-2 p-4 transition-all hover:border-accent/50",
-                  assessmentType === t.id ? "border-accent bg-accent/5" : "border-border",
-                )}
-              >
-                <div className="font-semibold text-navy">{t.label}</div>
-                <div className="text-xs text-muted-foreground mt-1">{t.hint}</div>
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* STEP 5 - Upload scripts */}
-        {step === 5 && (
-          <div className="space-y-4">
+        {/* STEP 3 — Upload */}
+        {curriculum && subject && (
+          <StepCard n={3} title="Upload assessment" done={uploadReady && pages.length > 0}>
             <div
-              className="border-2 border-dashed border-border rounded-xl p-6 bg-muted/30 text-center"
-              onDragOver={(e) => { e.preventDefault(); }}
+              className="border-2 border-dashed border-border rounded-xl p-8 bg-muted/30 text-center cursor-pointer hover:border-accent/50 transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
             >
-              <ImageIcon className="mx-auto h-10 w-10 text-muted-foreground" />
-              <p className="mt-2 text-sm text-muted-foreground">
-                Drag and drop clear photos of the student's script, or use the buttons below.
-                <br />
-                <span className="text-xs">Add multiple pages — each is OCR'd automatically. JPG / PNG, max 10MB per file.</span>
+              <Upload className="mx-auto h-10 w-10 text-muted-foreground" />
+              <p className="mt-3 text-sm font-medium text-foreground">Drag &amp; drop scripts, or click to choose</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Images, multi-page PDF, or multiple pages — the AI reads them all automatically.
               </p>
               <div className="flex justify-center gap-2 mt-4">
-                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                  <Upload className="mr-2 h-4 w-4" /> Upload files
+                <Button type="button" variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
+                  <Upload className="mr-2 h-4 w-4" /> Choose files
                 </Button>
-                <Button type="button" variant="outline" size="sm" onClick={() => cameraInputRef.current?.click()}>
+                <Button type="button" variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); cameraInputRef.current?.click(); }}>
                   <Camera className="mr-2 h-4 w-4" /> Take photo
                 </Button>
               </div>
-              <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={(e) => { if (e.target.files) handleFiles(e.target.files); e.target.value = ""; }} className="hidden" />
-              <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={(e) => { if (e.target.files) handleFiles(e.target.files); e.target.value = ""; }} className="hidden" />
+              <input ref={fileInputRef} type="file" accept="image/*,application/pdf" multiple className="hidden"
+                onChange={(e) => { if (e.target.files) handleFiles(e.target.files); e.target.value = ""; }} />
+              <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden"
+                onChange={(e) => { if (e.target.files) handleFiles(e.target.files); e.target.value = ""; }} />
             </div>
 
             {pages.length > 0 && (
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-2">{pages.length} page{pages.length > 1 ? "s" : ""} added</p>
+              <div className="mt-4">
+                <p className="text-xs font-medium text-muted-foreground mb-2">
+                  {pages.length} page{pages.length > 1 ? "s" : ""} • {pages.filter((p) => p.ocrDone).length} read
+                </p>
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                   {pages.map((p, i) => (
                     <div key={p.id} className="relative group">
-                      <img src={p.preview} alt={`Page ${i + 1}`} className="w-full h-24 object-cover rounded-md border border-border" />
+                      {p.preview ? (
+                        <img src={p.preview} alt={`Page ${i + 1}`} className="w-full h-24 object-cover rounded-md border border-border" />
+                      ) : (
+                        <div className="w-full h-24 rounded-md border border-border bg-muted flex items-center justify-center">
+                          <FileText className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                      )}
                       <span className="absolute bottom-1 left-1 text-[10px] font-bold bg-navy/80 text-white px-1.5 py-0.5 rounded">
                         Page {i + 1}
                       </span>
@@ -501,11 +430,8 @@ export default function WritingAssessmentPage() {
                           <Check className="h-3 w-3" />
                         </span>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => removePage(p.id)}
-                        className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
+                      <button type="button" onClick={() => removePage(p.id)}
+                        className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                         <X className="h-3 w-3" />
                       </button>
                     </div>
@@ -513,136 +439,163 @@ export default function WritingAssessmentPage() {
                 </div>
               </div>
             )}
-          </div>
+          </StepCard>
         )}
 
-        {/* STEP 6 - Optional guides */}
-        {step === 6 && (
-          <div className="space-y-6">
-            <p className="text-sm text-muted-foreground">
-              Provide the original question paper and/or marking scheme to boost accuracy.
-              When supplied, the AI will prioritise these over its own inference. All fields are optional.
-            </p>
-
-            <div className="space-y-2">
-              <Label htmlFor="qp">Question paper (paste text)</Label>
-              <Textarea
-                id="qp"
-                placeholder="Paste the exam questions here…"
-                value={questionPaper}
-                onChange={(e) => setQuestionPaper(e.target.value)}
-                className="min-h-[120px]"
-              />
+        {/* Gentle optional prompt */}
+        {uploadReady && pages.length > 0 && !questionPaper && !markingScheme && (
+          <div className="rounded-xl border border-accent/30 bg-accent/5 p-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm text-foreground/90">
+              For even more accurate marking, you can optionally upload the original question paper or marking scheme.
             </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <Label htmlFor="ms">Marking scheme / rubric</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={generateRubric}
-                  disabled={rubricLoading || !subject || !classLevel || !assessmentType}
-                >
-                  {rubricLoading ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-2 h-3.5 w-3.5" />}
-                  Generate with AI
-                </Button>
-              </div>
-              <Textarea
-                id="ms"
-                placeholder="Paste your official marking guide, or generate a starter rubric with AI and edit it."
-                value={markingScheme}
-                onChange={(e) => setMarkingScheme(e.target.value)}
-                className="min-h-[160px]"
-              />
+            <div className="flex gap-2 flex-wrap">
+              <Button size="sm" variant="outline" onClick={() => { setShowAdvanced(true); setTimeout(() => qpFileRef.current?.click(), 100); }}>
+                Upload Question Paper
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => { setShowAdvanced(true); setTimeout(() => msFileRef.current?.click(), 100); }}>
+                Upload Marking Scheme
+              </Button>
+              <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => runAssessment()}>
+                Continue without them
+              </Button>
             </div>
           </div>
         )}
 
-        {/* STEP 7 - OCR review */}
-        {step === 7 && (
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Review and correct the extracted handwriting for each page before grading begins.
-            </p>
-            {pages.length === 0 && (
-              <p className="text-sm text-destructive">No pages uploaded — go back to Step 5.</p>
-            )}
-            {pages.map((p, i) => (
-              <div key={p.id} className="border border-border rounded-lg p-3 bg-muted/20">
-                <div className="flex items-start gap-3">
-                  <img src={p.preview} alt={`Page ${i + 1}`} className="h-24 w-20 object-cover rounded border border-border flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <Label className="text-xs">Page {i + 1}</Label>
-                      {p.ocrLoading ? (
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Loader2 className="h-3 w-3 animate-spin" /> Reading…
-                        </span>
-                      ) : p.ocrDone ? (
-                        <span className="text-xs text-green-600 font-medium">✓ Extracted</span>
-                      ) : (
-                        <Button type="button" size="sm" variant="outline" onClick={() => runOcr(p.id)}>Run OCR</Button>
-                      )}
-                    </div>
-                    <Textarea
-                      value={p.extractedText}
-                      onChange={(e) => setPages((prev) => prev.map((pp) => pp.id === p.id ? { ...pp, extractedText: e.target.value, ocrDone: true } : pp))}
-                      placeholder="Extracted handwriting will appear here — edit any errors."
-                      className="min-h-[100px] text-sm"
-                    />
+        {/* Advanced Options */}
+        {curriculum && (
+          <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+            <CollapsibleTrigger asChild>
+              <button type="button" className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-navy hover:bg-muted transition-colors">
+                <span className="flex items-center gap-2"><Settings2 className="h-4 w-4" /> Advanced Options (Optional)</span>
+                <ChevronDown className={cn("h-4 w-4 transition-transform", showAdvanced && "rotate-180")} />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-3">
+              <div className="rounded-xl border border-border bg-card p-5 space-y-6">
+                <div>
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Assessment type</Label>
+                  <p className="text-xs text-muted-foreground mb-2">Leave on Auto and the AI will infer it from the script.</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <button type="button" onClick={() => setAssessmentType("")}
+                      className={cn("rounded-md border px-3 py-2 text-xs text-left",
+                        !assessmentType ? "border-accent bg-accent/10 text-accent font-semibold" : "border-border hover:bg-muted")}>
+                      Auto-detect
+                    </button>
+                    {ASSESSMENT_TYPES.map((t) => (
+                      <button key={t.id} type="button" onClick={() => setAssessmentType(t.id)}
+                        className={cn("rounded-md border px-3 py-2 text-xs text-left",
+                          assessmentType === t.id ? "border-accent bg-accent/10 text-accent font-semibold" : "border-border hover:bg-muted")}>
+                        {t.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
+
+                <div>
+                  <Label className="text-xs uppercase tracking-wide text-muted-foreground">Marking style</Label>
+                  <div className="grid grid-cols-3 gap-2 mt-2">
+                    {MARKING_STYLES.map((m) => (
+                      <button key={m.id} type="button" onClick={() => setMarkingStyle(m.id)}
+                        className={cn("rounded-md border p-3 text-left",
+                          markingStyle === m.id ? "border-accent bg-accent/5" : "border-border hover:bg-muted")}>
+                        <div className="text-sm font-semibold text-navy">{m.label}</div>
+                        <div className="text-[11px] text-muted-foreground mt-0.5">{m.hint}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <Label htmlFor="qp">Question paper</Label>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => qpFileRef.current?.click()}>
+                        <Upload className="mr-1 h-3.5 w-3.5" /> Upload file
+                      </Button>
+                    </div>
+                    <Textarea id="qp" value={questionPaper} onChange={(e) => setQuestionPaper(e.target.value)} placeholder="Paste the exam questions…" className="min-h-[120px]" />
+                    <input ref={qpFileRef} type="file" accept="image/*,application/pdf,text/plain" className="hidden"
+                      onChange={async (e) => {
+                        const f = e.target.files?.[0]; if (!f) return;
+                        if (f.type.startsWith("text/")) setQuestionPaper(await f.text());
+                        else { const { base64, mime } = await readFile(f); const r = await fetch(OCR_URL, { method: "POST", headers: { "Content-Type": "application/json", ...AUTH_HEADER }, body: JSON.stringify({ imageBase64: base64, mimeType: mime }) }); const d = await r.json(); setQuestionPaper(d.extractedText || ""); }
+                        e.target.value = "";
+                      }} />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <Label htmlFor="ms">Marking scheme</Label>
+                      <div className="flex gap-1">
+                        <Button type="button" variant="ghost" size="sm" onClick={() => msFileRef.current?.click()}>
+                          <Upload className="mr-1 h-3.5 w-3.5" /> Upload
+                        </Button>
+                        <Button type="button" variant="ghost" size="sm" onClick={generateRubric} disabled={rubricLoading || !subject}>
+                          {rubricLoading ? <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-1 h-3.5 w-3.5" />}
+                          Generate AI Rubric
+                        </Button>
+                      </div>
+                    </div>
+                    <Textarea id="ms" value={markingScheme} onChange={(e) => setMarkingScheme(e.target.value)} placeholder="Paste the marking scheme, or generate one with AI." className="min-h-[120px]" />
+                    <input ref={msFileRef} type="file" accept="image/*,application/pdf,text/plain" className="hidden"
+                      onChange={async (e) => {
+                        const f = e.target.files?.[0]; if (!f) return;
+                        if (f.type.startsWith("text/")) setMarkingScheme(await f.text());
+                        else { const { base64, mime } = await readFile(f); const r = await fetch(OCR_URL, { method: "POST", headers: { "Content-Type": "application/json", ...AUTH_HEADER }, body: JSON.stringify({ imageBase64: base64, mimeType: mime }) }); const d = await r.json(); setMarkingScheme(d.extractedText || ""); }
+                        e.target.value = "";
+                      }} />
+                  </div>
+                </div>
+
+                {pages.length > 0 && (
+                  <div>
+                    <button type="button" onClick={() => setShowOcrReview((v) => !v)}
+                      className="text-sm font-medium text-accent hover:underline flex items-center gap-1">
+                      <Brain className="h-4 w-4" /> {showOcrReview ? "Hide" : "Review"} extracted text (OCR)
+                    </button>
+                    {showOcrReview && (
+                      <div className="mt-3 space-y-3">
+                        {pages.map((p, i) => (
+                          <div key={p.id} className="border border-border rounded-lg p-3 bg-muted/20">
+                            <Label className="text-xs">Page {i + 1}</Label>
+                            <Textarea
+                              value={p.extractedText}
+                              onChange={(e) => setPages((prev) => prev.map((pp) => pp.id === p.id ? { ...pp, extractedText: e.target.value, ocrDone: true } : pp))}
+                              className="min-h-[80px] text-sm mt-1"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            ))}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
+        {/* Confirm inferred type when low confidence */}
+        {confirmType && (
+          <div className="rounded-xl border border-accent/40 bg-accent/5 p-4 space-y-3">
+            <div className="text-sm">
+              We're not fully sure what kind of assessment this is. Please confirm:
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(["essay", "theory", "mixed", "practical", "ca"] as AssessmentTypeId[]).map((t) => (
+                <Button key={t} size="sm" variant="outline" onClick={() => runAssessment(t)}>
+                  {ASSESSMENT_TYPES.find((x) => x.id === t)?.label}
+                </Button>
+              ))}
+            </div>
           </div>
         )}
 
-        {/* STEP 8 - Marking style + summary */}
-        {step === 8 && curriculum && subject && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {MARKING_STYLES.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setMarkingStyle(m.id)}
-                  className={cn(
-                    "text-left rounded-xl border-2 p-4 transition-all",
-                    markingStyle === m.id ? "border-accent bg-accent/5" : "border-border hover:border-accent/50",
-                  )}
-                >
-                  <div className="font-semibold text-navy">{m.label}</div>
-                  <div className="text-xs text-muted-foreground mt-1">{m.hint}</div>
-                </button>
-              ))}
-            </div>
-
-            <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-1 text-sm">
-              <div className="font-semibold text-navy mb-1 flex items-center gap-2">
-                <FileText className="h-4 w-4" /> Ready to grade
-              </div>
-              <SummaryRow label="Curriculum" value={curriculum.label} />
-              <SummaryRow label="Subject" value={subject.label} />
-              <SummaryRow label="Class" value={classLevel} />
-              <SummaryRow label="Marking" value={ASSESSMENT_TYPES.find((t) => t.id === assessmentType)?.label || "—"} />
-              <SummaryRow label="Pages" value={`${pages.length}`} />
-              <SummaryRow label="Style" value={MARKING_STYLES.find((m) => m.id === markingStyle)?.label || "—"} />
-              <SummaryRow label="Question paper" value={questionPaper ? "Provided" : "Not provided"} />
-              <SummaryRow label="Marking scheme" value={markingScheme ? "Provided" : "Not provided"} />
-            </div>
-
+        {/* Primary CTA + status */}
+        {readyToGrade && !confirmType && (
+          <div className="rounded-xl border border-border bg-card p-5">
             {quotaExhausted ? (
-              <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 space-y-3">
-                <div className="font-semibold text-destructive">
-                  You've reached your {status.plan === "free" ? "free" : "monthly"} Writing Assessment limit.
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {status.plan === "free"
-                    ? "Upgrade to Teazy AI Standard for 40 assessments per month, or Assessment Pro for unlimited."
-                    : "Buy an upload pack (never expires) or upgrade to Assessment Pro for unlimited uploads."}
-                </p>
+              <div className="space-y-3">
+                <div className="font-semibold text-destructive">You've reached your Assessment limit.</div>
                 <div className="grid grid-cols-2 gap-2">
                   {status.plan === "standard" && (
                     <Button onClick={() => setShowBuyPack(true)} variant="outline">
@@ -650,43 +603,32 @@ export default function WritingAssessmentPage() {
                     </Button>
                   )}
                   <Button asChild className={status.plan === "standard" ? "" : "col-span-2"}>
-                    <Link to="/pricing">
-                      <Crown className="mr-2 h-4 w-4" />
-                      {status.plan === "free" ? "See plans" : "Upgrade to Pro"}
-                    </Link>
+                    <Link to="/pricing"><Crown className="mr-2 h-4 w-4" /> {status.plan === "free" ? "See plans" : "Upgrade to Pro"}</Link>
                   </Button>
                 </div>
               </div>
             ) : (
-              <Button
-                type="button"
-                onClick={runAssessment}
-                disabled={isAssessing}
-                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base h-12"
-              >
-                {isAssessing ? (
-                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Grading script…</>
-                ) : (
-                  <><Sparkles className="mr-2 h-5 w-5" /> Grade Assessment</>
-                )}
-              </Button>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="text-sm text-muted-foreground">
+                  <span className="font-semibold text-foreground">{subject?.label}</span> · {classLevel} · {pages.length} page{pages.length > 1 ? "s" : ""} · {assessmentType ? ASSESSMENT_TYPES.find((t) => t.id === assessmentType)?.label : "Auto-detect type"}
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" variant="ghost" onClick={resetAll}>Start over</Button>
+                  <Button
+                    type="button"
+                    onClick={() => runAssessment()}
+                    disabled={isAssessing}
+                    className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold h-11 px-6"
+                  >
+                    {isAssessing
+                      ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Grading…</>
+                      : <><Sparkles className="mr-2 h-5 w-5" /> Grade Assessment</>}
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
         )}
-
-        {/* Nav */}
-        <div className="flex items-center justify-between mt-8 pt-4 border-t border-border">
-          <Button type="button" variant="ghost" onClick={goPrev} disabled={step === 1}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back
-          </Button>
-          {step < 8 ? (
-            <Button type="button" onClick={goNext} disabled={!canAdvance[step]}>
-              Next <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          ) : (
-            <Button type="button" variant="ghost" onClick={resetWizard}>Start over</Button>
-          )}
-        </div>
       </div>
 
       {isAssessing && (
@@ -703,6 +645,21 @@ export default function WritingAssessmentPage() {
       )}
 
       <BuyPackModal open={showBuyPack} onClose={() => setShowBuyPack(false)} onSuccess={() => status.refresh()} />
+    </div>
+  );
+}
+
+function StepCard({ n, title, done, children }: { n: number; title: string; done?: boolean; children: React.ReactNode }) {
+  return (
+    <div className="bg-card border border-border rounded-xl p-5 sm:p-6 shadow-sm">
+      <div className="flex items-center gap-3 mb-4">
+        <div className={cn("h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold",
+          done ? "bg-green-600 text-white" : "bg-accent text-accent-foreground")}>
+          {done ? <Check className="h-4 w-4" /> : n}
+        </div>
+        <h2 className="text-lg font-semibold text-navy">{title}</h2>
+      </div>
+      {children}
     </div>
   );
 }
@@ -749,27 +706,17 @@ function UsageMeter({
       </div>
     );
   }
-  // Free
   const used = status.freeUsed ?? 0;
   const limit = status.freeLimit ?? 2;
   return (
     <div className="mb-6 rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-3 flex-wrap">
       <div className="text-sm">
         <span className="font-semibold text-navy">{Math.max(0, limit - used)} of {limit}</span>
-        <span className="text-muted-foreground"> free Writing Assessment uploads left.</span>
+        <span className="text-muted-foreground"> free Assessment Marker uploads left.</span>
       </div>
       <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
         <Link to="/pricing"><Sparkles className="mr-1 h-3.5 w-3.5" /> Upgrade</Link>
       </Button>
-    </div>
-  );
-}
-
-function SummaryRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-4">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium text-foreground text-right">{value}</span>
     </div>
   );
 }
