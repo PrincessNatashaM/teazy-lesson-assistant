@@ -146,6 +146,33 @@ export type Database = {
         }
         Relationships: []
       }
+      monthly_assessment_usage: {
+        Row: {
+          created_at: string
+          id: string
+          period_start: string
+          updated_at: string
+          uploads_used: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          period_start: string
+          updated_at?: string
+          uploads_used?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          period_start?: string
+          updated_at?: string
+          uploads_used?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount_minor: number
@@ -401,6 +428,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consume_assessment_upload: { Args: { _user_id: string }; Returns: Json }
+      get_assessment_status: { Args: { _user_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -419,6 +448,11 @@ export type Database = {
         | "assessment_pack_6"
         | "assessment_pack_11"
         | "subscription"
+        | "sub_standard"
+        | "sub_pro"
+        | "assessment_pack_5"
+        | "assessment_pack_10"
+        | "assessment_pack_30"
       payment_status: "pending" | "success" | "failed" | "abandoned"
       promo_kind:
         | "free_access"
@@ -563,6 +597,11 @@ export const Constants = {
         "assessment_pack_6",
         "assessment_pack_11",
         "subscription",
+        "sub_standard",
+        "sub_pro",
+        "assessment_pack_5",
+        "assessment_pack_10",
+        "assessment_pack_30",
       ],
       payment_status: ["pending", "success", "failed", "abandoned"],
       promo_kind: [

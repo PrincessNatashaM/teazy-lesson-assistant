@@ -1,15 +1,19 @@
 import { useMemo, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
 import {
   ArrowLeft, ArrowRight, Loader2, Camera, Upload, X, ImageIcon,
-  Check, FileText, PenLine, Sparkles, Wand2,
+  Check, FileText, PenLine, Sparkles, Wand2, Zap, Crown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { useAssessmentStatus } from "@/hooks/useAssessmentStatus";
+import BuyPackModal from "@/components/BuyPackModal";
 import {
   CURRICULA, ASSESSMENT_TYPES, MARKING_STYLES,
   getCurriculum, type AssessmentTypeId, type MarkingStyleId,
@@ -44,8 +48,10 @@ const STEPS: { id: StepId; title: string; short: string }[] = [
   { id: 8, title: "Choose marking style", short: "Style" },
 ];
 
-export default function AssessmentMarkerPage() {
+export default function WritingAssessmentPage() {
   const { toast } = useToast();
+  const status = useAssessmentStatus();
+  const [showBuyPack, setShowBuyPack] = useState(false);
   const [step, setStep] = useState<StepId>(1);
 
   const [curriculumId, setCurriculumId] = useState<string>("");
@@ -190,6 +196,15 @@ export default function AssessmentMarkerPage() {
   };
 
   // ---------------- Grade ----------------
+  const quotaExhausted =
+    !status.loading &&
+    (
+      (status.plan === "free" && (status.freeUsed ?? 0) >= (status.freeLimit ?? 2)) ||
+      (status.plan === "standard" &&
+        (status.monthlyUsed ?? 0) >= (status.monthlyLimit ?? 40) &&
+        (status.packRemaining ?? 0) <= 0)
+    );
+
   const runAssessment = async () => {
     if (!curriculum || !subject) return;
     const combinedText = pages.map((p, i) => `--- Page ${i + 1} ---\n${p.extractedText.trim()}`).join("\n\n");
@@ -197,13 +212,21 @@ export default function AssessmentMarkerPage() {
       toast({ title: "Not enough text", description: "Review OCR — extracted text is very short.", variant: "destructive" });
       return;
     }
+    if (quotaExhausted) {
+      toast({ title: "You've reached your Writing Assessment limit.", description: "Buy an upload pack or upgrade to Pro.", variant: "destructive" });
+      return;
+    }
 
     setIsAssessing(true);
     setAssessment(null);
     try {
+      const { data: { session } } = await (await import("@/integrations/supabase/client")).supabase.auth.getSession();
+      const authHeader = session?.access_token
+        ? { Authorization: `Bearer ${session.access_token}` }
+        : AUTH_HEADER;
       const resp = await fetch(ASSESS_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...AUTH_HEADER },
+        headers: { "Content-Type": "application/json", ...authHeader },
         body: JSON.stringify({
           curriculum: curriculum.label,
           subject: subject.label,
@@ -219,11 +242,17 @@ export default function AssessmentMarkerPage() {
       });
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: "Grading failed" }));
+        if (resp.status === 402) {
+          toast({ title: "Upload limit reached", description: err.error || "Buy a pack or upgrade to Pro.", variant: "destructive" });
+          await status.refresh();
+          return;
+        }
         toast({ title: "Error", description: err.error, variant: "destructive" });
         return;
       }
       const data = (await resp.json()) as AssessmentResult;
       setAssessment(data);
+      await status.refresh();
       setTimeout(() => document.getElementById("assessment-output")?.scrollIntoView({ behavior: "smooth" }), 100);
     } catch (e) {
       console.error(e);
@@ -245,17 +274,19 @@ export default function AssessmentMarkerPage() {
   return (
     <div>
       <Helmet>
-        <title>AI Assessment Marker | Teazy AI</title>
+        <title>Writing Assessment | Teazy AI</title>
         <meta name="description" content="Upload handwritten exam scripts and receive AI-assisted marking, curriculum-aligned scoring and classroom-ready reports." />
       </Helmet>
 
       <header className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">AI Assessment Marker</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">Writing Assessment</h1>
         <p className="mt-2 text-muted-foreground max-w-2xl">
           Upload handwritten exam scripts and receive AI-assisted marking, curriculum-aligned scoring, detailed
           feedback, and classroom-ready reports.
         </p>
       </header>
+
+      <UsageMeter status={status} onBuyPack={() => setShowBuyPack(true)} />
 
       {/* Stepper */}
       <div className="mb-6 overflow-x-auto">
@@ -570,18 +601,44 @@ export default function AssessmentMarkerPage() {
               <SummaryRow label="Marking scheme" value={markingScheme ? "Provided" : "Not provided"} />
             </div>
 
-            <Button
-              type="button"
-              onClick={runAssessment}
-              disabled={isAssessing}
-              className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base h-12"
-            >
-              {isAssessing ? (
-                <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Grading script…</>
-              ) : (
-                <><Sparkles className="mr-2 h-5 w-5" /> Grade Assessment</>
-              )}
-            </Button>
+            {quotaExhausted ? (
+              <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 space-y-3">
+                <div className="font-semibold text-destructive">
+                  You've reached your {status.plan === "free" ? "free" : "monthly"} Writing Assessment limit.
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {status.plan === "free"
+                    ? "Upgrade to Teazy AI Standard for 40 assessments per month, or Assessment Pro for unlimited."
+                    : "Buy an upload pack (never expires) or upgrade to Assessment Pro for unlimited uploads."}
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {status.plan === "standard" && (
+                    <Button onClick={() => setShowBuyPack(true)} variant="outline">
+                      <Zap className="mr-2 h-4 w-4" /> Buy upload pack
+                    </Button>
+                  )}
+                  <Button asChild className={status.plan === "standard" ? "" : "col-span-2"}>
+                    <Link to="/pricing">
+                      <Crown className="mr-2 h-4 w-4" />
+                      {status.plan === "free" ? "See plans" : "Upgrade to Pro"}
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                onClick={runAssessment}
+                disabled={isAssessing}
+                className="w-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold text-base h-12"
+              >
+                {isAssessing ? (
+                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Grading script…</>
+                ) : (
+                  <><Sparkles className="mr-2 h-5 w-5" /> Grade Assessment</>
+                )}
+              </Button>
+            )}
           </div>
         )}
 
@@ -612,6 +669,66 @@ export default function AssessmentMarkerPage() {
           <AssessmentResults data={assessment} onChange={setAssessment} />
         </div>
       )}
+
+      <BuyPackModal open={showBuyPack} onClose={() => setShowBuyPack(false)} onSuccess={() => status.refresh()} />
+    </div>
+  );
+}
+
+function UsageMeter({
+  status,
+  onBuyPack,
+}: {
+  status: ReturnType<typeof useAssessmentStatus>;
+  onBuyPack: () => void;
+}) {
+  if (status.loading) return null;
+  if (status.plan === "pro") {
+    return (
+      <div className="mb-6 flex items-center gap-3 rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-sm">
+        <Crown className="h-4 w-4 text-accent" />
+        <span className="font-semibold text-navy">Assessment Pro</span>
+        <span className="text-muted-foreground">— unlimited uploads.</span>
+      </div>
+    );
+  }
+  if (status.plan === "standard") {
+    const used = status.monthlyUsed ?? 0;
+    const limit = status.monthlyLimit ?? 40;
+    const remaining = Math.max(0, limit - used);
+    const pct = Math.min(100, Math.round((used / limit) * 100));
+    return (
+      <div className="mb-6 rounded-xl border border-border bg-card p-4">
+        <div className="flex items-center justify-between text-sm">
+          <div>
+            <span className="font-semibold text-navy">{remaining} / {limit}</span>
+            <span className="text-muted-foreground"> uploads remaining this month</span>
+            {status.packRemaining > 0 && (
+              <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-success/10 text-success text-xs font-semibold px-2 py-0.5">
+                <Zap className="h-3 w-3" /> +{status.packRemaining} pack
+              </span>
+            )}
+          </div>
+          <Button size="sm" variant="outline" onClick={onBuyPack}>
+            <Zap className="mr-1 h-3.5 w-3.5" /> Buy more
+          </Button>
+        </div>
+        <Progress value={pct} className="mt-2 h-1.5" />
+      </div>
+    );
+  }
+  // Free
+  const used = status.freeUsed ?? 0;
+  const limit = status.freeLimit ?? 2;
+  return (
+    <div className="mb-6 rounded-xl border border-border bg-card p-4 flex items-center justify-between gap-3 flex-wrap">
+      <div className="text-sm">
+        <span className="font-semibold text-navy">{Math.max(0, limit - used)} of {limit}</span>
+        <span className="text-muted-foreground"> free Writing Assessment uploads left.</span>
+      </div>
+      <Button asChild size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90">
+        <Link to="/pricing"><Sparkles className="mr-1 h-3.5 w-3.5" /> Upgrade</Link>
+      </Button>
     </div>
   );
 }

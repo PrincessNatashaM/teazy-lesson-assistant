@@ -9,7 +9,8 @@ import AppShell from "./components/AppShell";
 import HomePage from "./pages/HomePage";
 import LessonNotesPage from "./pages/LessonNotesPage";
 import QuizGeneratorPage from "./pages/QuizGeneratorPage";
-import AssessmentMarkerPage from "./pages/AssessmentMarkerPage";
+import WritingAssessmentPage from "./pages/WritingAssessmentPage";
+import PricingPage from "./pages/PricingPage";
 import AuthPage from "./pages/AuthPage";
 import AccountPage from "./pages/AccountPage";
 import AdminPage from "./pages/AdminPage";
@@ -31,15 +32,17 @@ const App = () => (
                 <Route path="/" element={<HomePage />} />
                 <Route path="/auth" element={<AuthPage />} />
                 <Route path="/account" element={<AccountPage />} />
+                <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/admin" element={<AdminPage />} />
                 <Route path="/app" element={<AppShell />}>
                   <Route index element={<LessonNotesPage />} />
                   <Route path="quiz" element={<QuizGeneratorPage />} />
-                  <Route path="marker" element={<AssessmentMarkerPage />} />
-                  <Route path="writing" element={<Navigate to="/app/marker" replace />} />
+                  <Route path="writing" element={<WritingAssessmentPage />} />
+                  <Route path="marker" element={<Navigate to="/app/writing" replace />} />
                 </Route>
                 <Route path="/quiz" element={<Navigate to="/app/quiz" replace />} />
-                <Route path="/writing" element={<Navigate to="/app/marker" replace />} />
+                <Route path="/writing" element={<Navigate to="/app/writing" replace />} />
+                <Route path="/marker" element={<Navigate to="/app/writing" replace />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

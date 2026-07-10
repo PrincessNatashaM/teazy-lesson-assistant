@@ -17,56 +17,58 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Lock, Sparkles, Loader2, BadgeCheck } from "lucide-react";
+import { Lock, Sparkles, Loader2, BadgeCheck, Crown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { loadPaystack } from "@/lib/paystack";
 import {
-  UNLOCK_PRICES,
+  STANDARD_PRICES,
   PRO_PRICES,
   detectCurrency,
   formatMinor,
   type DisplayCurrency,
+  type SubPurpose,
 } from "@/lib/pricing";
 import type { EntitlementKind } from "@/hooks/useEntitlements";
 
+/** Legacy incoming purpose type — kept so existing callers still compile. */
 type Purpose = EntitlementKind | "subscription";
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  /** Retained for backwards compatibility. All values now show subscription upsell. */
   purpose: Purpose;
   lessonHash?: string | null;
   onSuccess?: () => void;
 }
 
-const HEADLINES: Record<Purpose, { title: string; message: string }> = {
+const CONTEXT_COPY: Record<Purpose, { title: string; message: string }> = {
   download_pdf: {
-    title: "Unlock PDF Download",
-    message: "Payment unlocks PDF export for the current lesson note.",
+    title: "Downloads are a paid feature",
+    message: "Upgrade to Teazy AI Standard to unlock unlimited PDF and Word downloads.",
   },
   download_docx: {
-    title: "Unlock Word Download",
-    message: "Payment unlocks Word export for the current lesson note.",
+    title: "Downloads are a paid feature",
+    message: "Upgrade to Teazy AI Standard to unlock unlimited PDF and Word downloads.",
   },
   edit_unlock: {
-    title: "Unlock Editing",
-    message: "Editing lesson notes requires a Teazy AI pass or active subscription.",
+    title: "Editing is a paid feature",
+    message: "Upgrade to Teazy AI Standard to edit lesson notes and download in PDF or Word.",
   },
   subscription: {
-    title: "Upgrade to Pro",
-    message: "Unlimited editing, PDF and Word downloads, and assessment marking.",
+    title: "Choose your plan",
+    message: "Pick the plan that matches how often you teach and mark.",
   },
 };
 
-export default function PaywallModal({ open, onClose, purpose: initialPurpose, lessonHash, onSuccess }: Props) {
+export default function PaywallModal({ open, onClose, purpose, onSuccess }: Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [purpose, setPurpose] = useState<Purpose>(initialPurpose);
-  useEffect(() => { setPurpose(initialPurpose); }, [initialPurpose, open]);
   const [country, setCountry] = useState<DisplayCurrency>("NGN");
+  const [selected, setSelected] = useState<SubPurpose>("sub_standard");
   const [showPromo, setShowPromo] = useState(false);
   const [promoCode, setPromoCode] = useState("");
   const [promoApplied, setPromoApplied] = useState<{
@@ -90,11 +92,16 @@ export default function PaywallModal({ open, onClose, purpose: initialPurpose, l
       });
   }, [open, user]);
 
-  const isSub = purpose === "subscription";
-  const priceTable = isSub ? PRO_PRICES : UNLOCK_PRICES;
-  const price = priceTable[country];
+  useEffect(() => {
+    // Reset promo state when switching plans
+    setPromoApplied(null);
+    setPromoCode("");
+    setShowPromo(false);
+  }, [selected]);
+
+  const price = (selected === "sub_pro" ? PRO_PRICES : STANDARD_PRICES)[country];
   const finalMinor = promoApplied ? promoApplied.adjusted_minor : price.chargeMinor;
-  const headline = HEADLINES[purpose];
+  const headline = CONTEXT_COPY[purpose];
 
   const applyPromo = async () => {
     if (!promoCode.trim()) return;
@@ -103,7 +110,7 @@ export default function PaywallModal({ open, onClose, purpose: initialPurpose, l
       const { data, error } = await supabase.functions.invoke("validate-promo", {
         body: {
           code: promoCode.trim().toUpperCase(),
-          purpose,
+          purpose: selected,
           amount_minor: price.chargeMinor,
           currency: price.chargeCurrency,
         },
@@ -122,7 +129,7 @@ export default function PaywallModal({ open, onClose, purpose: initialPurpose, l
           free: !!data.free,
           message: data.message,
         });
-        toast({ title: "Promo code applied successfully.", description: data.message });
+        toast({ title: "Promo applied", description: data.message });
       }
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
@@ -138,30 +145,23 @@ export default function PaywallModal({ open, onClose, purpose: initialPurpose, l
     }
     setPaying(true);
     try {
-      // 1. Server initializes payment (computes price server-side, handles free promo)
       const { data: init, error } = await supabase.functions.invoke("paystack-initialize", {
         body: {
-          purpose,
-          lesson_hash: lessonHash ?? null,
+          purpose: selected,
           promo_code: promoApplied ? promoCode.trim().toUpperCase() : null,
           display_currency: country,
         },
       });
       if (error || !init) throw new Error(error?.message || "Could not start payment");
 
-      // Free via promo — server already granted access
       if (init.granted_free) {
-        toast({ title: "Access granted via promo code.", description: "" });
+        toast({ title: "Access granted via promo code." });
         onSuccess?.();
         onClose();
         return;
       }
+      if (!init.public_key) throw new Error("Paystack not configured. Contact support.");
 
-      if (!init.public_key) {
-        throw new Error("Paystack not configured. Contact support.");
-      }
-
-      // 2. Open Paystack popup
       const Paystack = await loadPaystack();
       const handler = Paystack.setup({
         key: init.public_key,
@@ -171,7 +171,6 @@ export default function PaywallModal({ open, onClose, purpose: initialPurpose, l
         ref: init.reference,
         onClose: () => setPaying(false),
         callback: (response: any) => {
-          // 3. Verify on server
           supabase.functions
             .invoke("paystack-verify", { body: { reference: response.reference } })
             .then(({ data: verifyData, error: vErr }) => {
@@ -184,7 +183,7 @@ export default function PaywallModal({ open, onClose, purpose: initialPurpose, l
                 });
                 return;
               }
-              toast({ title: "Payment Successful 🎉", description: "Access unlocked." });
+              toast({ title: "Payment successful 🎉", description: "Your plan is now active." });
               onSuccess?.();
               onClose();
             });
@@ -202,7 +201,7 @@ export default function PaywallModal({ open, onClose, purpose: initialPurpose, l
       <DialogContent className="max-w-md">
         <DialogHeader>
           <div className="mx-auto h-12 w-12 rounded-full bg-accent/10 text-accent flex items-center justify-center mb-2">
-            {isSub ? <Sparkles className="h-6 w-6" /> : <Lock className="h-6 w-6" />}
+            {purpose === "subscription" ? <Sparkles className="h-6 w-6" /> : <Lock className="h-6 w-6" />}
           </div>
           <DialogTitle className="text-center text-xl">{headline.title}</DialogTitle>
           <DialogDescription className="text-center">{headline.message}</DialogDescription>
@@ -213,7 +212,7 @@ export default function PaywallModal({ open, onClose, purpose: initialPurpose, l
             <Link to={"/auth?next=" + encodeURIComponent(window.location.pathname)} className="text-primary font-medium underline">
               Sign in or create an account
             </Link>{" "}
-            to purchase.
+            to subscribe.
           </div>
         )}
 
@@ -223,23 +222,52 @@ export default function PaywallModal({ open, onClose, purpose: initialPurpose, l
             <Select value={country} onValueChange={(v) => setCountry(v as DisplayCurrency)}>
               <SelectTrigger id="paywall-country"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="NGN">Nigeria (NGN)</SelectItem>
+                <SelectItem value="NGN">Nigeria (₦)</SelectItem>
                 <SelectItem value="CFA">Ghana / West Africa (CFA)</SelectItem>
-                <SelectItem value="KES">Kenya (KES)</SelectItem>
+                <SelectItem value="KES">Kenya (KSh)</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setSelected("sub_standard")}
+              className={`text-left rounded-lg border p-3 transition ${
+                selected === "sub_standard" ? "border-accent bg-accent/5" : "border-border hover:border-accent/50"
+              }`}
+            >
+              <div className="text-[11px] font-bold uppercase text-muted-foreground">Standard</div>
+              <div className="mt-1 font-bold text-navy">{STANDARD_PRICES[country].display}</div>
+              <div className="text-[11px] text-muted-foreground mt-1">
+                Unlimited notes & downloads · 40 assessments / month
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelected("sub_pro")}
+              className={`text-left rounded-lg border p-3 transition relative ${
+                selected === "sub_pro" ? "border-accent bg-accent/5" : "border-border hover:border-accent/50"
+              }`}
+            >
+              <span className="absolute -top-2 right-2 text-[9px] font-bold bg-accent text-accent-foreground px-1.5 py-0.5 rounded">
+                <Crown className="inline h-2.5 w-2.5 mr-0.5" /> PRO
+              </span>
+              <div className="text-[11px] font-bold uppercase text-muted-foreground">Assessment Pro</div>
+              <div className="mt-1 font-bold text-navy">{PRO_PRICES[country].display}</div>
+              <div className="text-[11px] text-muted-foreground mt-1">
+                Unlimited assessments · bulk marking · analytics
+              </div>
+            </button>
+          </div>
+
           <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center">
             <div className="text-xs text-muted-foreground uppercase tracking-wide">
-              {isSub ? "Pro Subscription" : "One-time unlock"}
+              {selected === "sub_pro" ? "Assessment Pro" : "Teazy AI Standard"} · monthly
             </div>
             <div className="mt-1 text-3xl font-extrabold text-navy font-heading">
-              {promoApplied?.free
-                ? "FREE"
-                : promoApplied
-                  ? formatMinor(promoApplied.adjusted_minor, price.chargeCurrency)
-                  : price.display}
+              {promoApplied?.free ? "FREE" : formatMinor(finalMinor, price.chargeCurrency)}
+              <span className="text-sm font-normal text-muted-foreground">/mo</span>
             </div>
             {promoApplied && !promoApplied.free && (
               <div className="text-xs text-muted-foreground mt-1 line-through">{price.display}</div>
@@ -252,15 +280,12 @@ export default function PaywallModal({ open, onClose, purpose: initialPurpose, l
           </div>
 
           {!showPromo ? (
-            <button
-              onClick={() => setShowPromo(true)}
-              className="text-sm text-primary underline w-full text-center"
-            >
+            <button onClick={() => setShowPromo(true)} className="text-sm text-primary underline w-full text-center">
               Have a promo code?
             </button>
           ) : (
             <div className="space-y-2">
-              <Label htmlFor="promo">Enter Promo Code</Label>
+              <Label htmlFor="promo">Enter promo code</Label>
               <div className="flex gap-2">
                 <Input
                   id="promo"
@@ -283,30 +308,14 @@ export default function PaywallModal({ open, onClose, purpose: initialPurpose, l
           >
             {paying ? (
               <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</>
-            ) : promoApplied?.free ? (
-              "Unlock with Promo Code"
-            ) : isSub ? (
-              `Subscribe for ${promoApplied ? formatMinor(finalMinor, price.chargeCurrency) : price.display}`
             ) : (
-              `Pay ${promoApplied ? formatMinor(finalMinor, price.chargeCurrency) : price.display}`
+              `Subscribe · ${promoApplied?.free ? "FREE" : formatMinor(finalMinor, price.chargeCurrency)}`
             )}
           </Button>
 
-          {!isSub && (
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                setPromoApplied(null);
-                setPromoCode("");
-                setShowPromo(false);
-                setPurpose("subscription");
-              }}
-            >
-              <Sparkles className="mr-2 h-4 w-4" />
-              Or upgrade to Pro for unlimited access
-            </Button>
-          )}
+          <Button asChild variant="ghost" className="w-full text-xs">
+            <Link to="/pricing" onClick={onClose}>Compare all plans →</Link>
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
