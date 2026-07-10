@@ -196,6 +196,15 @@ export default function WritingAssessmentPage() {
   };
 
   // ---------------- Grade ----------------
+  const quotaExhausted =
+    !status.loading &&
+    (
+      (status.plan === "free" && (status.freeUsed ?? 0) >= (status.freeLimit ?? 2)) ||
+      (status.plan === "standard" &&
+        (status.monthlyUsed ?? 0) >= (status.monthlyLimit ?? 40) &&
+        (status.packRemaining ?? 0) <= 0)
+    );
+
   const runAssessment = async () => {
     if (!curriculum || !subject) return;
     const combinedText = pages.map((p, i) => `--- Page ${i + 1} ---\n${p.extractedText.trim()}`).join("\n\n");
@@ -203,13 +212,21 @@ export default function WritingAssessmentPage() {
       toast({ title: "Not enough text", description: "Review OCR — extracted text is very short.", variant: "destructive" });
       return;
     }
+    if (quotaExhausted) {
+      toast({ title: "You've reached your Writing Assessment limit.", description: "Buy an upload pack or upgrade to Pro.", variant: "destructive" });
+      return;
+    }
 
     setIsAssessing(true);
     setAssessment(null);
     try {
+      const { data: { session } } = await (await import("@/integrations/supabase/client")).supabase.auth.getSession();
+      const authHeader = session?.access_token
+        ? { Authorization: `Bearer ${session.access_token}` }
+        : AUTH_HEADER;
       const resp = await fetch(ASSESS_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...AUTH_HEADER },
+        headers: { "Content-Type": "application/json", ...authHeader },
         body: JSON.stringify({
           curriculum: curriculum.label,
           subject: subject.label,
@@ -225,11 +242,17 @@ export default function WritingAssessmentPage() {
       });
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: "Grading failed" }));
+        if (resp.status === 402) {
+          toast({ title: "Upload limit reached", description: err.error || "Buy a pack or upgrade to Pro.", variant: "destructive" });
+          await status.refresh();
+          return;
+        }
         toast({ title: "Error", description: err.error, variant: "destructive" });
         return;
       }
       const data = (await resp.json()) as AssessmentResult;
       setAssessment(data);
+      await status.refresh();
       setTimeout(() => document.getElementById("assessment-output")?.scrollIntoView({ behavior: "smooth" }), 100);
     } catch (e) {
       console.error(e);
