@@ -9,10 +9,13 @@ import { useEffect, useState as useReactState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import PaywallModal from "./PaywallModal";
 
-const NAV = [
+const PUBLIC_NAV = [
   { to: "/app", label: "Lesson Notes", icon: BookOpen },
   { to: "/app/quiz", label: "Quiz Generator", icon: Brain },
-  { to: "/app/writing", label: "Writing Assessment", icon: PenLine },
+  { to: "/app/writing", label: "Assessment Marker", icon: PenLine },
+];
+const PRIVATE_NAV = [
+  ...PUBLIC_NAV,
   { to: "/app/workspace", label: "My Workspace", icon: FolderKanban },
 ];
 
