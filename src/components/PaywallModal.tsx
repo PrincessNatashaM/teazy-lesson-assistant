@@ -169,6 +169,7 @@ export default function PaywallModal({ open, onClose, purpose, onSuccess }: Prop
         email: user.email,
         amount: init.amount_minor,
         currency: init.currency,
+        channels: paystackChannelsFor(country),
         ref: init.reference,
         onClose: () => setPaying(false),
         callback: (response: any) => {
