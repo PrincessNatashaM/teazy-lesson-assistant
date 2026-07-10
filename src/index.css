@@ -6,66 +6,68 @@
 
 @layer base {
   :root {
-    /* Teazy AI — premium blue SaaS palette */
+    /* Teazy Tech brand palette: Deep Blue + Dark Orange + Nude */
     --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --foreground: 215 45% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 215 45% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 215 45% 14%;
 
-    /* Primary blue #2563EB */
-    --primary: 221 83% 53%;
+    /* Deep Blue — primary brand */
+    --primary: 215 65% 22%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 217 91% 65%;
+    --primary-glow: 215 55% 38%;
 
-    /* Deep navy for headings */
-    --navy: 222 47% 11%;
+    /* Deep navy for headings (matches primary family) */
+    --navy: 215 65% 18%;
     --navy-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    /* Nude — warm neutral surface */
+    --secondary: 32 45% 93%;
+    --secondary-foreground: 215 65% 22%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 32 30% 96%;
+    --muted-foreground: 215 15% 40%;
 
-    --accent: 221 83% 53%;
+    /* Dark Orange — highlight / CTA */
+    --accent: 24 88% 48%;
     --accent-foreground: 0 0% 100%;
 
-    --success: 160 84% 39%;
+    --success: 160 70% 35%;
     --success-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 78% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 221 83% 53%;
+    --border: 32 25% 88%;
+    --input: 32 25% 88%;
+    --ring: 215 65% 22%;
 
-    --radius: 1rem;
+    --radius: 0.75rem;
 
-    /* Gradients */
-    --gradient-hero: radial-gradient(ellipse 80% 60% at 50% 0%, hsl(221 83% 53% / 0.12), transparent 60%);
-    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(217 91% 65%));
-    --gradient-soft: linear-gradient(180deg, hsl(214 100% 97%), hsl(0 0% 100%));
-    --gradient-cta: linear-gradient(135deg, hsl(222 47% 11%) 0%, hsl(221 83% 25%) 50%, hsl(221 83% 53%) 100%);
+    /* Gradients using brand tokens */
+    --gradient-hero: radial-gradient(ellipse 80% 60% at 50% 0%, hsl(24 88% 48% / 0.08), transparent 60%);
+    --gradient-primary: linear-gradient(135deg, hsl(215 65% 22%), hsl(215 55% 38%));
+    --gradient-soft: linear-gradient(180deg, hsl(32 45% 96%), hsl(0 0% 100%));
+    --gradient-cta: linear-gradient(135deg, hsl(215 65% 18%) 0%, hsl(215 65% 28%) 60%, hsl(24 88% 48%) 100%);
 
     /* Shadows */
-    --shadow-soft: 0 1px 2px 0 hsl(222 47% 11% / 0.04), 0 1px 3px 0 hsl(222 47% 11% / 0.06);
-    --shadow-card: 0 4px 24px -6px hsl(221 83% 53% / 0.08), 0 2px 8px -2px hsl(222 47% 11% / 0.04);
-    --shadow-elevated: 0 20px 60px -20px hsl(221 83% 53% / 0.25), 0 8px 24px -8px hsl(222 47% 11% / 0.08);
-    --shadow-glow: 0 0 60px hsl(221 83% 53% / 0.35);
+    --shadow-soft: 0 1px 2px 0 hsl(215 45% 14% / 0.04), 0 1px 3px 0 hsl(215 45% 14% / 0.06);
+    --shadow-card: 0 4px 24px -6px hsl(215 65% 22% / 0.10), 0 2px 8px -2px hsl(215 45% 14% / 0.04);
+    --shadow-elevated: 0 20px 60px -20px hsl(215 65% 22% / 0.25), 0 8px 24px -8px hsl(215 45% 14% / 0.08);
+    --shadow-glow: 0 0 60px hsl(24 88% 48% / 0.30);
 
-    --sidebar-background: 210 40% 98%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 221 83% 53%;
+    --sidebar-background: 32 45% 96%;
+    --sidebar-foreground: 215 65% 22%;
+    --sidebar-primary: 215 65% 22%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 221 83% 53%;
+    --sidebar-accent: 32 45% 92%;
+    --sidebar-accent-foreground: 215 65% 22%;
+    --sidebar-border: 32 25% 88%;
+    --sidebar-ring: 215 65% 22%;
 
     --font-heading: 'Inter', sans-serif;
     --font-body: 'Inter', sans-serif;

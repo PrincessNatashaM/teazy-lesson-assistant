@@ -1,28 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, Link } from "react-router-dom";
-import { Menu, X, BookOpen, Brain, PenLine, Sparkles, UserCircle2, BadgeCheck, FolderKanban } from "lucide-react";
+import { Menu, X, UserCircle2, BadgeCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import teazyLogo from "@/assets/teazy-logo.jpg";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect, useState as useReactState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import PaywallModal from "./PaywallModal";
 
 const PUBLIC_NAV = [
-  { to: "/app", label: "Lesson Notes", icon: BookOpen },
-  { to: "/app/quiz", label: "Quiz Generator", icon: Brain },
-  { to: "/app/writing", label: "Assessment Marker", icon: PenLine },
+  { to: "/app", label: "Lesson Notes" },
+  { to: "/app/quiz", label: "Quiz Generator" },
+  { to: "/app/writing", label: "Assessment Marker" },
 ];
 const PRIVATE_NAV = [
   ...PUBLIC_NAV,
-  { to: "/app/workspace", label: "My Workspace", icon: FolderKanban },
+  { to: "/app/workspace", label: "My Workspace" },
 ];
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const [paywallOpen, setPaywallOpen] = useReactState(false);
-  const [proActive, setProActive] = useReactState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+  const [proActive, setProActive] = useState(false);
   const { user, isAdmin } = useAuth();
 
   useEffect(() => {
@@ -47,10 +46,10 @@ export default function Header() {
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
-      "px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
+      "px-3 py-2 rounded-md text-sm font-medium transition-colors",
       isActive
-        ? "bg-accent text-accent-foreground"
-        : "text-navy-foreground/90 hover:bg-navy-foreground/10",
+        ? "bg-navy-foreground/15 text-navy-foreground"
+        : "text-navy-foreground/85 hover:bg-navy-foreground/10 hover:text-navy-foreground",
     );
 
   return (
@@ -62,9 +61,8 @@ export default function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">
-          {(user ? PRIVATE_NAV : PUBLIC_NAV).map(({ to, label, icon: Icon }) => (
+          {(user ? PRIVATE_NAV : PUBLIC_NAV).map(({ to, label }) => (
             <NavLink key={to} to={to} end={to === "/app"} className={linkClass}>
-              <Icon className="h-4 w-4" />
               {label}
             </NavLink>
           ))}
@@ -83,7 +81,7 @@ export default function Header() {
                   onClick={() => setPaywallOpen(true)}
                   className="bg-accent text-accent-foreground hover:bg-accent/90"
                 >
-                  <Sparkles className="mr-1 h-4 w-4" /> Upgrade to Pro
+                  Upgrade to Pro
                 </Button>
               )}
               {isAdmin && (
@@ -92,7 +90,7 @@ export default function Header() {
                 </Button>
               )}
               <Button asChild size="sm" variant="ghost" className="text-navy-foreground hover:bg-navy-foreground/10">
-                <Link to="/account"><UserCircle2 className="h-4 w-4" /></Link>
+                <Link to="/account" aria-label="Account"><UserCircle2 className="h-5 w-5" /></Link>
               </Button>
             </>
           ) : (
@@ -118,9 +116,8 @@ export default function Header() {
 
       {open && (
         <nav className="md:hidden border-t border-navy-foreground/10 bg-navy px-4 py-3 flex flex-col gap-1 animate-fade-in">
-          {(user ? PRIVATE_NAV : PUBLIC_NAV).map(({ to, label, icon: Icon }) => (
+          {(user ? PRIVATE_NAV : PUBLIC_NAV).map(({ to, label }) => (
             <NavLink key={to} to={to} end={to === "/app"} onClick={() => setOpen(false)} className={linkClass}>
-              <Icon className="h-4 w-4" />
               {label}
             </NavLink>
           ))}
@@ -133,7 +130,7 @@ export default function Header() {
                     onClick={() => { setOpen(false); setPaywallOpen(true); }}
                     className="bg-accent text-accent-foreground hover:bg-accent/90"
                   >
-                    <Sparkles className="mr-1 h-4 w-4" /> Upgrade to Pro
+                    Upgrade to Pro
                   </Button>
                 )}
                 {proActive && (
