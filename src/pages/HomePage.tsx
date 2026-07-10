@@ -743,7 +743,7 @@ export default function HomePage() {
                 <span className="text-5xl font-bold text-navy">₦0</span>
                 <span className="text-muted-foreground">/ forever</span>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">0 CFA · KSh 0</p>
+              <p className="mt-1 text-xs text-muted-foreground">GH₵ 0 · KSh 0</p>
               <Button asChild variant="outline" className="mt-6 w-full h-11">
                 <Link to="/app">Start free</Link>
               </Button>
