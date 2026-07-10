@@ -15,7 +15,7 @@ const SLIDES = [
   },
   {
     title: "Save Hours on Teaching Preparation",
-    subtitle: "Your AI-powered teaching assistant — built for African classrooms.",
+    subtitle: "Your AI-powered teaching assistant, built for African classrooms.",
   },
 ];
 

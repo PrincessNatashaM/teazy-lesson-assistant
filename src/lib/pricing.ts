@@ -13,35 +13,43 @@ interface PriceRow {
   chargeMinor: number;
 }
 
-/** Monthly subscription prices */
+/** Teazy AI Pro (monthly) — standard subscription */
 export const STANDARD_PRICES: Record<DisplayCurrency, PriceRow> = {
   NGN: { display: "₦2,000/month", chargeCurrency: "NGN", chargeMinor: 200000 },
-  GHS: { display: "GH₵ 40/month",  chargeCurrency: "GHS", chargeMinor: 4000 },
-  KES: { display: "KSh 200/month", chargeCurrency: "KES", chargeMinor: 20000 },
+  GHS: { display: "GH₵20/month",  chargeCurrency: "GHS", chargeMinor: 2000 },
+  KES: { display: "KSh200/month", chargeCurrency: "KES", chargeMinor: 20000 },
 };
 
+/** Assessment Pro (monthly) */
 export const PRO_PRICES: Record<DisplayCurrency, PriceRow> = {
   NGN: { display: "₦5,000/month", chargeCurrency: "NGN", chargeMinor: 500000 },
-  GHS: { display: "GH₵ 100/month",  chargeCurrency: "GHS", chargeMinor: 10000 },
-  KES: { display: "KSh 500/month", chargeCurrency: "KES", chargeMinor: 50000 },
+  GHS: { display: "GH₵50/month",  chargeCurrency: "GHS", chargeMinor: 5000 },
+  KES: { display: "KSh500/month", chargeCurrency: "KES", chargeMinor: 50000 },
 };
 
-/** Upload packs — Standard-only add-on, uploads never expire */
+/** Pay-per-download — single unlock, no subscription. */
+export const PER_DOWNLOAD_PRICES: Record<DisplayCurrency, PriceRow> = {
+  NGN: { display: "₦500",  chargeCurrency: "NGN", chargeMinor: 50000 },
+  GHS: { display: "GH₵5",  chargeCurrency: "GHS", chargeMinor: 500 },
+  KES: { display: "KSh50", chargeCurrency: "KES", chargeMinor: 5000 },
+};
+
+/** Upload packs. Standard-only add-on, uploads never expire. */
 export const PACK_PRICES: Record<PackId, Record<DisplayCurrency, PriceRow>> = {
   assessment_pack_5: {
     NGN: { display: "₦500",    chargeCurrency: "NGN", chargeMinor: 50000 },
-    GHS: { display: "GH₵ 5",   chargeCurrency: "GHS", chargeMinor: 500 },
-    KES: { display: "KSh 45",  chargeCurrency: "KES", chargeMinor: 4500 },
+    GHS: { display: "GH₵5",    chargeCurrency: "GHS", chargeMinor: 500 },
+    KES: { display: "KSh50",   chargeCurrency: "KES", chargeMinor: 5000 },
   },
   assessment_pack_10: {
     NGN: { display: "₦1,000",  chargeCurrency: "NGN", chargeMinor: 100000 },
-    GHS: { display: "GH₵ 10",  chargeCurrency: "GHS", chargeMinor: 1000 },
-    KES: { display: "KSh 90",  chargeCurrency: "KES", chargeMinor: 9000 },
+    GHS: { display: "GH₵10",   chargeCurrency: "GHS", chargeMinor: 1000 },
+    KES: { display: "KSh100",  chargeCurrency: "KES", chargeMinor: 10000 },
   },
   assessment_pack_30: {
     NGN: { display: "₦2,000",  chargeCurrency: "NGN", chargeMinor: 200000 },
-    GHS: { display: "GH₵ 20",  chargeCurrency: "GHS", chargeMinor: 2000 },
-    KES: { display: "KSh 180", chargeCurrency: "KES", chargeMinor: 18000 },
+    GHS: { display: "GH₵20",   chargeCurrency: "GHS", chargeMinor: 2000 },
+    KES: { display: "KSh200",  chargeCurrency: "KES", chargeMinor: 20000 },
   },
 };
 
@@ -52,7 +60,7 @@ export const PACK_UPLOADS: Record<PackId, number> = {
 };
 
 /** Legacy alias kept so old paywall paths still compile. */
-export const UNLOCK_PRICES: Record<DisplayCurrency, PriceRow> = STANDARD_PRICES;
+export const UNLOCK_PRICES: Record<DisplayCurrency, PriceRow> = PER_DOWNLOAD_PRICES;
 
 const CURRICULUM_TO_COUNTRY: Record<string, string> = {
   "Nigeria (NERDC)": "NG",

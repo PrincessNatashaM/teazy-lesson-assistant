@@ -303,7 +303,7 @@ export default function WritingAssessmentPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">Assessment Marker</h1>
           <p className="mt-2 text-muted-foreground max-w-2xl">
-            Three quick steps — pick your curriculum, pick the subject, upload the script.
+            Three quick steps: pick your curriculum, pick the subject, upload the script.
             The AI handles the rest.
           </p>
         </div>
@@ -386,7 +386,7 @@ export default function WritingAssessmentPage() {
               <Upload className="mx-auto h-10 w-10 text-muted-foreground" />
               <p className="mt-3 text-sm font-medium text-foreground">Drag &amp; drop scripts, or click to choose</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Images, multi-page PDF, or multiple pages — the AI reads them all automatically.
+                Images, multi-page PDF, or multiple pages. The AI reads them all automatically.
               </p>
               <div className="flex justify-center gap-2 mt-4">
                 <Button type="button" variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}>
@@ -677,7 +677,7 @@ function UsageMeter({
       <div className="mb-6 flex items-center gap-3 rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-sm">
         <Crown className="h-4 w-4 text-accent" />
         <span className="font-semibold text-navy">Assessment Pro</span>
-        <span className="text-muted-foreground">— unlimited uploads.</span>
+        <span className="text-muted-foreground">, unlimited uploads.</span>
       </div>
     );
   }
