@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Brain, Eye, EyeOff, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const CURRICULA = ["Nigeria (NERDC)", "Ghana", "Kenya"];
 const CLASS_OPTIONS: Record<string, string[]> = {
