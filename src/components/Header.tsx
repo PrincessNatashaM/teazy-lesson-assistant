@@ -118,7 +118,7 @@ export default function Header() {
 
       {open && (
         <nav className="md:hidden border-t border-navy-foreground/10 bg-navy px-4 py-3 flex flex-col gap-1 animate-fade-in">
-          {NAV.map(({ to, label, icon: Icon }) => (
+          {(user ? PRIVATE_NAV : PUBLIC_NAV).map(({ to, label, icon: Icon }) => (
             <NavLink key={to} to={to} end={to === "/app"} onClick={() => setOpen(false)} className={linkClass}>
               <Icon className="h-4 w-4" />
               {label}
