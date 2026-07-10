@@ -18,6 +18,12 @@ const schema = z.object({
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [notice, setNotice] = useState<string | null>(null);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const n = sessionStorage.getItem("auth_notice");
+    if (n) { setNotice(n); sessionStorage.removeItem("auth_notice"); }
+  }, []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
