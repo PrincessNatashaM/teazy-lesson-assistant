@@ -286,6 +286,8 @@ export default function WritingAssessmentPage() {
         </p>
       </header>
 
+      <UsageMeter status={status} onBuyPack={() => setShowBuyPack(true)} />
+
       {/* Stepper */}
       <div className="mb-6 overflow-x-auto">
         <ol className="flex items-center gap-2 min-w-max">
