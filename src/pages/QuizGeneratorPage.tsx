@@ -36,6 +36,7 @@ export default function QuizGeneratorPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showAnswers, setShowAnswers] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const classes = curriculum ? CLASS_OPTIONS[curriculum] || [] : [];
 
