@@ -332,7 +332,7 @@ export default function LessonOutput({
         <TabsContent value="lesson">
           {proActive && (
             <div className="mb-3 flex items-center gap-2 text-sm bg-success/10 text-success rounded-lg px-3 py-2 w-fit">
-              <BadgeCheck className="h-4 w-4" /> Pro Active — unlimited editing & downloads
+              <BadgeCheck className="h-4 w-4" /> Pro Active. Unlimited editing & downloads
             </div>
           )}
 

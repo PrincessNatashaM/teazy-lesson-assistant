@@ -167,7 +167,7 @@ export default function AssessmentResults({ data, onChange }: Props) {
           <div className="mt-4 flex items-start gap-2 rounded-lg bg-amber-100 border border-amber-300 p-3 text-sm text-amber-900">
             <ShieldAlert className="h-4 w-4 mt-0.5 flex-shrink-0" />
             <span>
-              Confidence is below 75% — please manually review the extracted text and per-question scoring before finalising.
+              Confidence is below 75%. Please manually review the extracted text and per-question scoring before finalising.
             </span>
           </div>
         )}

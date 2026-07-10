@@ -407,7 +407,7 @@ export default function HomePage() {
         />
         <link rel="canonical" href="/" />
         <meta property="og:title" content="AI Teaching Assistant for African Classrooms | Teazy AI" />
-        <meta property="og:description" content="Lesson notes, assessments and quizzes for African teachers — in minutes." />
+        <meta property="og:description" content="Lesson notes, assessments and quizzes for African teachers, in minutes." />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
