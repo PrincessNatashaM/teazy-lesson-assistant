@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.refresh_batch_aggregates() FROM PUBLIC, authenticated, anon;
