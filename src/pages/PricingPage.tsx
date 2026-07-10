@@ -46,8 +46,8 @@ export default function PricingPage() {
   const { user } = useAuth();
   const { plan } = useEntitlements(null);
   const navigate = useNavigate();
-  const [country, setCountry] = useState<DisplayCurrency>(
-    detectCurrency(typeof navigator !== "undefined" && navigator.language?.includes("KE") ? "KE" : "NG")
+  const [country, setCountry] = useState<DisplayCurrency>(() =>
+    resolveDisplayCurrency({})
   );
   const [paywall, setPaywall] = useState(false);
 
