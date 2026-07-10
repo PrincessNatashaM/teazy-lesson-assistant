@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -58,6 +59,34 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // Auth: identify user, then consume one Writing Assessment upload before running the LLM.
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Sign in required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    const userClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: { user } } = await userClient.auth.getUser();
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Sign in required" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: quota, error: qErr } = await admin.rpc("consume_assessment_upload", { _user_id: user.id });
+    if (qErr) throw qErr;
+    if (!quota?.allowed) {
+      return new Response(JSON.stringify({
+        error: quota?.reason === "monthly_limit_reached"
+          ? "You've reached your monthly Writing Assessment limit."
+          : "You've used your 2 free Writing Assessment uploads.",
+        quota,
+      }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const {
       curriculum,
       subject,
@@ -86,7 +115,7 @@ serve(async (req) => {
     const style = stylePolicy[markingStyle] || stylePolicy.standard;
     const lang = language || "English";
 
-    const systemPrompt = `You are Teazy AI's Assessment Marker — a senior African classroom teacher and examiner.
+    const systemPrompt = `You are Teazy AI's Writing Assessment marker — a senior African classroom teacher and examiner.
 You mark handwritten student scripts fairly, transparently and constructively.
 
 CURRICULUM: ${curriculum}
