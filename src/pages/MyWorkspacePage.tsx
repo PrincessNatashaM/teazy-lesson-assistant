@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { Link, Navigate, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAuthGate } from "@/hooks/useAuthGate";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -413,18 +414,28 @@ function EmptyState({ icon, title, cta }: { icon: React.ReactNode; title: string
 
 export default function MyWorkspacePage() {
   const { user, loading } = useAuth();
+  const { requireAuth } = useAuthGate();
   const [params, setParams] = useSearchParams();
   const tab = params.get("tab") || "lessons";
 
+  useEffect(() => {
+    if (!loading && !user) {
+      requireAuth({ feature: "workspace" });
+    }
+  }, [loading, user, requireAuth]);
+
   if (loading) return <div className="py-10 text-center"><Loader2 className="h-5 w-5 animate-spin inline" /></div>;
   if (!user) {
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem(
-        "auth_notice",
-        "Please sign in to access your saved lesson notes, quizzes and assessment history.",
-      );
-    }
-    return <Navigate to="/auth?next=/app/workspace" replace />;
+    return (
+      <div className="max-w-xl mx-auto text-center py-16">
+        <BookOpen className="h-10 w-10 text-accent mx-auto mb-3" />
+        <h1 className="text-2xl font-bold text-navy font-heading">Your saved work lives here</h1>
+        <p className="text-muted-foreground mt-2">Sign in to view lesson notes, quizzes and assessments you've saved.</p>
+        <Button className="mt-4 bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => requireAuth({ feature: "workspace" })}>
+          Sign in
+        </Button>
+      </div>
+    );
   }
 
   return (
