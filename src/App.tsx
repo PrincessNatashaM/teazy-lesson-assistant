@@ -20,6 +20,7 @@ import AdminPage from "./pages/AdminPage";
 import MyWorkspacePage from "./pages/MyWorkspacePage";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "./hooks/useAuth";
+import { AuthGateProvider } from "./hooks/useAuthGate";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <AuthGateProvider>
             <Routes>
               <Route element={<Layout />}>
                 <Route path="/" element={<HomePage />} />
@@ -54,6 +56,7 @@ const App = () => (
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </AuthGateProvider>
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>

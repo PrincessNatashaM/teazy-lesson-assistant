@@ -5,6 +5,7 @@ import { Loader2, FolderOpen, Plus, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAuthGate } from "@/hooks/useAuthGate";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { formatDistanceToNow } from "date-fns";
 
@@ -22,16 +23,35 @@ interface Batch {
 }
 
 export default function BatchesListPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { requireAuth } = useAuthGate();
   const { plan, loading: entLoading } = useEntitlements(null);
   const [batches, setBatches] = useState<Batch[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!authLoading && !user) requireAuth({ feature: "workspace" });
+  }, [authLoading, user, requireAuth]);
 
   useEffect(() => {
     if (!user) return;
     supabase.from("assessment_batches").select("*").eq("user_id", user.id).order("created_at", { ascending: false })
       .then(({ data }) => { setBatches((data as Batch[]) || []); setLoading(false); });
   }, [user]);
+
+  if (authLoading) return <div className="p-8 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>;
+  if (!user) {
+    return (
+      <div className="max-w-xl mx-auto text-center py-16">
+        <FolderOpen className="h-10 w-10 text-accent mx-auto mb-3" />
+        <h1 className="text-2xl font-bold text-navy font-heading">History is only for signed-in teachers</h1>
+        <p className="text-muted-foreground mt-2">Sign in to view your past marking batches.</p>
+        <Button className="mt-4 bg-accent text-accent-foreground hover:bg-accent/90" onClick={() => requireAuth({ feature: "workspace" })}>
+          Sign in
+        </Button>
+      </div>
+    );
+  }
 
   if (entLoading) return <div className="p-8 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>;
 

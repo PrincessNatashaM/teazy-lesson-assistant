@@ -1,55 +1,99 @@
 
-# Multi-Gateway Payments (Paystack + Flutterwave)
+# Authentication, Onboarding & Online Teaching Update
 
-Add Flutterwave for Ghana/Kenya while keeping Paystack for Nigeria. Users never see gateway choice — the app picks based on country/curriculum/locale (logic already in `resolveDisplayCurrency`).
+Large scope — grouped into six workstreams. All changes stay on-brand (Deep Blue, Dark Orange, Nude, White), minimal icons/emojis.
 
-## 1. Secrets
-Ask the user to add via `add_secret`:
-- `FLUTTERWAVE_PUBLIC_KEY`
-- `FLUTTERWAVE_SECRET_KEY`
-- `FLUTTERWAVE_ENCRYPTION_KEY`
-- `FLUTTERWAVE_WEBHOOK_HASH` (secret hash configured in FLW dashboard)
+## 1. Auth infrastructure
 
-## 2. Frontend gateway abstraction (`src/lib/payments/`)
-- `types.ts` — `PaymentGateway` interface: `initialize(purpose, currency)`, launches checkout, returns success/failure.
-- `paystack.ts` — wraps existing Paystack inline flow (moved from `BuyPackModal`/`PaywallModal`).
-- `flutterwave.ts` — loads `https://checkout.flutterwave.com/v3.js`, calls `FlutterwaveCheckout({...})` with mobile money + card for GHS/KES.
-- `index.ts` — `getGatewayForCurrency(cur)`: NGN→paystack, GHS/KES→flutterwave. Exposes single `startCheckout({ purpose, currency, user, onSuccess })` used everywhere.
+- Enable Google OAuth via Lovable Cloud managed provider (`configure_social_auth` with `providers: ["google"]`, keep email enabled).
+- Create a shared `AuthGateModal` component with:
+  - Context-aware heading + description (feature key: `lesson` | `quiz` | `assessment` | `writing`).
+  - Primary: **Continue with Google** button using `lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin })`.
+  - Divider: "or continue with email".
+  - Email form: Full Name, Email, Phone Number, Password + real-time password checklist (8+ chars, upper, lower, number, special) and strength meter (Weak/Fair/Good/Strong).
+  - Toggle between Sign Up / Sign In.
+- Replace existing `/auth` page usage: the page still exists but the modal is the primary entry point. Remove Microsoft (none present, verify).
+- Add `phone` column to `profiles` (migration + GRANT).
 
-Refactor `PaywallModal.tsx` and `BuyPackModal.tsx` to call `startCheckout` instead of `loadPaystack` directly. UI/copy unchanged.
+## 2. Auth gating (no redirects)
 
-## 3. Backend edge functions
-- Rename intent: existing `paystack-initialize` returns Paystack config only when currency=NGN; for GHS/KES it errors. Simpler: keep two initialize functions:
-  - `paystack-initialize` (existing) — no change beyond currency guard (NGN only).
-  - `flutterwave-initialize` (new) — same auth/promo/prorate logic as Paystack version, returns `{ tx_ref, amount, currency, public_key, payment_options }`. Reuses same `payments` table.
-  - `flutterwave-verify` (new) — calls `https://api.flutterwave.com/v3/transactions/verify_by_reference?tx_ref=...`, checks status+amount, then `grantAccess` (shared logic replicated from paystack-verify).
-  - `flutterwave-webhook` (new, `verify_jwt=false`) — validates `verif-hash` header against `FLUTTERWAVE_WEBHOOK_HASH`, handles `charge.completed`.
+Introduce `useRequireAuth(feature)` hook returning `{ user, requireAuth: (action) => void, gateProps }`.
+Gate these actions/routes by opening the modal instead of navigating:
+- Lesson Note Generator submit
+- Quiz Generator submit
+- Writing Assessment submit + Bulk Assessment
+- Download Word / Download PDF buttons (LessonOutput, AssessmentResults, QuizSection, WritingAssessmentOutput)
+- My Workspace, Batches list (History) — render gate overlay on the page instead of redirecting
 
-Add shared grant logic — keep small duplication rather than shared module (edge functions can't cross-import from ../).
+Homepage remains fully public.
 
-## 4. Database
-Migration to add columns on `payments` table:
-- `gateway text not null default 'paystack'` (values: `paystack`, `flutterwave`)
-- Add `gateway` to `subscriptions` too (nullable text).
-Existing `paystack_reference` column reused as generic reference (Flutterwave `tx_ref` stored there). No rename to avoid breaking existing code.
+## 3. Preserve form state across auth
 
-## 5. Admin dashboard
-Extend `AdminPage.tsx` with a Payments tab showing:
-- table of recent payments (gateway, country/currency, amount, status, user)
-- revenue-by-gateway and revenue-by-currency aggregates
-- active subscription count
-Queries via `supabase.from('payments')` with existing `has_role('admin')` RLS.
+- Add a `pendingAction` store (sessionStorage key `teazy_pending_action`) with `{ feature, formData, action }`.
+- On gated submit while signed out: snapshot form → open modal.
+- On auth success: `AuthProvider` reads pending action, restores form values via a context (`PendingActionContext`), and re-invokes the original submit.
+- LessonForm, QuizForm, WritingAssessment forms accept `initialValues` and expose current values via ref/state lift.
 
-## 6. Payment methods display
-`paystackChannelsFor` becomes `channelsFor(currency)` returning provider-appropriate methods; PaywallModal shows small hint text like "Card, Mobile Money" based on currency.
+## 4. Teaching Environment + Online flow
+
+Update `LessonForm` (`src/components/LessonForm.tsx`):
+- New required first field: **Teaching Environment** (Classroom / Online Teaching) as segmented control.
+- **Classroom**: existing Curriculum → Class list (already present via `src/lib/curricula.ts`; verify Ghana/Kenya class lists match spec, extend if needed).
+- **Online Teaching**: hide Curriculum + Class. Show:
+  - **Age Group**: 3–5, 6–8, 9–12, 13–15, 16–18, Adults.
+  - **Teaching Platform**: Zoom, Google Meet, Microsoft Teams, Google Classroom, Canvas, Moodle, Thinkific, Teachable, Other.
+- Keep Subject, Topic, Duration, Objectives, Additional Instructions.
+
+Type updates in `LessonFormData` + downstream pages.
+
+## 5. Online lesson plan generation
+
+Update `supabase/functions/generate-lesson/index.ts`:
+- Accept new fields: `environment`, `ageGroup`, `platform`.
+- When `environment === "online"`, use a distinct system prompt producing sections:
+  Lesson Overview, Learning Objectives, Required Resources, Suggested AI Tools, Suggested EdTech Tools, Icebreaker Activity, Teacher Script, Lesson Flow, Student Activities, Discussion Questions, Poll Questions, Breakout Room Activities, Guided Practice, Assessment, Homework, Reflection.
+- Prompt instructs subject-appropriate tool recommendations (Desmos/GeoGebra for math, PhET for science, Canva/Diffit for English, Scratch/Replit/Code.org for CS, TimelineJS/Google Earth for history, etc.) and engagement strategies (icebreakers, polls, breakouts, exit tickets, think-pair-share).
+- Skip diagram generation for online environment unless the subject is inherently visual (reuse existing logic).
+
+## 6. Design polish
+
+- Modal uses shadcn `Dialog`, deep-blue heading, dark-orange primary button, nude/white surfaces.
+- Password checklist: small check row, no emoji — use existing `Check` icon from lucide (minimal).
+- Strength bar: 4 segments colored via semantic tokens.
+
+## Technical details
+
+**New/edited files**
+- New: `src/components/AuthGateModal.tsx`, `src/hooks/useRequireAuth.tsx`, `src/lib/pendingAction.ts`
+- Edit: `src/hooks/useAuth.tsx` (integrate pending action replay), `src/App.tsx` (mount `PendingActionProvider`)
+- Edit: `src/components/LessonForm.tsx`, `src/pages/LessonNotesPage.tsx`, `src/pages/QuizGeneratorPage.tsx`, `src/pages/WritingAssessmentPage.tsx`, `src/pages/BulkAssessmentPage.tsx`, `src/pages/MyWorkspacePage.tsx`, `src/pages/BatchesListPage.tsx`
+- Edit download buttons in `LessonOutput.tsx`, `QuizSection.tsx`, `AssessmentResults.tsx`, `WritingAssessmentOutput.tsx`
+- Edit: `supabase/functions/generate-lesson/index.ts`
+- Edit: `src/lib/curricula.ts` (verify Ghana/Kenya class lists)
+
+**Migration**
+```sql
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS phone text;
+-- profiles already has GRANTs
+```
+
+**Auth tool call**
+- `supabase--configure_social_auth` with `providers: ["google"]` (keep email).
+
+**Pending action shape**
+```ts
+{ feature: "lesson"|"quiz"|"writing"|"assessment"|"download",
+  path: string, // route to return to
+  formData?: any,
+  actionId?: string }
+```
+Cleared after replay.
+
+**Password validation** (client-only additive; server still enforces min 8):
+Regex per rule + score 0–4 → Weak/Fair/Good/Strong.
 
 ## Out of scope
-- Stripe/PayPal/M-Pesa direct (mentioned as future).
-- Recurring subscription auto-renewal via gateway tokens (current model already re-charges monthly on user action; keeping that).
 
-## Technical notes
-- `PACK_UPLOAD_COUNT` and `grantAccess` duplicated across 3 edge functions today; adding 2 more copies for Flutterwave. Acceptable given Deno edge function isolation.
-- All currency/pricing tables stay in `src/lib/pricing.ts` and `paystack-initialize` server table; add matching table in `flutterwave-initialize`.
-- Frontend never sees secret keys; both public keys returned from initialize response.
-
-After approval I'll ask for the Flutterwave secrets before writing the edge functions.
+- No changes to payment, pricing, or existing assessment scoring logic.
+- No email template changes.
+- No changes to `AuthPage` route beyond compatibility (modal handles new flow).

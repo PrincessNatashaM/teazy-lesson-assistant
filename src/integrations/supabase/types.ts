@@ -386,21 +386,27 @@ export type Database = {
           country: Database["public"]["Enums"]["country_code"]
           created_at: string
           display_name: string | null
+          full_name: string | null
           id: string
+          phone: string | null
           updated_at: string
         }
         Insert: {
           country?: Database["public"]["Enums"]["country_code"]
           created_at?: string
           display_name?: string | null
+          full_name?: string | null
           id: string
+          phone?: string | null
           updated_at?: string
         }
         Update: {
           country?: Database["public"]["Enums"]["country_code"]
           created_at?: string
           display_name?: string | null
+          full_name?: string | null
           id?: string
+          phone?: string | null
           updated_at?: string
         }
         Relationships: []
