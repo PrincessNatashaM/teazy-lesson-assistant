@@ -103,7 +103,8 @@ export default function BulkAssessmentPage() {
     files.length > 0 && files.every((f) => f.ocrDone && f.ocrText.trim().length > 20));
 
   const startBatch = async () => {
-    if (!user || !curriculum || !subject) return;
+    if (!curriculum || !subject) return;
+    if (!user) { requireAuth({ feature: "writing" }); return; }
     setCreating(true);
     try {
       const { data: batch, error } = await supabase.from("assessment_batches").insert({
