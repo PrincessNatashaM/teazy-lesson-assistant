@@ -7,8 +7,8 @@ const corsHeaders = {
 };
 
 // Server-side price table (source of truth). Prices are in minor units.
-const SUB_STANDARD = { NGN: 200000, KES: 20000, GHS: 4000 };
-const SUB_PRO       = { NGN: 500000, KES: 50000, GHS: 10000 };
+const SUB_STANDARD = { NGN: 200000, KES: 20000, GHS: 2000 };
+const SUB_PRO       = { NGN: 500000, KES: 50000, GHS: 5000 };
 const PACK_5        = { NGN: 50000,  KES: 4500,  GHS: 500  };
 const PACK_10       = { NGN: 100000, KES: 9000,  GHS: 1000 };
 const PACK_30       = { NGN: 200000, KES: 18000, GHS: 2000 };
