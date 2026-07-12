@@ -1,9 +1,11 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import LessonForm, { type LessonFormData } from "@/components/LessonForm";
 import LessonOutput from "@/components/LessonOutput";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAuthGate } from "@/hooks/useAuthGate";
+import { consumePendingAction } from "@/lib/pendingAction";
 
 const LESSON_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson`;
 const IMAGES_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson-images`;
@@ -45,12 +47,28 @@ export default function LessonNotesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [imagesLoading, setImagesLoading] = useState(false);
+  const [initialFormValues, setInitialFormValues] = useState<Partial<LessonFormData> | undefined>();
+  const currentFormRef = useRef<LessonFormData | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { requireAuth } = useAuthGate();
   const savedIdRef = useRef<string | null>(null);
   const lastMetaRef = useRef<LessonFormData | null>(null);
 
   const loadingMessage = useMemo(() => loadingMessageFor(subject), [subject]);
+
+  // Restore pending form values (and auto-submit if requested) after login.
+  useEffect(() => {
+    const pending = consumePendingAction("lesson");
+    if (pending?.formData) {
+      setInitialFormValues(pending.formData as Partial<LessonFormData>);
+      if (pending.autoSubmit && user) {
+        // Wait a tick for the form to render + apply initialValues
+        setTimeout(() => handleGenerate(pending.formData as LessonFormData), 100);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const persistLesson = async (content: string) => {
     if (!user || !content || content.length < 100) return;
@@ -64,9 +82,9 @@ export default function LessonNotesPage() {
         const { data } = await supabase.from("saved_lessons").insert({
           user_id: user.id,
           title,
-          curriculum: meta.curriculum,
+          curriculum: meta.curriculum || (meta.environment === "online" ? "Online" : ""),
           subject: meta.subject,
-          class_level: meta.classLevel,
+          class_level: meta.classLevel || meta.ageGroup || "",
           topic: meta.topic,
           language: meta.language,
           content,
@@ -79,6 +97,13 @@ export default function LessonNotesPage() {
   };
 
   const handleGenerate = async (data: LessonFormData) => {
+    // Gate: require auth. If not signed in, save current form snapshot and open modal.
+    if (!requireAuth({
+      feature: "lesson",
+      formData: data,
+      autoSubmit: true,
+    })) return;
+
     setIsLoading(true);
     setLessonPlan("");
     setImages([]);
@@ -88,40 +113,30 @@ export default function LessonNotesPage() {
     setTopic(data.topic);
     savedIdRef.current = null;
     lastMetaRef.current = data;
-    setIsLoading(true);
-    setLessonPlan("");
-    setImages([]);
-    setImagesLoading(false);
-    setLanguage(data.language);
-    setSubject(data.subject);
-    setTopic(data.topic);
 
-    // Modular generation: only fetch diagrams when subject/topic actually needs them.
-    const needsDiagrams = shouldGenerateDiagrams(data.subject, data.topic);
+    const needsDiagrams = data.environment === "classroom" && shouldGenerateDiagrams(data.subject, data.topic);
     if (needsDiagrams) {
       setImagesLoading(true);
       fetch(IMAGES_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-      },
-      body: JSON.stringify({
-        subject: data.subject,
-        classLevel: data.classLevel,
-        topic: data.topic,
-        curriculum: data.curriculum,
-      }),
-    })
-      .then(async (r) => {
-        if (!r.ok) throw new Error("image gen failed");
-        const json = await r.json();
-        setImages(Array.isArray(json.images) ? json.images : []);
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
+          subject: data.subject,
+          classLevel: data.classLevel,
+          topic: data.topic,
+          curriculum: data.curriculum,
+        }),
       })
-      .catch((err) => {
-        console.error("Image generation failed:", err);
-      })
-      .finally(() => setImagesLoading(false));
+        .then(async (r) => {
+          if (!r.ok) throw new Error("image gen failed");
+          const json = await r.json();
+          setImages(Array.isArray(json.images) ? json.images : []);
+        })
+        .catch((err) => console.error("Image generation failed:", err))
+        .finally(() => setImagesLoading(false));
     }
 
     try {
@@ -173,7 +188,6 @@ export default function LessonNotesPage() {
           }
         }
       }
-      // Persist final content to workspace
       if (fullText) await persistLesson(fullText);
     } catch (e) {
       console.error(e);
@@ -186,7 +200,12 @@ export default function LessonNotesPage() {
   return (
     <div>
       <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-sm mb-8">
-        <LessonForm onGenerate={handleGenerate} isLoading={isLoading} />
+        <LessonForm
+          onGenerate={handleGenerate}
+          isLoading={isLoading}
+          initialValues={initialFormValues}
+          onFormChange={(f) => { currentFormRef.current = f; }}
+        />
       </div>
 
       {isLoading && !lessonPlan && (
