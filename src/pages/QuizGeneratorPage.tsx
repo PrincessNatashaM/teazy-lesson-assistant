@@ -39,14 +39,41 @@ export default function QuizGeneratorPage() {
   const [showAnswers, setShowAnswers] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { requireAuth } = useAuthGate();
 
   const classes = curriculum ? CLASS_OPTIONS[curriculum] || [] : [];
 
-  const handleGenerate = async () => {
-    if (!topic.trim()) {
+  // Restore form values (and optionally auto-submit) after login
+  useEffect(() => {
+    const p = consumePendingAction("quiz");
+    if (p?.formData) {
+      const f = p.formData as any;
+      if (f.topic) setTopic(f.topic);
+      if (f.curriculum) setCurriculum(f.curriculum);
+      if (f.classLevel) setClassLevel(f.classLevel);
+      if (f.language) setLanguage(f.language);
+      if (f.notes) setNotes(f.notes);
+      if (p.autoSubmit && user) setTimeout(() => handleGenerate(f), 100);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const handleGenerate = async (override?: { topic: string; curriculum: string; classLevel: string; language: string; notes: string }) => {
+    const t = override?.topic ?? topic;
+    const c = override?.curriculum ?? curriculum;
+    const cl = override?.classLevel ?? classLevel;
+    const lang = override?.language ?? language;
+    const n = override?.notes ?? notes;
+
+    if (!t.trim()) {
       toast({ title: "Topic required", description: "Please enter a topic for the quiz.", variant: "destructive" });
       return;
     }
+    if (!requireAuth({
+      feature: "quiz",
+      formData: { topic: t, curriculum: c, classLevel: cl, language: lang, notes: n },
+      autoSubmit: true,
+    })) return;
     setIsLoading(true);
     setQuiz(null);
     setShowAnswers(false);
