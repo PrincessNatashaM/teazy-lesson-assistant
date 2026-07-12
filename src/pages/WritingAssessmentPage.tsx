@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useAssessmentStatus } from "@/hooks/useAssessmentStatus";
 import { useAuth } from "@/hooks/useAuth";
+import { useAuthGate } from "@/hooks/useAuthGate";
 import { supabase } from "@/integrations/supabase/client";
 import BuyPackModal from "@/components/BuyPackModal";
 import {
@@ -66,6 +67,7 @@ export default function WritingAssessmentPage() {
   const { toast } = useToast();
   const status = useAssessmentStatus();
   const { user } = useAuth();
+  const { requireAuth } = useAuthGate();
   const [showBuyPack, setShowBuyPack] = useState(false);
 
   // Primary inputs
@@ -194,6 +196,7 @@ export default function WritingAssessmentPage() {
 
   const runAssessment = async (typeOverride?: AssessmentTypeId) => {
     if (!curriculum || !subject) return;
+    if (!requireAuth({ feature: "writing" })) return;
     const combinedText = pages.map((p, i) => `--- Page ${i + 1} ---\n${p.extractedText.trim()}`).join("\n\n");
     if (combinedText.trim().length < 20) {
       toast({ title: "Not enough text extracted", description: "Try clearer photos or open OCR review in Advanced Options.", variant: "destructive" });
