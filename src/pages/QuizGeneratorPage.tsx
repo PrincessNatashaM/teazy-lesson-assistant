@@ -179,7 +179,7 @@ Generate a quiz suitable for this topic and level.`;
         </div>
 
         <Button
-          onClick={handleGenerate}
+          onClick={() => handleGenerate()}
           disabled={isLoading}
           className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
         >
@@ -245,7 +245,7 @@ Generate a quiz suitable for this topic and level.`;
             ))}
           </div>
 
-          <Button variant="outline" onClick={handleGenerate} className="w-full">
+          <Button variant="outline" onClick={() => handleGenerate()} className="w-full">
             <Brain className="mr-2 h-4 w-4" />
             Regenerate Quiz
           </Button>
