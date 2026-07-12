@@ -20,6 +20,7 @@ import {
 } from "docx";
 import { saveAs } from "file-saver";
 import { useAuth } from "@/hooks/useAuth";
+import { useAuthGate } from "@/hooks/useAuthGate";
 import { useEntitlements, sha256Hex, type EntitlementKind } from "@/hooks/useEntitlements";
 import PaywallModal from "./PaywallModal";
 
@@ -51,6 +52,7 @@ export default function LessonOutput({
   });
   const { toast } = useToast();
   const { user } = useAuth();
+  const { requireAuth } = useAuthGate();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -71,11 +73,7 @@ export default function LessonOutput({
 
   const requirePaywall = (purpose: EntitlementKind) => {
     if (!user) {
-      toast({
-        title: "Sign in required",
-        description: "Create an account to unlock this feature.",
-      });
-      window.location.href = `/auth?next=${encodeURIComponent(window.location.pathname)}`;
+      requireAuth({ feature: "download" });
       return;
     }
     setPaywall({ open: true, purpose });
