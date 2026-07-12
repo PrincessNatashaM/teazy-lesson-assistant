@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useAuthGate } from "@/hooks/useAuthGate";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { useToast } from "@/hooks/use-toast";
 import { CURRICULA, getCurriculum } from "@/lib/curricula";
@@ -30,6 +31,7 @@ interface StagedFile {
 export default function BulkAssessmentPage() {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { requireAuth } = useAuthGate();
   const { plan, loading: entLoading } = useEntitlements(null);
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
