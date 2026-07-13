@@ -28,7 +28,21 @@ const AuthGateCtx = createContext<Ctx>({
 
 export function AuthGateProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [gate, setGate] = useState<{ feature: GateFeature } | null>(null);
+
+  // When the user becomes authenticated (via modal or OAuth redirect), close
+  // any open gate and return them to the page that originated the auth prompt.
+  useEffect(() => {
+    if (!user) return;
+    setGate(null);
+    const pending = readPendingAction();
+    if (!pending?.path) return;
+    const current = window.location.pathname + window.location.search;
+    if (pending.path !== current) {
+      navigate(pending.path);
+    }
+  }, [user, navigate]);
 
   const requireAuth = useCallback(
     (opts: RequireAuthOpts) => {
