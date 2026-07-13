@@ -1,7 +1,8 @@
-import { createContext, useCallback, useContext, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "./useAuth";
 import AuthGateModal from "@/components/AuthGateModal";
-import { savePendingAction, type GateFeature, type PendingAction } from "@/lib/pendingAction";
+import { readPendingAction, savePendingAction, type GateFeature, type PendingAction } from "@/lib/pendingAction";
 
 interface RequireAuthOpts {
   feature: GateFeature;
