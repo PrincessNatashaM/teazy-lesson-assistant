@@ -260,23 +260,26 @@ export default function AuthGateModal({ open, onClose, feature }: Props) {
           </Button>
         </form>
 
-        <div className="text-center text-sm">
-          {mode === "signup" ? (
-            <>
-              Already have an account?{" "}
-              <button type="button" onClick={() => setMode("signin")} className="text-primary font-medium underline">
-                Sign In
-              </button>
-            </>
-          ) : (
-            <>
-              New to Teazy AI?{" "}
-              <button type="button" onClick={() => setMode("signup")} className="text-primary font-medium underline">
-                Create an account
-              </button>
-            </>
-          )}
-        </div>
+        {mode === "signin" ? (
+          <div className="pt-1">
+            <div className="text-center text-sm text-muted-foreground mb-2">New to Teazy AI?</div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setMode("signup")}
+              className="w-full h-11 border-2 border-primary text-primary hover:bg-primary/5 font-semibold text-base"
+            >
+              Create an account
+            </Button>
+          </div>
+        ) : (
+          <div className="text-center text-sm">
+            Already have an account?{" "}
+            <button type="button" onClick={() => setMode("signin")} className="text-primary font-semibold underline">
+              Sign In
+            </button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
