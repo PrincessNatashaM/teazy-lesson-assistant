@@ -1,7 +1,8 @@
-import { createContext, useCallback, useContext, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "./useAuth";
 import AuthGateModal from "@/components/AuthGateModal";
-import { savePendingAction, type GateFeature, type PendingAction } from "@/lib/pendingAction";
+import { readPendingAction, savePendingAction, type GateFeature, type PendingAction } from "@/lib/pendingAction";
 
 interface RequireAuthOpts {
   feature: GateFeature;
@@ -27,7 +28,21 @@ const AuthGateCtx = createContext<Ctx>({
 
 export function AuthGateProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [gate, setGate] = useState<{ feature: GateFeature } | null>(null);
+
+  // When the user becomes authenticated (via modal or OAuth redirect), close
+  // any open gate and return them to the page that originated the auth prompt.
+  useEffect(() => {
+    if (!user) return;
+    setGate(null);
+    const pending = readPendingAction();
+    if (!pending?.path) return;
+    const current = window.location.pathname + window.location.search;
+    if (pending.path !== current) {
+      navigate(pending.path);
+    }
+  }, [user, navigate]);
 
   const requireAuth = useCallback(
     (opts: RequireAuthOpts) => {

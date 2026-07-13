@@ -99,13 +99,19 @@ export default function AuthGateModal({ open, onClose, feature }: Props) {
   const handleGoogle = async () => {
     setOauthLoading(true);
     try {
+      // Preserve the full current URL (path + query) so a full-page redirect
+      // returns the user to the exact page they were working on, not "/".
+      const returnUrl = window.location.origin + window.location.pathname + window.location.search;
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: returnUrl,
       });
       if (result.error) {
         toast({ title: "Google sign-in failed", description: (result.error as any)?.message ?? "Try again", variant: "destructive" });
+        return;
       }
-      // If popup returned tokens, session is already set; modal closes via auth listener below.
+      if (result.redirected) return;
+      // Popup returned tokens; session is set. Close modal so the page can proceed.
+      onClose();
     } finally {
       setOauthLoading(false);
     }
