@@ -72,7 +72,7 @@ export async function consumeFeatureUsage(
   userId: string,
   kind: FeatureKind,
 ): Promise<{ allowed: boolean; used?: number; limit?: number; reason?: string; plan?: string }> {
-  const { data, error } = await supabase.rpc("consume_feature_usage", {
+  const { data, error } = await (supabase as any).rpc("consume_feature_usage", {
     _user_id: userId,
     _kind: kind,
   });
