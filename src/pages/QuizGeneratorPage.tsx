@@ -43,6 +43,8 @@ export default function QuizGeneratorPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { requireAuth } = useAuthGate();
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const usage = useFeatureUsage();
 
   const classes = curriculum ? CLASS_OPTIONS[curriculum] || [] : [];
 
