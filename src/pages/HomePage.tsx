@@ -475,7 +475,7 @@ export default function HomePage() {
               className="mt-6 text-5xl sm:text-6xl lg:text-7xl font-bold text-navy leading-[1.05] tracking-tight text-balance"
             >
               AI Teaching Assistant for{" "}
-              <span className="gradient-text">African Classrooms</span>
+              <RotatingClassrooms />
             </motion.h1>
 
             <motion.p variants={fadeUp} className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
