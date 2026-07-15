@@ -32,6 +32,7 @@ function priceFor(purpose: string, displayCurrency: string): { minor: number; ch
     case "assessment_pack_5":  return { minor: PACK_5[charge], charge_currency: charge };
     case "assessment_pack_10": return { minor: PACK_10[charge], charge_currency: charge };
     case "assessment_pack_30": return { minor: PACK_30[charge], charge_currency: charge };
+    case "assessment_pack_500":return { minor: PACK_500[charge], charge_currency: charge };
     // Legacy
     case "subscription":       return { minor: LEGACY_PRO[charge], charge_currency: charge };
     case "assessment_pack_6":  return { minor: LEGACY_PACK_6[charge], charge_currency: charge };
