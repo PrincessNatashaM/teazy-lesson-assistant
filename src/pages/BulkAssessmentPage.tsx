@@ -225,11 +225,13 @@ export default function BulkAssessmentPage() {
           </div>
           <div>
             <Label>Subject</Label>
-            <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-              value={subjectId} onChange={(e) => setSubjectId(e.target.value)} disabled={!curriculum}>
-              <option value="">Select...</option>
-              {curriculum?.subjects.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-            </select>
+            <SubjectCombobox
+              subjects={curriculum?.subjects ?? []}
+              value={subjectId}
+              onChange={setSubjectId}
+              disabled={!curriculum}
+              placeholder={curriculum ? `Search ${curriculum.label} subjects...` : "Select curriculum first"}
+            />
           </div>
           <div>
             <Label>Class / grade</Label>
