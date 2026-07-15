@@ -21,8 +21,10 @@ import { supabase } from "@/integrations/supabase/client";
 import BuyPackModal from "@/components/BuyPackModal";
 import {
   CURRICULA, ASSESSMENT_TYPES, MARKING_STYLES,
-  getCurriculum, type AssessmentTypeId, type MarkingStyleId,
+  getCurriculum, subjectsForClass, isTerminalExamBody,
+  type AssessmentTypeId, type MarkingStyleId,
 } from "@/lib/curricula";
+
 import AssessmentResults, { type AssessmentResult } from "@/components/AssessmentResults";
 import SubjectCombobox from "@/components/SubjectCombobox";
 import UpgradeModal from "@/components/UpgradeModal";
