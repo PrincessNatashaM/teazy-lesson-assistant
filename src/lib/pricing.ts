@@ -4,7 +4,7 @@ export type DisplayCurrency = "NGN" | "GHS" | "KES";
 export type ChargeCurrency = "NGN" | "GHS" | "KES";
 
 export type PlanId = "free" | "standard" | "pro";
-export type PackId = "assessment_pack_5" | "assessment_pack_10" | "assessment_pack_30";
+export type PackId = "assessment_pack_5" | "assessment_pack_10" | "assessment_pack_30" | "assessment_pack_500";
 export type SubPurpose = "sub_standard" | "sub_pro";
 
 interface PriceRow {
