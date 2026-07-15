@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { buildLessonSystemPrompt, normalizeTopic } from "../_shared/curriculum.ts";
+import { buildLessonSystemPrompt, buildReviewPrompt, normalizeTopic } from "../_shared/curriculum.ts";
 import { getCachedLesson, saveCachedLesson } from "../_shared/cache.ts";
 
 const corsHeaders = {
