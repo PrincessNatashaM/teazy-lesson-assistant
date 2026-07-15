@@ -26,13 +26,14 @@ function priceFor(purpose: string, displayCurrency: string): { minor: number; ch
     case "assessment_pack_5":  return { minor: PACK_5[charge], charge_currency: charge };
     case "assessment_pack_10": return { minor: PACK_10[charge], charge_currency: charge };
     case "assessment_pack_30": return { minor: PACK_30[charge], charge_currency: charge };
+    case "assessment_pack_500":return { minor: PACK_500[charge], charge_currency: charge };
     default: return { minor: LEGACY_UNLOCK[charge], charge_currency: charge };
   }
 }
 
 const VALID_PURPOSES = new Set([
   "sub_standard", "sub_pro",
-  "assessment_pack_5", "assessment_pack_10", "assessment_pack_30",
+  "assessment_pack_5", "assessment_pack_10", "assessment_pack_30", "assessment_pack_500",
   "download_pdf", "download_docx", "edit_unlock", "subscription",
 ]);
 
