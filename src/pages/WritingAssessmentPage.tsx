@@ -345,23 +345,12 @@ export default function WritingAssessmentPage() {
         {/* STEP 2 — Subject (+ optional class inline) */}
         {curriculum && (
           <StepCard n={2} title="Select subject" done={!!subjectId}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {curriculum.subjects.map((sub) => (
-                <button
-                  key={sub.id}
-                  type="button"
-                  onClick={() => setSubjectId(sub.id)}
-                  className={cn(
-                    "text-left rounded-lg border px-3 py-2.5 text-sm transition-colors",
-                    subjectId === sub.id
-                      ? "border-accent bg-accent/10 text-accent font-semibold"
-                      : "border-border hover:bg-muted",
-                  )}
-                >
-                  {sub.label}
-                </button>
-              ))}
-            </div>
+            <SubjectCombobox
+              subjects={curriculum.subjects}
+              value={subjectId}
+              onChange={setSubjectId}
+              placeholder={`Search ${curriculum.label} subjects...`}
+            />
             {subjectId && (
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <Label className="text-xs text-muted-foreground">{curriculum.terminology.class}:</Label>
