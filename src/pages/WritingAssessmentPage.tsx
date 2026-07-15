@@ -101,19 +101,30 @@ export default function WritingAssessmentPage() {
   const msFileRef = useRef<HTMLInputElement>(null);
 
   const curriculum = useMemo(() => getCurriculum(curriculumId), [curriculumId]);
+  const availableSubjects = useMemo(
+    () => (curriculum ? subjectsForClass(curriculum, classLevel) : []),
+    [curriculum, classLevel],
+  );
   const subject = useMemo(
-    () => curriculum?.subjects.find((s) => s.id === subjectId),
-    [curriculum, subjectId],
+    () => availableSubjects.find((s) => s.id === subjectId),
+    [availableSubjects, subjectId],
   );
 
-  // Auto-pick a sensible default class for the curriculum
+  // WAEC/NECO are SS-3 only — auto-set and skip the class picker.
   useEffect(() => {
-    if (curriculum && !classLevel) {
-      const cls = curriculum.classes.find((c) => /jss?\s*2|grade\s*7|jhs\s*2|ss\s*1/i.test(c))
-        || curriculum.classes[Math.floor(curriculum.classes.length / 2)];
-      setClassLevel(cls);
+    if (!curriculum) return;
+    if (isTerminalExamBody(curriculum.id)) {
+      if (classLevel !== "SS 3") setClassLevel("SS 3");
     }
   }, [curriculum, classLevel]);
+
+  // If the previously-selected subject isn't available for the current class, clear it.
+  useEffect(() => {
+    if (subjectId && !availableSubjects.some((s) => s.id === subjectId)) {
+      setSubjectId("");
+    }
+  }, [availableSubjects, subjectId]);
+
 
   const readFile = (file: File): Promise<{ dataUrl: string; base64: string; mime: string }> =>
     new Promise((resolve, reject) => {
