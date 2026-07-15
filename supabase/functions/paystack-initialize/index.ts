@@ -43,7 +43,7 @@ function priceFor(purpose: string, displayCurrency: string): { minor: number; ch
 
 const VALID_PURPOSES = new Set([
   "sub_standard", "sub_pro",
-  "assessment_pack_5", "assessment_pack_10", "assessment_pack_30",
+  "assessment_pack_5", "assessment_pack_10", "assessment_pack_30", "assessment_pack_500",
   // Legacy fallbacks:
   "download_pdf", "download_docx", "edit_unlock",
   "subscription", "assessment_pack_6", "assessment_pack_11",
