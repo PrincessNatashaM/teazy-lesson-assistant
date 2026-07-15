@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { buildLessonSystemPrompt, buildReviewPrompt, normalizeTopic } from "../_shared/curriculum.ts";
+import { buildLessonSystemPrompt, normalizeTopic } from "../_shared/curriculum.ts";
 import { getCachedLesson, saveCachedLesson } from "../_shared/cache.ts";
 
 const corsHeaders = {
@@ -220,42 +220,20 @@ ${additionalInstructions ? `- Additional instructions: ${additionalInstructions}
       return new Response(clientStream, { headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-Cache": "MISS" } });
     }
 
-    // CLASSROOM: Stage 1 draft (non-streaming) → Stage 2 pedagogical review streamed to the client.
-    const draftResp = await callGateway(
+    // CLASSROOM: single streaming pass so the teacher sees tokens immediately.
+    // The system prompt already includes a silent self-check; a second server-side review
+    // pass doubled latency and left the client blank until the draft finished.
+    const response = await callGateway(
       [{ role: "system", content: systemPrompt }, { role: "user", content: userPrompt }],
-      false,
-    );
-    if (!draftResp.ok) {
-      const err = gatewayError(draftResp.status);
-      if (err) return err;
-      console.error("AI gateway draft error:", draftResp.status, await draftResp.text());
-      return new Response(JSON.stringify({ error: "Failed to generate lesson note." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-    const draftJson = await draftResp.json();
-    const draftText: string = draftJson.choices?.[0]?.message?.content || "";
-    if (!draftText || draftText.length < 200) {
-      return new Response(JSON.stringify({ error: "The AI returned an empty draft. Please try again." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    const reviewSystem = buildReviewPrompt({ curriculum, subject, language: lang, teachingStyle, classLevel, duration });
-    const reviewUser = `Here is the draft lesson note. Review it against every check and output only the final revised lesson note.\n\n---DRAFT START---\n${draftText}\n---DRAFT END---`;
-
-    const reviewResp = await callGateway(
-      [{ role: "system", content: reviewSystem }, { role: "user", content: reviewUser }],
       true,
     );
-    if (!reviewResp.ok) {
-      // Fall back to the draft if the review step fails — better than nothing.
-      const err = gatewayError(reviewResp.status);
+    if (!response.ok) {
+      const err = gatewayError(response.status);
       if (err) return err;
-      console.warn("Review step failed, streaming draft as-is:", reviewResp.status);
-      if (draftText.length > 200) await saveCachedLesson(cacheKey, draftText);
-      return new Response(streamCachedContent(draftText), {
-        headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-Cache": "MISS", "X-Stage": "draft-only" },
-      });
+      console.error("AI gateway error:", response.status, await response.text());
+      return new Response(JSON.stringify({ error: "Failed to generate lesson note." }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
-
-    const [clientStream, cacheStream] = reviewResp.body!.tee();
+    const [clientStream, cacheStream] = response.body!.tee();
     (async () => {
       try {
         const reader = cacheStream.getReader();
@@ -286,8 +264,9 @@ ${additionalInstructions ? `- Additional instructions: ${additionalInstructions}
     })();
 
     return new Response(clientStream, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-Cache": "MISS", "X-Stage": "reviewed" },
+      headers: { ...corsHeaders, "Content-Type": "text/event-stream", "X-Cache": "MISS" },
     });
+
   } catch (e) {
     console.error("Error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
