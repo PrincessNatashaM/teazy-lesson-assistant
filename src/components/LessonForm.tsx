@@ -319,13 +319,23 @@ export default function LessonForm({ onGenerate, isLoading, initialValues, onFor
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="subject">Subject *</Label>
-          <Select value={form.subject} onValueChange={(v) => setForm({ ...form, subject: v })}>
-            <SelectTrigger id="subject"><SelectValue placeholder="Select subject" /></SelectTrigger>
-            <SelectContent>
-              {availableSubjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          {isOnline ? (
+            <Input
+              id="subject"
+              placeholder="e.g. Mathematics, English, Coding"
+              value={form.subject}
+              onChange={(e) => setForm({ ...form, subject: e.target.value })}
+            />
+          ) : (
+            <Select value={form.subject} onValueChange={(v) => setForm({ ...form, subject: v })}>
+              <SelectTrigger id="subject"><SelectValue placeholder="Select subject" /></SelectTrigger>
+              <SelectContent>
+                {availableSubjects.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
         </div>
+
 
         <div className="space-y-2">
           <Label htmlFor="language">Language *</Label>
