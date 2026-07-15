@@ -216,6 +216,11 @@ export default function LessonNotesPage() {
 
   return (
     <div>
+      {user && (
+        <div className="mb-4">
+          <UsageTracker only="lesson" compact />
+        </div>
+      )}
       <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-sm mb-8">
         <LessonForm
           onGenerate={handleGenerate}
@@ -224,6 +229,7 @@ export default function LessonNotesPage() {
           onFormChange={(f) => { currentFormRef.current = f; }}
         />
       </div>
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} feature="lesson" />
 
       {isLoading && !lessonPlan && (
         <div className="flex flex-col items-center gap-3 py-12">
