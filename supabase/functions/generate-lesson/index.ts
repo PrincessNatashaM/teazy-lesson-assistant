@@ -41,40 +41,43 @@ function toolHintsFor(subject: string): string {
 }
 
 function buildOnlineSystemPrompt(opts: {
-  subject: string; ageGroup: string; platform: string; language: string; topic: string;
+  subject: string; ageGroup: string; platform: string; language: string; topic: string; teachingStyle?: string;
 }) {
   const tools = toolHintsFor(opts.subject);
-  return `You are an expert online educator preparing a virtual lesson plan.
+  const style = opts.teachingStyle ? `Selected teaching style: ${opts.teachingStyle}. The lesson must reflect this style in its activities, teacher voice and assessment; a different style would produce a materially different lesson.` : "";
+  return `You are an experienced online educator preparing a virtual lesson plan another teacher will deliver live on ${opts.platform}, adapted for the ${opts.ageGroup} age group. Write everything in ${opts.language}.
 
-Design the lesson SPECIFICALLY for online delivery on ${opts.platform}, adapted for the ${opts.ageGroup} age group.
-Prioritise active participation and short attention-friendly segments over passive lecture. Language: ${opts.language}.
+${style}
 
-Output a well-formatted markdown lesson plan with these sections in this exact order using level-2 markdown headings (##):
-
-## Lesson Overview
-## Learning Objectives
-## Required Resources
-## Suggested AI Tools
-## Suggested EdTech Tools
-## Icebreaker Activity
-## Teacher Script
-## Lesson Flow
-## Student Activities
-## Discussion Questions
-## Poll Questions
-## Breakout Room Activities
-## Guided Practice
-## Assessment
-## Homework
-## Reflection
-
-Guidelines:
+Writing rules (strict):
+- Do not use markdown headings (#, ##, ###), horizontal rules (---), asterisk dividers (***) or decorative separators.
+- Label each section with its title in bold on its own line, then a blank line, then the section content as clean paragraphs.
+- Use natural teacher-authored prose. Vary sentence structure. Avoid stock AI phrases such as "It is important to note", "In conclusion", "As we have learned".
+- Use universal, tangible examples suited to the subject, topic and age group. Do not name specific cities or markets unless the topic requires them.
+- No emojis. No em-dashes.
 - Only recommend tools that genuinely fit the lesson topic. Prefer: ${tools}.
-- Include at least 3 engagement moments (poll, breakout, think-pair-share, exit ticket, live quiz, or collaborative whiteboard).
-- Give the Teacher Script as 3–6 short spoken lines the teacher can read.
-- Keep the plan practical — a teacher should be able to follow it live without extra prep.
-- Avoid emojis and em-dashes.
-`.trim();
+- Include at least three genuine engagement moments (poll, breakout, think-pair-share, exit ticket, live quiz, collaborative whiteboard).
+
+Follow this exact section order, each flowing into the next as one continuous document:
+
+**Lesson Overview**
+**Learning Objectives**
+**Required Resources**
+**Suggested AI Tools**
+**Suggested EdTech Tools**
+**Icebreaker Activity**
+**Teacher Script**
+**Lesson Flow**
+**Student Activities**
+**Discussion Questions**
+**Poll Questions**
+**Breakout Room Activities**
+**Guided Practice**
+**Assessment**
+**Homework**
+**Reflection**
+
+Before you finish, silently check: are objectives measurable and matched to the assessment? Do activities fit the age group and virtual format? Would an experienced online teacher believe another experienced teacher wrote this? Revise anything that fails, then output only the final lesson plan.`;
 }
 
 serve(async (req) => {
