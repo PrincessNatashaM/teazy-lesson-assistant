@@ -220,10 +220,13 @@ export default function LessonForm({ onGenerate, isLoading, initialValues, onFor
   }, [form.curriculum, form.classLevel, isOnline]);
 
   useEffect(() => {
+    // Online mode uses a free-text input — never clear what the teacher typed.
+    if (isOnline) return;
     if (form.subject && !availableSubjects.includes(form.subject)) {
       setForm((f) => ({ ...f, subject: "" }));
     }
-  }, [availableSubjects, form.subject]);
+  }, [availableSubjects, form.subject, isOnline]);
+
 
   const canSubmit = isOnline
     ? !!(form.subject && form.topic && form.ageGroup && form.platform)
