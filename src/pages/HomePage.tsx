@@ -173,7 +173,7 @@ const STEPS = [
     n: "I.",
     title: "Tell us your class.",
     body:
-      "Choose curriculum, class and topic — or switch to online teaching and give an age group and platform.",
+      "Choose curriculum, class and topic, or switch to online teaching and give an age group and platform.",
   },
   {
     n: "II.",
