@@ -252,7 +252,8 @@ export default function WritingAssessmentPage() {
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: "Grading failed" }));
         if (resp.status === 402) {
-          toast({ title: "Upload limit reached", description: err.error, variant: "destructive" });
+          if (status.plan === "free") setUpgradeOpen(true);
+          else toast({ title: "Upload limit reached", description: err.error, variant: "destructive" });
           await status.refresh();
           return;
         }
