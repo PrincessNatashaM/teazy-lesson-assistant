@@ -150,7 +150,7 @@ const CURRICULA = [
     country: "Nigeria",
     body: "NERDC",
     line:
-      "Behavioural objectives, set induction, presentation and evaluation — in the exact structure your head of department checks for.",
+      "Behavioural objectives, set induction, presentation and evaluation, in the exact structure your head of department checks for.",
   },
   {
     n: "02",
