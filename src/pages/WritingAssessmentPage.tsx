@@ -641,6 +641,7 @@ export default function WritingAssessmentPage() {
       )}
 
       <BuyPackModal open={showBuyPack} onClose={() => setShowBuyPack(false)} onSuccess={() => status.refresh()} />
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} feature="writing" />
     </div>
   );
 }
