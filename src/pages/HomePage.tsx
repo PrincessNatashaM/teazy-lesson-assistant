@@ -977,3 +977,38 @@ export default function HomePage() {
     </>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Rotating hero highlight: "African / Nigerian / Ghanaian / Kenyan Classrooms" */
+/* -------------------------------------------------------------------------- */
+const ROTATING_CLASSROOMS = [
+  "African Classrooms",
+  "Nigerian Classrooms",
+  "Ghanaian Classrooms",
+  "Kenyan Classrooms",
+];
+
+function RotatingClassrooms() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setI((n) => (n + 1) % ROTATING_CLASSROOMS.length), 4000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <span className="relative inline-block align-baseline">
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={ROTATING_CLASSROOMS[i]}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="inline-block text-accent"
+        >
+          {ROTATING_CLASSROOMS[i]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
+
