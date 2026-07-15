@@ -57,6 +57,8 @@ export default function LessonNotesPage() {
   const { requireAuth } = useAuthGate();
   const savedIdRef = useRef<string | null>(null);
   const lastMetaRef = useRef<LessonFormData | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const usage = useFeatureUsage();
 
   const loadingMessage = useMemo(() => loadingMessageFor(subject), [subject]);
 
