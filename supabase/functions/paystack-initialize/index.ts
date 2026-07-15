@@ -12,6 +12,7 @@ const SUB_PRO       = { NGN: 500000, KES: 50000, GHS: 5000 };
 const PACK_5        = { NGN: 50000,  KES: 4500,  GHS: 500  };
 const PACK_10       = { NGN: 100000, KES: 9000,  GHS: 1000 };
 const PACK_30       = { NGN: 200000, KES: 18000, GHS: 2000 };
+const PACK_500      = { NGN: 1000000,KES: 100000,GHS: 10000 };
 
 // Legacy per-file unlock price (kept so old paywall paths still work)
 const LEGACY_UNLOCK  = { NGN: 50000,  KES: 4500,  GHS: 500  };
