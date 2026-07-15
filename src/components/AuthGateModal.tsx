@@ -99,23 +99,27 @@ export default function AuthGateModal({ open, onClose, feature }: Props) {
   const handleGoogle = async () => {
     setOauthLoading(true);
     try {
-      // Preserve the full current URL (path + query) so a full-page redirect
-      // returns the user to the exact page they were working on, not "/".
+      // Preserve the full current URL so the user returns to the exact page
+      // they were on after the Google round-trip. Uses Supabase's standard
+      // OAuth flow — works on any host (Lovable, Render, custom domains) and
+      // does not depend on the Lovable-only /~oauth/initiate proxy.
       const returnUrl = window.location.origin + window.location.pathname + window.location.search;
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: returnUrl,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: returnUrl },
       });
-      if (result.error) {
-        toast({ title: "Google sign-in failed", description: (result.error as any)?.message ?? "Try again", variant: "destructive" });
+      if (error) {
+        toast({ title: "Google sign-in failed", description: error.message, variant: "destructive" });
+        setOauthLoading(false);
         return;
       }
-      if (result.redirected) return;
-      // Popup returned tokens; session is set. Close modal so the page can proceed.
-      onClose();
-    } finally {
+      // Browser will now redirect to Google; nothing else to do here.
+    } catch (err: any) {
+      toast({ title: "Google sign-in failed", description: err?.message ?? "Try again", variant: "destructive" });
       setOauthLoading(false);
     }
   };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
