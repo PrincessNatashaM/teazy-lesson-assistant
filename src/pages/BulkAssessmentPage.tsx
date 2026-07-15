@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2, Upload, X, Crown, ArrowRight, Sparkles } from "lucide-react";
@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { useToast } from "@/hooks/use-toast";
-import { CURRICULA, getCurriculum } from "@/lib/curricula";
+import { CURRICULA, getCurriculum, subjectsForClass, isTerminalExamBody } from "@/lib/curricula";
 import SubjectCombobox from "@/components/SubjectCombobox";
 import { cn } from "@/lib/utils";
 
@@ -48,7 +48,23 @@ export default function BulkAssessmentPage() {
   const [creating, setCreating] = useState(false);
 
   const curriculum = useMemo(() => getCurriculum(curriculumId), [curriculumId]);
-  const subject = curriculum?.subjects.find((s) => s.id === subjectId);
+  const availableSubjects = useMemo(
+    () => (curriculum ? subjectsForClass(curriculum, classLevel) : []),
+    [curriculum, classLevel],
+  );
+  const subject = availableSubjects.find((s) => s.id === subjectId);
+  const terminal = curriculum ? isTerminalExamBody(curriculum.id) : false;
+
+  // WAEC/NECO: auto-lock class to SS 3.
+  useEffect(() => {
+    if (terminal && classLevel !== "SS 3") setClassLevel("SS 3");
+  }, [terminal, classLevel]);
+
+  // Clear subject when it's not available for the current class.
+  useEffect(() => {
+    if (subjectId && !availableSubjects.some((s) => s.id === subjectId)) setSubjectId("");
+  }, [availableSubjects, subjectId]);
+
 
   const isPro = plan === "pro";
 
@@ -223,25 +239,34 @@ export default function BulkAssessmentPage() {
               {CURRICULA.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
             </select>
           </div>
-          <div>
-            <Label>Subject</Label>
+          {!terminal && (
+            <div>
+              <Label>Class / grade</Label>
+              <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={classLevel} onChange={(e) => setClassLevel(e.target.value)} disabled={!curriculum}>
+                <option value="">Select...</option>
+                {curriculum?.classes.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          )}
+          <div className={terminal ? "md:col-span-2" : ""}>
+            <Label>Subject {terminal && <span className="text-xs text-muted-foreground">(SS 3 papers)</span>}</Label>
             <SubjectCombobox
-              subjects={curriculum?.subjects ?? []}
+              subjects={availableSubjects}
               value={subjectId}
               onChange={setSubjectId}
-              disabled={!curriculum}
-              placeholder={curriculum ? `Search ${curriculum.label} subjects...` : "Select curriculum first"}
+              disabled={!curriculum || (!terminal && !classLevel)}
+              placeholder={
+                !curriculum
+                  ? "Select curriculum first"
+                  : !terminal && !classLevel
+                  ? "Select class first"
+                  : `Search ${curriculum.label} subjects...`
+              }
             />
           </div>
-          <div>
-            <Label>Class / grade</Label>
-            <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-              value={classLevel} onChange={(e) => setClassLevel(e.target.value)} disabled={!curriculum}>
-              <option value="">Select...</option>
-              {curriculum?.classes.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
         </div>
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
