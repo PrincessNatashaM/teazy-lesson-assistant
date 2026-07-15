@@ -40,7 +40,7 @@ export function useFeatureUsage(): UsageSnapshot {
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase.rpc("get_feature_usage", { _user_id: user.id });
+    const { data, error } = await (supabase as any).rpc("get_feature_usage", { _user_id: user.id });
     if (error || !data) {
       setLoading(false);
       return;
