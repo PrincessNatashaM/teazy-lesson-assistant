@@ -239,25 +239,34 @@ export default function BulkAssessmentPage() {
               {CURRICULA.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
             </select>
           </div>
-          <div>
-            <Label>Subject</Label>
+          {!terminal && (
+            <div>
+              <Label>Class / grade</Label>
+              <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value={classLevel} onChange={(e) => setClassLevel(e.target.value)} disabled={!curriculum}>
+                <option value="">Select...</option>
+                {curriculum?.classes.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          )}
+          <div className={terminal ? "md:col-span-2" : ""}>
+            <Label>Subject {terminal && <span className="text-xs text-muted-foreground">(SS 3 papers)</span>}</Label>
             <SubjectCombobox
-              subjects={curriculum?.subjects ?? []}
+              subjects={availableSubjects}
               value={subjectId}
               onChange={setSubjectId}
-              disabled={!curriculum}
-              placeholder={curriculum ? `Search ${curriculum.label} subjects...` : "Select curriculum first"}
+              disabled={!curriculum || (!terminal && !classLevel)}
+              placeholder={
+                !curriculum
+                  ? "Select curriculum first"
+                  : !terminal && !classLevel
+                  ? "Select class first"
+                  : `Search ${curriculum.label} subjects...`
+              }
             />
           </div>
-          <div>
-            <Label>Class / grade</Label>
-            <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-              value={classLevel} onChange={(e) => setClassLevel(e.target.value)} disabled={!curriculum}>
-              <option value="">Select...</option>
-              {curriculum?.classes.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
         </div>
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
