@@ -70,6 +70,7 @@ export default function WritingAssessmentPage() {
   const { user } = useAuth();
   const { requireAuth } = useAuthGate();
   const [showBuyPack, setShowBuyPack] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   // Primary inputs
   const [curriculumId, setCurriculumId] = useState("");
