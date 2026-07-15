@@ -12,6 +12,7 @@ import { useAuthGate } from "@/hooks/useAuthGate";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { useToast } from "@/hooks/use-toast";
 import { CURRICULA, getCurriculum } from "@/lib/curricula";
+import SubjectCombobox from "@/components/SubjectCombobox";
 import { cn } from "@/lib/utils";
 
 const OCR_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-handwriting`;
