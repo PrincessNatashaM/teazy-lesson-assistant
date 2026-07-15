@@ -208,3 +208,33 @@ export type MarkingStyleId = (typeof MARKING_STYLES)[number]["id"];
 export function getCurriculum(id: string): Curriculum | undefined {
   return CURRICULA.find((c) => c.id === id);
 }
+
+/** Map any class/grade label to a broad school level. */
+export function classToLevel(classLabel: string): SchoolLevel | null {
+  if (!classLabel) return null;
+  const c = classLabel.toLowerCase();
+  if (/\bprimary\b|\bp\s?\d/.test(c)) return "primary";
+  if (/\bjss\b|\bjhs\b/.test(c)) return "junior";
+  if (/\bss\b|\bshs\b/.test(c)) return "senior";
+  const gr = c.match(/grade\s*(\d+)/);
+  if (gr) {
+    const n = parseInt(gr[1], 10);
+    if (n <= 6) return "primary";
+    if (n <= 9) return "junior";
+    return "senior";
+  }
+  return null;
+}
+
+/** Filter a curriculum's subjects to those taught at the given class level. */
+export function subjectsForClass(curriculum: Curriculum, classLabel: string): Subject[] {
+  const level = classToLevel(classLabel);
+  if (!level) return curriculum.subjects;
+  return curriculum.subjects.filter((sub) => !sub.levels || sub.levels.includes(level));
+}
+
+/** WAEC/NECO are terminal SS-3 exams — no class picker needed. */
+export function isTerminalExamBody(curriculumId: string): boolean {
+  return curriculumId === "waec" || curriculumId === "neco";
+}
+
