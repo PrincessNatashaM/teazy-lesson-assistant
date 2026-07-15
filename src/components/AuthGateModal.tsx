@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Check, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import type { GateFeature } from "@/lib/pendingAction";
