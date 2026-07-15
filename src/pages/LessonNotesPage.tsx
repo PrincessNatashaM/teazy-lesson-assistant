@@ -1,11 +1,14 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import LessonForm, { type LessonFormData } from "@/components/LessonForm";
 import LessonOutput from "@/components/LessonOutput";
+import UsageTracker from "@/components/UsageTracker";
+import UpgradeModal from "@/components/UpgradeModal";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import { consumePendingAction } from "@/lib/pendingAction";
+import { consumeFeatureUsage, useFeatureUsage } from "@/hooks/useFeatureUsage";
 
 const LESSON_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson`;
 const IMAGES_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson-images`;
@@ -54,6 +57,8 @@ export default function LessonNotesPage() {
   const { requireAuth } = useAuthGate();
   const savedIdRef = useRef<string | null>(null);
   const lastMetaRef = useRef<LessonFormData | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const usage = useFeatureUsage();
 
   const loadingMessage = useMemo(() => loadingMessageFor(subject), [subject]);
 
@@ -103,6 +108,18 @@ export default function LessonNotesPage() {
       formData: data,
       autoSubmit: true,
     })) return;
+
+    // Enforce monthly free-plan quota (server-side).
+    if (user) {
+      const gate = await consumeFeatureUsage(user.id, "lesson");
+      if (!gate.allowed) {
+        setUpgradeOpen(true);
+        await usage.refresh();
+        return;
+      }
+      // Refresh tracker after successful consumption.
+      usage.refresh();
+    }
 
     setIsLoading(true);
     setLessonPlan("");
@@ -199,6 +216,11 @@ export default function LessonNotesPage() {
 
   return (
     <div>
+      {user && (
+        <div className="mb-4">
+          <UsageTracker only="lesson" compact />
+        </div>
+      )}
       <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-sm mb-8">
         <LessonForm
           onGenerate={handleGenerate}
@@ -207,6 +229,7 @@ export default function LessonNotesPage() {
           onFormChange={(f) => { currentFormRef.current = f; }}
         />
       </div>
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} feature="lesson" />
 
       {isLoading && !lessonPlan && (
         <div className="flex flex-col items-center gap-3 py-12">

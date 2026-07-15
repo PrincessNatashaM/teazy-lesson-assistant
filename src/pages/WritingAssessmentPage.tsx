@@ -24,6 +24,9 @@ import {
   getCurriculum, type AssessmentTypeId, type MarkingStyleId,
 } from "@/lib/curricula";
 import AssessmentResults, { type AssessmentResult } from "@/components/AssessmentResults";
+import SubjectCombobox from "@/components/SubjectCombobox";
+import UpgradeModal from "@/components/UpgradeModal";
+import UsageTracker from "@/components/UsageTracker";
 
 const OCR_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-handwriting`;
 const ASSESS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-script`;
@@ -69,6 +72,7 @@ export default function WritingAssessmentPage() {
   const { user } = useAuth();
   const { requireAuth } = useAuthGate();
   const [showBuyPack, setShowBuyPack] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   // Primary inputs
   const [curriculumId, setCurriculumId] = useState("");
@@ -203,7 +207,8 @@ export default function WritingAssessmentPage() {
       return;
     }
     if (quotaExhausted) {
-      toast({ title: "You've reached your Assessment limit.", variant: "destructive" });
+      if (status.plan === "free") setUpgradeOpen(true);
+      else toast({ title: "You've reached your Assessment limit.", variant: "destructive" });
       return;
     }
 
@@ -249,7 +254,8 @@ export default function WritingAssessmentPage() {
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: "Grading failed" }));
         if (resp.status === 402) {
-          toast({ title: "Upload limit reached", description: err.error, variant: "destructive" });
+          if (status.plan === "free") setUpgradeOpen(true);
+          else toast({ title: "Upload limit reached", description: err.error, variant: "destructive" });
           await status.refresh();
           return;
         }
@@ -320,6 +326,12 @@ export default function WritingAssessmentPage() {
 
       <UsageMeter status={status} onBuyPack={() => setShowBuyPack(true)} />
 
+      {user && (
+        <div className="mb-4">
+          <UsageTracker only="writing" compact />
+        </div>
+      )}
+
       <div className="space-y-6">
         {/* STEP 1 — Curriculum */}
         <StepCard n={1} title="Select curriculum" done={!!curriculumId}>
@@ -345,23 +357,12 @@ export default function WritingAssessmentPage() {
         {/* STEP 2 — Subject (+ optional class inline) */}
         {curriculum && (
           <StepCard n={2} title="Select subject" done={!!subjectId}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {curriculum.subjects.map((sub) => (
-                <button
-                  key={sub.id}
-                  type="button"
-                  onClick={() => setSubjectId(sub.id)}
-                  className={cn(
-                    "text-left rounded-lg border px-3 py-2.5 text-sm transition-colors",
-                    subjectId === sub.id
-                      ? "border-accent bg-accent/10 text-accent font-semibold"
-                      : "border-border hover:bg-muted",
-                  )}
-                >
-                  {sub.label}
-                </button>
-              ))}
-            </div>
+            <SubjectCombobox
+              subjects={curriculum.subjects}
+              value={subjectId}
+              onChange={setSubjectId}
+              placeholder={`Search ${curriculum.label} subjects...`}
+            />
             {subjectId && (
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <Label className="text-xs text-muted-foreground">{curriculum.terminology.class}:</Label>
@@ -648,6 +649,7 @@ export default function WritingAssessmentPage() {
       )}
 
       <BuyPackModal open={showBuyPack} onClose={() => setShowBuyPack(false)} onSuccess={() => status.refresh()} />
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} feature="writing" />
     </div>
   );
 }

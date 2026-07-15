@@ -10,6 +10,7 @@ const PACK_UPLOAD_COUNT: Record<string, number> = {
   assessment_pack_5: 5,
   assessment_pack_10: 10,
   assessment_pack_30: 30,
+  assessment_pack_500: 500,
   assessment_pack_6: 6,
   assessment_pack_11: 11,
 };

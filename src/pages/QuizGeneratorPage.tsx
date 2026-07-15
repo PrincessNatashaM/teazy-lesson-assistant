@@ -12,6 +12,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import { consumePendingAction } from "@/lib/pendingAction";
+import { consumeFeatureUsage, useFeatureUsage } from "@/hooks/useFeatureUsage";
+import UsageTracker from "@/components/UsageTracker";
+import UpgradeModal from "@/components/UpgradeModal";
 
 const CURRICULA = ["Nigeria (NERDC)", "Ghana", "Kenya"];
 const CLASS_OPTIONS: Record<string, string[]> = {
@@ -40,6 +43,8 @@ export default function QuizGeneratorPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { requireAuth } = useAuthGate();
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const usage = useFeatureUsage();
 
   const classes = curriculum ? CLASS_OPTIONS[curriculum] || [] : [];
 
@@ -74,6 +79,17 @@ export default function QuizGeneratorPage() {
       formData: { topic: t, curriculum: c, classLevel: cl, language: lang, notes: n },
       autoSubmit: true,
     })) return;
+
+    if (user) {
+      const gate = await consumeFeatureUsage(user.id, "quiz");
+      if (!gate.allowed) {
+        setUpgradeOpen(true);
+        await usage.refresh();
+        return;
+      }
+      usage.refresh();
+    }
+
     setIsLoading(true);
     setQuiz(null);
     setShowAnswers(false);
@@ -125,6 +141,12 @@ Generate a quiz suitable for this topic and level.`;
 
   return (
     <div>
+      {user && (
+        <div className="mb-4">
+          <UsageTracker only="quiz" compact />
+        </div>
+      )}
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} feature="quiz" />
       <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-sm mb-8 space-y-4">
         <div className="space-y-2">
           <Label htmlFor="topic">Quiz Topic *</Label>

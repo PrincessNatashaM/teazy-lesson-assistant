@@ -22,6 +22,7 @@ import {
   BookOpen, Brain, PenLine, Search, Copy, Download, Trash2,
   Pencil, Loader2, Eye, FileText,
 } from "lucide-react";
+import UsageTracker from "@/components/UsageTracker";
 
 type SavedLesson = {
   id: string; title: string; curriculum: string | null; subject: string | null;
@@ -448,6 +449,15 @@ export default function MyWorkspacePage() {
         <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">My Workspace</h1>
         <p className="text-muted-foreground mt-1">Everything you generate is saved here automatically.</p>
       </header>
+
+      <section className="mb-6">
+        <div className="mb-2 flex items-baseline justify-between">
+          <h2 className="text-sm font-semibold text-navy">This month's usage</h2>
+          <Link to="/pricing" className="text-xs font-medium text-accent hover:underline">Upgrade plan</Link>
+        </div>
+        <UsageTracker />
+      </section>
+
 
       <Tabs value={tab} onValueChange={(v) => setParams({ tab: v })}>
         <TabsList className="mb-4">

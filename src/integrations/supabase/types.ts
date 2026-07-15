@@ -328,6 +328,36 @@ export type Database = {
         }
         Relationships: []
       }
+      monthly_feature_usage: {
+        Row: {
+          count: number
+          created_at: string
+          id: string
+          kind: string
+          period_start: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          id?: string
+          kind: string
+          period_start: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          period_start?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount_minor: number
@@ -731,7 +761,12 @@ export type Database = {
     }
     Functions: {
       consume_assessment_upload: { Args: { _user_id: string }; Returns: Json }
+      consume_feature_usage: {
+        Args: { _kind: string; _user_id: string }
+        Returns: Json
+      }
       get_assessment_status: { Args: { _user_id: string }; Returns: Json }
+      get_feature_usage: { Args: { _user_id: string }; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

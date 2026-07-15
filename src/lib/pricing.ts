@@ -4,7 +4,7 @@ export type DisplayCurrency = "NGN" | "GHS" | "KES";
 export type ChargeCurrency = "NGN" | "GHS" | "KES";
 
 export type PlanId = "free" | "standard" | "pro";
-export type PackId = "assessment_pack_5" | "assessment_pack_10" | "assessment_pack_30";
+export type PackId = "assessment_pack_5" | "assessment_pack_10" | "assessment_pack_30" | "assessment_pack_500";
 export type SubPurpose = "sub_standard" | "sub_pro";
 
 interface PriceRow {
@@ -51,12 +51,18 @@ export const PACK_PRICES: Record<PackId, Record<DisplayCurrency, PriceRow>> = {
     GHS: { display: "GH₵20",   chargeCurrency: "GHS", chargeMinor: 2000 },
     KES: { display: "KSh200",  chargeCurrency: "KES", chargeMinor: 20000 },
   },
+  assessment_pack_500: {
+    NGN: { display: "₦10,000", chargeCurrency: "NGN", chargeMinor: 1000000 },
+    GHS: { display: "GH₵100",  chargeCurrency: "GHS", chargeMinor: 10000 },
+    KES: { display: "KSh1,000",chargeCurrency: "KES", chargeMinor: 100000 },
+  },
 };
 
 export const PACK_UPLOADS: Record<PackId, number> = {
   assessment_pack_5: 5,
   assessment_pack_10: 10,
   assessment_pack_30: 30,
+  assessment_pack_500: 500,
 };
 
 /** Legacy alias kept so old paywall paths still compile. */

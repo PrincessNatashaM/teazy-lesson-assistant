@@ -11,6 +11,7 @@ const SUB_PRO      = { NGN: 500000, KES: 50000, GHS: 5000 };
 const PACK_5       = { NGN: 50000,  KES: 4500,  GHS: 500  };
 const PACK_10      = { NGN: 100000, KES: 9000,  GHS: 1000 };
 const PACK_30      = { NGN: 200000, KES: 18000, GHS: 2000 };
+const PACK_500     = { NGN: 1000000,KES: 100000,GHS: 10000 };
 const LEGACY_UNLOCK = { NGN: 50000, KES: 4500, GHS: 500 };
 
 type Charge = "NGN" | "KES" | "GHS";
@@ -25,13 +26,14 @@ function priceFor(purpose: string, displayCurrency: string): { minor: number; ch
     case "assessment_pack_5":  return { minor: PACK_5[charge], charge_currency: charge };
     case "assessment_pack_10": return { minor: PACK_10[charge], charge_currency: charge };
     case "assessment_pack_30": return { minor: PACK_30[charge], charge_currency: charge };
+    case "assessment_pack_500":return { minor: PACK_500[charge], charge_currency: charge };
     default: return { minor: LEGACY_UNLOCK[charge], charge_currency: charge };
   }
 }
 
 const VALID_PURPOSES = new Set([
   "sub_standard", "sub_pro",
-  "assessment_pack_5", "assessment_pack_10", "assessment_pack_30",
+  "assessment_pack_5", "assessment_pack_10", "assessment_pack_30", "assessment_pack_500",
   "download_pdf", "download_docx", "edit_unlock", "subscription",
 ]);
 

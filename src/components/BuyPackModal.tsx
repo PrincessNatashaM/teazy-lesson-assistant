@@ -117,7 +117,7 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
           </div>
           <DialogTitle className="text-center text-xl">Buy Writing Assessment uploads</DialogTitle>
           <DialogDescription className="text-center">
-            Extra uploads never expire and are used after your monthly 40 are exhausted.
+            Extra uploads never expire and are used after your monthly allowance is exhausted.
           </DialogDescription>
         </DialogHeader>
 
@@ -134,7 +134,7 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
             </Select>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {(Object.keys(PACK_PRICES) as PackId[]).map((p) => (
               <button
                 key={p}
@@ -146,6 +146,9 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
                 <div className="text-xl font-extrabold text-navy">{PACK_UPLOADS[p]}</div>
                 <div className="text-[11px] text-muted-foreground uppercase">uploads</div>
                 <div className="mt-1 text-sm font-semibold">{PACK_PRICES[p][country].display}</div>
+                {p === "assessment_pack_500" && (
+                  <div className="mt-1 text-[10px] font-semibold text-accent">Best value</div>
+                )}
               </button>
             ))}
           </div>
