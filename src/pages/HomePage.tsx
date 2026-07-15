@@ -475,7 +475,7 @@ export default function HomePage() {
               className="mt-6 text-5xl sm:text-6xl lg:text-7xl font-bold text-navy leading-[1.05] tracking-tight text-balance"
             >
               AI Teaching Assistant for{" "}
-              <span className="gradient-text">African Classrooms</span>
+              <RotatingClassrooms />
             </motion.h1>
 
             <motion.p variants={fadeUp} className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
@@ -977,3 +977,38 @@ export default function HomePage() {
     </>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/* Rotating hero highlight: "African / Nigerian / Ghanaian / Kenyan Classrooms" */
+/* -------------------------------------------------------------------------- */
+const ROTATING_CLASSROOMS = [
+  "African Classrooms",
+  "Nigerian Classrooms",
+  "Ghanaian Classrooms",
+  "Kenyan Classrooms",
+];
+
+function RotatingClassrooms() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setI((n) => (n + 1) % ROTATING_CLASSROOMS.length), 4000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <span className="relative inline-block align-baseline">
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={ROTATING_CLASSROOMS[i]}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="inline-block text-accent"
+        >
+          {ROTATING_CLASSROOMS[i]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
+
