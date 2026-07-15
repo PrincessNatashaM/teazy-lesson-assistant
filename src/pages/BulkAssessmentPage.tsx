@@ -48,7 +48,23 @@ export default function BulkAssessmentPage() {
   const [creating, setCreating] = useState(false);
 
   const curriculum = useMemo(() => getCurriculum(curriculumId), [curriculumId]);
-  const subject = curriculum?.subjects.find((s) => s.id === subjectId);
+  const availableSubjects = useMemo(
+    () => (curriculum ? subjectsForClass(curriculum, classLevel) : []),
+    [curriculum, classLevel],
+  );
+  const subject = availableSubjects.find((s) => s.id === subjectId);
+  const terminal = curriculum ? isTerminalExamBody(curriculum.id) : false;
+
+  // WAEC/NECO: auto-lock class to SS 3.
+  useEffect(() => {
+    if (terminal && classLevel !== "SS 3") setClassLevel("SS 3");
+  }, [terminal, classLevel]);
+
+  // Clear subject when it's not available for the current class.
+  useEffect(() => {
+    if (subjectId && !availableSubjects.some((s) => s.id === subjectId)) setSubjectId("");
+  }, [availableSubjects, subjectId]);
+
 
   const isPro = plan === "pro";
 
