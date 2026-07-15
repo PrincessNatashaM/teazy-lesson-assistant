@@ -164,7 +164,7 @@ const CURRICULA = [
     country: "Kenya",
     body: "CBC",
     line:
-      "Learning outcomes, key inquiry questions, core competencies and community service learning — CBC as it is actually taught.",
+      "Learning outcomes, key inquiry questions, core competencies and community service learning. CBC as it is actually taught.",
   },
 ];
 
