@@ -205,7 +205,8 @@ export default function WritingAssessmentPage() {
       return;
     }
     if (quotaExhausted) {
-      toast({ title: "You've reached your Assessment limit.", variant: "destructive" });
+      if (status.plan === "free") setUpgradeOpen(true);
+      else toast({ title: "You've reached your Assessment limit.", variant: "destructive" });
       return;
     }
 
