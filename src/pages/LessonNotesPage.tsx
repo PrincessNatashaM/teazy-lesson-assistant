@@ -1,11 +1,14 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import LessonForm, { type LessonFormData } from "@/components/LessonForm";
 import LessonOutput from "@/components/LessonOutput";
+import UsageTracker from "@/components/UsageTracker";
+import UpgradeModal from "@/components/UpgradeModal";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import { consumePendingAction } from "@/lib/pendingAction";
+import { consumeFeatureUsage, useFeatureUsage } from "@/hooks/useFeatureUsage";
 
 const LESSON_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson`;
 const IMAGES_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson-images`;
