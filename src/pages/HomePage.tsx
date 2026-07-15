@@ -3,29 +3,6 @@ import { Helmet } from "react-helmet-async";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 import teazyLogo from "@/assets/teazy-logo.jpg";
-import {
-  BookOpen,
-  PenLine,
-  ListChecks,
-  CheckCircle2,
-  Sparkles,
-  ArrowRight,
-  Play,
-  Clock,
-  Zap,
-  GraduationCap,
-  Globe2,
-  Shield,
-  Star,
-  FileText,
-  Upload,
-  Download,
-  ChevronRight,
-  Twitter,
-  Facebook,
-  Instagram,
-  Linkedin,
-} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -35,395 +12,269 @@ import {
 } from "@/components/ui/accordion";
 
 /* -------------------------------------------------------------------------- */
-/* Animation helpers                                                          */
+/* Motion primitives — quiet, editorial, respects prefers-reduced-motion.     */
 /* -------------------------------------------------------------------------- */
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+const inkRise = {
+  hidden: { opacity: 0, y: 14 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] },
+  },
 } as const;
 
 const stagger = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.08 } },
+  show: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } },
 };
 
 /* -------------------------------------------------------------------------- */
-/* Browser frame mockup                                                       */
+/* Reusable editorial fragments                                                */
 /* -------------------------------------------------------------------------- */
-function BrowserFrame({ children, url = "app.teazy.ai" }: { children: React.ReactNode; url?: string }) {
+function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-white shadow-elevated border border-border overflow-hidden">
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-secondary/60">
-        <div className="flex gap-1.5">
-          <span className="h-3 w-3 rounded-full bg-[#FF5F57]" />
-          <span className="h-3 w-3 rounded-full bg-[#FEBC2E]" />
-          <span className="h-3 w-3 rounded-full bg-[#28C840]" />
-        </div>
-        <div className="mx-auto px-4 py-1 rounded-md bg-white border border-border text-xs text-muted-foreground font-medium">
-          {url}
-        </div>
-      </div>
+    <span className="inline-flex items-center gap-3 text-[11px] font-medium tracking-[0.24em] uppercase text-ember">
+      <span className="h-px w-6 bg-ember" />
       {children}
+    </span>
+  );
+}
+
+function InkUnderline() {
+  // Hand-drawn warm-orange stroke under the accented headline word.
+  return (
+    <svg
+      className="absolute -bottom-1 left-0 w-full h-3 text-ember"
+      viewBox="0 0 300 12"
+      fill="none"
+      preserveAspectRatio="none"
+      aria-hidden
+    >
+      <path
+        d="M1 10.5C50 3.5 150 1.5 299 8.5"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Editorial lesson-note "paper" — replaces the browser mockup                 */
+/* -------------------------------------------------------------------------- */
+function LessonPaper() {
+  return (
+    <div className="relative w-full max-w-md mx-auto">
+      {/* Back sheet, slight offset — layered paper */}
+      <div
+        className="absolute inset-0 translate-x-2 translate-y-3 bg-paper-deep/70 rotate-[1.5deg] rounded-[2px]"
+        aria-hidden
+      />
+      {/* Front sheet */}
+      <motion.div
+        initial={{ opacity: 0, y: 24, rotate: 0 }}
+        whileInView={{ opacity: 1, y: 0, rotate: 2 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+        className="relative aspect-[4/5] bg-white shadow-2xl p-8 rotate-2 paper-grain"
+      >
+        <div className="border-l-2 border-ember/30 pl-6 h-full flex flex-col">
+          <div className="mb-8">
+            <span className="text-ember text-[10px] font-semibold uppercase tracking-[0.24em] block mb-3">
+              Lesson Plan · JSS 2 · Biology
+            </span>
+            <div className="font-display text-2xl leading-tight text-ink">
+              Photosynthesis and the leaf.
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            <div className="relative -ml-12 p-5 bg-paper border border-paper-deep">
+              <div className="font-display text-lg text-ink mb-1">
+                NERDC alignment
+              </div>
+              <p className="text-sm text-ink/70 leading-relaxed">
+                Behavioural objectives mapped to the JSS 2 Basic Science scheme.
+              </p>
+            </div>
+
+            {[
+              "State two reactants and two products of photosynthesis.",
+              "Identify the role of chlorophyll in the process.",
+              "Describe one everyday example a learner can observe.",
+            ].map((line) => (
+              <div key={line} className="flex gap-3">
+                <span className="mt-2 h-1.5 w-1.5 rounded-full bg-ember shrink-0" />
+                <p className="text-[13px] text-ink/80 leading-relaxed">{line}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-auto pt-8 border-t border-paper-deep flex items-end justify-between">
+            <div className="font-display text-4xl text-ink/10 leading-none">
+              Teazy.
+            </div>
+            <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-ink/40">
+              Draft · reviewed
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Warm-orange margin note */}
+      <motion.div
+        initial={{ opacity: 0, y: 20, rotate: 0 }}
+        whileInView={{ opacity: 1, y: 0, rotate: -3 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ delay: 0.25, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+        className="absolute -bottom-6 -left-6 bg-ember text-white p-5 max-w-[190px] shadow-xl -rotate-3"
+      >
+        <p className="text-[15px] leading-tight font-medium font-display">
+          Generated in 14 seconds.
+        </p>
+        <p className="text-[11px] mt-1 text-white/80 uppercase tracking-[0.2em]">
+          Reviewed for curriculum fit
+        </p>
+      </motion.div>
     </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Hero dashboard mockup                                                      */
-/* -------------------------------------------------------------------------- */
-function HeroMockup() {
-  return (
-    <BrowserFrame url="app.teazy.ai/lesson-notes">
-      <div className="p-5 sm:p-6 bg-gradient-to-br from-white to-secondary/40">
-        {/* toolbar */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <GraduationCap className="h-4 w-4 text-white" />
-            </div>
-            <div className="text-sm font-semibold text-navy">Lesson Generator</div>
-          </div>
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/10 text-success text-[11px] font-semibold">
-            <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" /> Generating
-          </div>
-        </div>
-
-        {/* input row */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
-          {["Nigeria · NERDC", "JSS 2 · Biology", "40 min"].map((v) => (
-            <div key={v} className="text-[11px] px-2.5 py-2 rounded-lg bg-white border border-border text-muted-foreground font-medium truncate">
-              {v}
-            </div>
-          ))}
-        </div>
-
-        {/* generated content */}
-        <div className="rounded-xl bg-white border border-border p-4 space-y-3">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-primary">
-            Topic: Photosynthesis
-          </div>
-          <div>
-            <div className="text-xs font-semibold text-navy mb-1.5">Behavioural Objectives</div>
-            <div className="space-y-1.5">
-              {[
-                "Define photosynthesis and its importance",
-                "Identify the reactants and products",
-                "Explain the role of chlorophyll",
-              ].map((t, i) => (
-                <motion.div
-                  key={t}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.6 + i * 0.15, duration: 0.4 }}
-                  className="flex items-start gap-2 text-[11px] text-muted-foreground"
-                >
-                  <CheckCircle2 className="h-3 w-3 text-primary mt-0.5 shrink-0" />
-                  <span>{t}</span>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-          <div className="pt-2 border-t border-border">
-            <div className="text-xs font-semibold text-navy mb-1.5">Set Induction</div>
-            <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: "82%" }}
-                transition={{ delay: 1.2, duration: 1.2, ease: "easeOut" }}
-                className="h-full bg-gradient-primary"
-              />
-            </div>
-            <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
-              <span>Writing lesson body…</span>
-              <span>82%</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 flex items-center gap-2">
-          <div className="flex-1 h-9 rounded-lg bg-gradient-primary flex items-center justify-center text-white text-xs font-semibold shadow-glow">
-            <Sparkles className="h-3.5 w-3.5 mr-1.5" /> Generate lesson note
-          </div>
-          <div className="h-9 w-9 rounded-lg bg-white border border-border flex items-center justify-center">
-            <Download className="h-4 w-4 text-muted-foreground" />
-          </div>
-        </div>
-      </div>
-    </BrowserFrame>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Product showcase mockups                                                   */
-/* -------------------------------------------------------------------------- */
-function ShowcaseMockup({ title, kind }: { title: string; kind: "lesson" | "essay" | "quiz" | "dash" | "download" }) {
-  return (
-    <BrowserFrame url={`app.teazy.ai/${kind}`}>
-      <div className="p-5 min-h-[240px] bg-gradient-to-br from-white to-secondary/40">
-        <div className="text-[11px] font-semibold uppercase tracking-wider text-primary mb-2">{title}</div>
-
-        {kind === "lesson" && (
-          <div className="space-y-2">
-            {["Objectives", "Set induction", "Presentation", "Evaluation"].map((s, i) => (
-              <div key={s} className="flex items-center gap-2 text-xs text-navy">
-                <span className="h-5 w-5 rounded-md bg-primary/10 text-primary text-[10px] font-bold flex items-center justify-center">{i + 1}</span>
-                <span className="font-medium">{s}</span>
-                <div className="flex-1 h-1 rounded bg-secondary" />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {kind === "essay" && (
-          <div className="space-y-2">
-            <div className="rounded-lg border border-dashed border-primary/40 bg-primary/5 p-3 text-center">
-              <Upload className="h-4 w-4 mx-auto text-primary" />
-              <div className="text-[10px] text-primary font-semibold mt-1">Handwritten essay uploaded</div>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-navy font-semibold">Score</span>
-              <span className="text-primary font-bold">18 / 25</span>
-            </div>
-            <div className="space-y-1">
-              {["Content 8/10", "Grammar 5/7", "Structure 3/4", "Originality 2/4"].map((r) => (
-                <div key={r} className="text-[10px] text-muted-foreground flex items-center gap-1.5">
-                  <CheckCircle2 className="h-2.5 w-2.5 text-success" /> {r}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {kind === "quiz" && (
-          <div className="space-y-2.5">
-            <div className="text-xs font-semibold text-navy">Q1. What is the powerhouse of the cell?</div>
-            {["Nucleus", "Mitochondria", "Ribosome", "Golgi"].map((o, i) => (
-              <div
-                key={o}
-                className={`flex items-center gap-2 text-[11px] p-2 rounded-md border ${
-                  i === 1 ? "bg-success/10 border-success/40 text-success font-semibold" : "bg-white border-border text-muted-foreground"
-                }`}
-              >
-                <span className="h-4 w-4 rounded-full border border-current flex items-center justify-center text-[9px]">
-                  {String.fromCharCode(65 + i)}
-                </span>
-                {o}
-                {i === 1 && <CheckCircle2 className="h-3 w-3 ml-auto" />}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {kind === "dash" && (
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { k: "Lessons", v: "128", i: BookOpen },
-              { k: "Essays graded", v: "54", i: PenLine },
-              { k: "Quizzes", v: "37", i: ListChecks },
-              { k: "Hours saved", v: "212", i: Clock },
-            ].map(({ k, v, i: Icon }) => (
-              <div key={k} className="rounded-lg bg-white border border-border p-2.5">
-                <Icon className="h-3.5 w-3.5 text-primary" />
-                <div className="mt-1.5 text-lg font-bold text-navy leading-none">{v}</div>
-                <div className="text-[10px] text-muted-foreground mt-0.5">{k}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {kind === "download" && (
-          <div className="space-y-2">
-            {[
-              { n: "Photosynthesis — JSS2.docx", s: "Word · 24 KB" },
-              { n: "Fractions — Primary 5.pdf", s: "PDF · 88 KB" },
-              { n: "Civic Education — SS1.docx", s: "Word · 31 KB" },
-            ].map((f) => (
-              <div key={f.n} className="flex items-center gap-2 p-2 rounded-lg bg-white border border-border">
-                <div className="h-7 w-7 rounded-md bg-primary/10 text-primary flex items-center justify-center">
-                  <FileText className="h-3.5 w-3.5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-[11px] font-semibold text-navy truncate">{f.n}</div>
-                  <div className="text-[9px] text-muted-foreground">{f.s}</div>
-                </div>
-                <Download className="h-3.5 w-3.5 text-primary" />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </BrowserFrame>
   );
 }
 
 /* -------------------------------------------------------------------------- */
 /* Data                                                                        */
 /* -------------------------------------------------------------------------- */
-const TRUST = [
-  { icon: Zap, label: "AI Powered" },
-  { icon: Globe2, label: "Built for African Schools" },
-  { icon: BookOpen, label: "Curriculum Aligned" },
-  { icon: Shield, label: "Trusted by Educators" },
-];
-
-const OUTCOMES: {
-  stat: string;
-  label: string;
-  sub: string;
-  rotatePrices?: { country: string; price: string }[];
-}[] = [
-  { stat: "10+ hrs", label: "Saved every week", sub: "Cut prep time from evenings to minutes." },
-  { stat: "5×", label: "Faster essay marking", sub: "Upload handwritten scripts, get rubric feedback." },
-  { stat: "3", label: "Curricula supported", sub: "NERDC, NaCCA and CBC out of the box." },
+const CURRICULA = [
   {
-    stat: "₦2,000",
-    label: "Affordable Pro tier",
-    sub: "Priced for teachers, not enterprise budgets.",
-    rotatePrices: [
-      { country: "Nigeria", price: "₦2,000" },
-      { country: "Ghana", price: "GH₵20" },
-      { country: "Kenya", price: "KSh200" },
-    ],
+    n: "01",
+    country: "Nigeria",
+    body: "NERDC",
+    line:
+      "Behavioural objectives, set induction, presentation and evaluation — in the exact structure your head of department checks for.",
+  },
+  {
+    n: "02",
+    country: "Ghana",
+    body: "NaCCA",
+    line:
+      "Common Core competencies, indicators, teaching and learning activities, aligned to the current NaCCA syllabus.",
+  },
+  {
+    n: "03",
+    country: "Kenya",
+    body: "CBC",
+    line:
+      "Learning outcomes, key inquiry questions, core competencies and community service learning — CBC as it is actually taught.",
   },
 ];
 
-function RotatingStat({ prices }: { prices: { country: string; price: string }[] }) {
-  const [idx, setIdx] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setIdx((i) => (i + 1) % prices.length), 2200);
-    return () => clearInterval(t);
-  }, [prices.length]);
-  const current = prices[idx];
-  return (
-    <div className="relative h-11 overflow-hidden">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={current.country}
-          initial={{ y: 18, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -18, opacity: 0 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute inset-0"
-        >
-          <div className="text-4xl font-bold gradient-text tracking-tight leading-none">
-            {current.price}
-          </div>
-          <div className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
-            {current.country}
-          </div>
-        </motion.div>
-      </AnimatePresence>
-    </div>
-  );
-}
+const STEPS = [
+  {
+    n: "I.",
+    title: "Tell us your class.",
+    body:
+      "Choose curriculum, class and topic — or switch to online teaching and give an age group and platform.",
+  },
+  {
+    n: "II.",
+    title: "Draft, then reviewed.",
+    body:
+      "Teazy drafts the lesson, then runs a pedagogical review for curriculum fit, objectives and flow before you see a single word.",
+  },
+  {
+    n: "III.",
+    title: "Teach or export.",
+    body:
+      "Edit inline, teach straight from the screen, or export a clean Word or PDF ready for your school file.",
+  },
+];
 
 const TESTIMONIALS = [
   {
     name: "Mrs. Adebayo",
     role: "JSS Science Teacher",
-    school: "Lagos, Nigeria",
-    quote: "Teazy AI saves me hours every week preparing lesson notes. The NERDC format is exactly what my school expects.",
+    place: "Lagos, Nigeria",
+    quote:
+      "The NERDC structure is exactly what my school inspects for. I stopped writing lesson notes at midnight.",
   },
   {
     name: "Mr. Otieno",
     role: "CBC Educator",
-    school: "Nairobi, Kenya",
-    quote: "The curriculum alignment feels local and accurate. My CBC lesson plans now take minutes, not evenings.",
+    place: "Nairobi, Kenya",
+    quote:
+      "The competencies and inquiry questions read like a colleague wrote them, not a chatbot. That is rare.",
   },
   {
     name: "Ms. Mensah",
     role: "Primary Teacher",
-    school: "Accra, Ghana",
-    quote: "The first AI tool that actually understands our classroom system. The quizzes are classroom-ready.",
+    place: "Accra, Ghana",
+    quote:
+      "First AI tool that actually understands NaCCA. The quizzes are classroom-ready without editing.",
   },
 ];
 
 const FAQS = [
-  { q: "Can I use the Nigerian curriculum?", a: "Yes. Teazy AI generates Nigerian lesson notes that follow the NERDC structure: behavioural objectives, set induction, presentation, evaluation and assignment." },
-  { q: "Does it assess handwriting?", a: "Absolutely. Upload a photo of a handwritten essay, Teazy AI extracts the text and grades it using a rubric covering content, grammar, structure and originality." },
-  { q: "Can I edit generated lessons?", a: "Yes. Every generated lesson note is fully editable inside Teazy AI before you export it as Word or PDF." },
-  { q: "Can I download Word and PDF?", a: "Word and PDF downloads are part of the Pro tier. Free users can generate and copy content freely, then upgrade when they need a formatted file." },
-  { q: "Is there a free version?", a: "Yes. Lesson notes, quizzes, copying outputs and your first 2 Writing Assessment uploads are free forever." },
+  {
+    q: "Which curricula are supported?",
+    a: "Nigeria (NERDC), Ghana (NaCCA / Common Core) and Kenya (CBC). Each lesson is written in the terminology and structure that curriculum expects.",
+  },
+  {
+    q: "Can I assess handwritten scripts?",
+    a: "Yes. Upload a photo of a handwritten essay or theory answer and Teazy AI extracts the text and grades it using a rubric covering content, grammar, structure and originality.",
+  },
+  {
+    q: "Can I edit generated lessons?",
+    a: "Every generated lesson is fully editable inside Teazy AI before you export it as Word or PDF.",
+  },
+  {
+    q: "Are Word and PDF downloads included?",
+    a: "Word and PDF downloads are part of the Pro tier. Free users can generate and copy content freely, then upgrade when they need a formatted file.",
+  },
+  {
+    q: "Is there a free plan?",
+    a: "Lesson notes, quizzes, copying outputs and your first two Writing Assessment uploads are free forever.",
+  },
 ];
 
-const PRO_PRICES_ROTATE = [
+const PRO_PRICES = [
   { country: "Nigeria", price: "₦2,000", period: "/ month" },
   { country: "Ghana", price: "GH₵20", period: "/ month" },
   { country: "Kenya", price: "KSh200", period: "/ month" },
 ];
 
-function ProPricingCard() {
+/* -------------------------------------------------------------------------- */
+/* Rotating price block for the pricing teaser                                 */
+/* -------------------------------------------------------------------------- */
+function RotatingPrice() {
   const [idx, setIdx] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setIdx((i) => (i + 1) % PRO_PRICES_ROTATE.length), 2500);
+    const t = setInterval(() => setIdx((i) => (i + 1) % PRO_PRICES.length), 2600);
     return () => clearInterval(t);
   }, []);
-  const current = PRO_PRICES_ROTATE[idx];
-
+  const current = PRO_PRICES[idx];
   return (
-    <motion.article
-      variants={fadeUp}
-      whileHover={{ y: -6 }}
-      transition={{ type: "spring", stiffness: 300, damping: 25 }}
-      className="relative rounded-2xl border-2 border-primary bg-card p-8 shadow-elevated flex flex-col"
-    >
-      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-primary text-white text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-glow">
-        Most popular
-      </div>
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-bold uppercase tracking-wider text-primary">Professional</div>
-        <div className="flex items-center gap-1">
-          {PRO_PRICES_ROTATE.map((_, i) => (
-            <button
-              key={i}
-              aria-label={`Show price ${i + 1}`}
-              onClick={() => setIdx(i)}
-              className={`h-1.5 rounded-full transition-all ${i === idx ? "w-5 bg-primary" : "w-1.5 bg-border"}`}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-2 h-[76px] relative overflow-hidden">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={current.country}
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -30, opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute inset-0"
-          >
-            <div className="flex items-baseline gap-1">
-              <span className="text-5xl font-bold text-navy">{current.price}</span>
-              <span className="text-muted-foreground">{current.period}</span>
-            </div>
-            <p className="mt-1 text-xs font-semibold text-primary uppercase tracking-wider">{current.country}</p>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      <Button asChild className="mt-6 w-full h-11 bg-gradient-primary hover:opacity-90 shadow-glow">
-        <Link to="/auth?next=/account">
-          <Sparkles className="h-4 w-4 mr-1.5" /> Subscribe
-        </Link>
-      </Button>
-      <ul className="mt-6 space-y-3 text-sm">
-        {[
-          "Unlimited lesson generation",
-          "40 Writing Assessment uploads / month",
-          "PDF and Word downloads",
-          "Inline editing",
-          "Priority access",
-          "No per-download fees",
-        ].map((p) => (
-          <li key={p} className="flex items-start gap-2">
-            <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-            <span className="text-navy font-medium">{p}</span>
-          </li>
-        ))}
-      </ul>
-    </motion.article>
+    <div className="relative h-24 overflow-hidden">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={current.country}
+          initial={{ y: 24, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -24, opacity: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="absolute inset-0"
+        >
+          <div className="flex items-baseline gap-2">
+            <span className="font-display text-7xl text-ink leading-none">
+              {current.price}
+            </span>
+            <span className="text-ink/50 text-lg">{current.period}</span>
+          </div>
+          <div className="mt-3 text-[11px] font-medium uppercase tracking-[0.28em] text-ember">
+            {current.country}
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -447,530 +298,551 @@ export default function HomePage() {
         <title>AI Teaching Assistant for African Classrooms | Teazy AI</title>
         <meta
           name="description"
-          content="Generate curriculum-aligned lesson notes, quizzes, presentations and mark handwritten scripts in minutes. Built for teachers in Nigeria, Ghana and Kenya."
+          content="A quiet, curriculum-aligned lesson-note engine for teachers in Nigeria, Ghana and Kenya. Draft, review and teach in minutes."
         />
         <link rel="canonical" href="/" />
         <meta property="og:title" content="AI Teaching Assistant for African Classrooms | Teazy AI" />
-        <meta property="og:description" content="Lesson notes, assessments and quizzes for African teachers, in minutes." />
+        <meta property="og:description" content="Lesson notes, quizzes and handwritten-script marking, tuned to NERDC, NaCCA and CBC." />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
         <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
       </Helmet>
 
-      {/* ============================== HERO ============================== */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero" />
-        <div className="absolute inset-0 bg-grid opacity-40 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,black,transparent)]" />
+      {/* ================================================================== */}
+      {/* HERO — editorial paper craft                                        */}
+      {/* ================================================================== */}
+      <section className="relative bg-paper text-ink overflow-hidden">
+        <div className="absolute inset-0 paper-grain opacity-60 pointer-events-none" aria-hidden />
+        {/* Warm-nude off-axis field, right side */}
+        <div
+          className="absolute top-0 right-0 h-full w-1/3 bg-paper-deep/60 -skew-x-12 translate-x-1/4 pointer-events-none"
+          aria-hidden
+        />
 
-        <div className="relative container mx-auto max-w-4xl px-4 pt-20 pb-24 sm:pt-28 sm:pb-32 text-center">
-          <motion.div initial="hidden" animate="show" variants={stagger}>
-            <motion.div variants={fadeUp}>
-              <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-semibold text-primary">
-                Built specifically for African teachers
-              </span>
-            </motion.div>
+        <div className="relative max-w-6xl mx-auto px-6 lg:px-8 pt-24 pb-32 lg:pt-32 lg:pb-40 font-body">
+          <motion.div
+            initial="hidden"
+            animate="show"
+            variants={stagger}
+            className="grid lg:grid-cols-2 gap-16 items-center"
+          >
+            <div>
+              <motion.div variants={inkRise}>
+                <Eyebrow>Built for African classrooms</Eyebrow>
+              </motion.div>
 
-            <motion.h1
-              variants={fadeUp}
-              className="mt-6 text-5xl sm:text-6xl lg:text-7xl font-bold text-navy leading-[1.05] tracking-tight text-balance"
-            >
-              AI Teaching Assistant for{" "}
-              <span className="gradient-text">African Classrooms</span>
-            </motion.h1>
+              <motion.h1
+                variants={inkRise}
+                className="font-display mt-8 text-5xl md:text-6xl lg:text-7xl leading-[0.95] text-ink text-balance"
+              >
+                Empowering the
+                <br />
+                <span className="relative inline-block">
+                  modern teacher.
+                  <InkUnderline />
+                </span>
+              </motion.h1>
 
-            <motion.p variants={fadeUp} className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Generate curriculum-aligned lesson notes, assessments, quizzes, presentations, and mark handwritten scripts in minutes.
-            </motion.p>
+              <motion.p
+                variants={inkRise}
+                className="mt-8 text-lg md:text-xl text-ink/75 max-w-xl leading-relaxed"
+              >
+                A quiet lesson-note engine tuned to NERDC, NaCCA and CBC.
+                Teazy AI drafts the lesson, then runs a pedagogical review
+                before you read a single word.
+              </motion.p>
 
-            <motion.p variants={fadeUp} className="mt-3 text-sm text-muted-foreground">
-              Built specifically for teachers in Nigeria, Ghana, Kenya and across Africa.
-            </motion.p>
-
-            <motion.div variants={fadeUp} className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <Button asChild size="lg" className="h-12 px-6 text-base bg-gradient-primary hover:opacity-90 shadow-glow transition-all hover:scale-[1.02]">
-                <Link to="/app">
-                  Generate Lesson Notes <ArrowRight className="h-4 w-4" />
+              <motion.div
+                variants={inkRise}
+                className="mt-10 flex flex-wrap items-center gap-5"
+              >
+                <Button
+                  asChild
+                  className="h-14 px-9 bg-ink hover:bg-ink/90 text-paper text-base font-medium tracking-wide rounded-none shadow-xl transition-all"
+                >
+                  <Link to="/app">Get started free</Link>
+                </Button>
+                <Link
+                  to="/app"
+                  className="group inline-flex items-center gap-3 text-sm font-medium text-ink/70 hover:text-ink transition-colors"
+                >
+                  <span className="relative">
+                    See a sample lesson
+                    <span className="absolute left-0 -bottom-0.5 h-px w-0 bg-ink transition-all duration-500 group-hover:w-full" />
+                  </span>
                 </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="h-12 px-6 text-base">
-                <a href="#features">
-                  <Play className="h-4 w-4" /> See features
-                </a>
-              </Button>
-            </motion.div>
+              </motion.div>
 
-            <motion.div variants={fadeUp} className="mt-8 flex items-center justify-center gap-4">
-              <div className="flex -space-x-2">
-                {["A", "O", "M", "K"].map((c, i) => (
-                  <div
-                    key={i}
-                    className="h-8 w-8 rounded-full border-2 border-white bg-gradient-primary text-white text-xs font-bold flex items-center justify-center"
-                  >
-                    {c}
+              <motion.div variants={inkRise} className="mt-10 flex items-center gap-4">
+                <div className="flex -space-x-2">
+                  <div className="w-9 h-9 rounded-full bg-ember border-2 border-paper flex items-center justify-center text-[10px] text-white font-semibold tracking-wider">
+                    NG
                   </div>
-                ))}
-              </div>
-              <div className="text-sm text-muted-foreground text-left">
-                <div className="flex items-center gap-0.5 text-amber-500">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-3.5 w-3.5 fill-current" />
-                  ))}
+                  <div className="w-9 h-9 rounded-full bg-ink border-2 border-paper flex items-center justify-center text-[10px] text-white font-semibold tracking-wider">
+                    GH
+                  </div>
+                  <div className="w-9 h-9 rounded-full bg-paper-deep border-2 border-paper flex items-center justify-center text-[10px] text-ink font-semibold tracking-wider">
+                    KE
+                  </div>
                 </div>
-                Loved by teachers across 3 countries
-              </div>
+                <span className="text-sm text-ink/55 italic">
+                  Trusted by teachers across three curricula.
+                </span>
+              </motion.div>
+            </div>
+
+            <motion.div variants={inkRise}>
+              <LessonPaper />
             </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {/* ============================== TRUST BAR ============================== */}
-      <section className="border-y border-border bg-secondary/40">
-        <div className="container mx-auto max-w-6xl px-4 py-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {TRUST.map(({ icon: Icon, label }) => (
-              <div key={label} className="flex items-center gap-2 justify-center text-sm font-semibold text-muted-foreground">
-                <Icon className="h-4 w-4 text-primary" />
-                {label}
-              </div>
+      {/* ================================================================== */}
+      {/* PRINCIPLES BAND — editorial trio                                    */}
+      {/* ================================================================== */}
+      <section className="bg-paper text-ink border-t border-paper-deep">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-24">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-14">
+            {[
+              {
+                h: "Local context first.",
+                p: "No generic AI templates. Teazy writes in the vocabulary of your syllabus.",
+              },
+              {
+                h: "Draft, then reviewed.",
+                p: "Every lesson passes a second pedagogical review before it reaches you.",
+              },
+              {
+                h: "Paper-thin friction.",
+                p: "Feels like writing in a planner. Thinks like a curriculum consultant.",
+              },
+            ].map((c, i) => (
+              <motion.div
+                key={c.h}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.7, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div className="text-[10px] font-semibold uppercase tracking-[0.28em] text-ember mb-4">
+                  {String(i + 1).padStart(2, "0")}
+                </div>
+                <h3 className="font-display text-3xl leading-tight text-ink mb-3">
+                  {c.h}
+                </h3>
+                <p className="text-ink/70 leading-relaxed">{c.p}</p>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ============================== FEATURE GRID ============================== */}
-      <section id="features" className="py-24 sm:py-32">
-        <div className="container mx-auto max-w-6xl px-4">
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-80px" }}
-            variants={fadeUp}
-            className="text-center max-w-2xl mx-auto"
-          >
-            <div className="text-xs font-bold uppercase tracking-wider text-primary mb-3">Features</div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-navy tracking-tight text-balance">
-              Everything a Modern Teacher Needs
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Three flagship tools that replace hours of manual prep and marking.
-            </p>
-          </motion.div>
+      {/* ================================================================== */}
+      {/* CURRICULA — deep ink section, cream marginalia                      */}
+      {/* ================================================================== */}
+      <section
+        id="features"
+        className="bg-ink text-paper relative overflow-hidden"
+      >
+        <div
+          className="absolute inset-0 opacity-[0.05] pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(hsl(var(--paper) / 0.35) 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
+          }}
+          aria-hidden
+        />
+        <div className="relative max-w-6xl mx-auto px-6 lg:px-8 py-28 lg:py-36">
+          <div className="grid lg:grid-cols-12 gap-16 items-start">
+            <div className="lg:col-span-5 lg:sticky lg:top-24">
+              <Eyebrow>The curriculum shelf</Eyebrow>
+              <h2 className="font-display mt-6 text-4xl md:text-5xl lg:text-6xl leading-[1.05] text-paper text-balance">
+                Precision for your
+                <span className="italic text-ember"> local</span> curriculum.
+              </h2>
+              <p className="mt-6 text-lg text-paper/70 leading-relaxed max-w-md">
+                Not one generic template dressed in three flags. Three distinct
+                pedagogies, each written in the voice its inspectors expect.
+              </p>
+            </div>
 
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-60px" }}
-            variants={stagger}
-            className="mt-16 grid md:grid-cols-3 gap-6"
-          >
-            {[
-              {
-                icon: BookOpen,
-                title: "Generate Lesson Notes",
-                body: "Complete curriculum-aligned lesson notes in seconds: objectives, set induction, presentation and evaluation.",
-                tags: ["NERDC", "NaCCA", "CBC"],
-                accent: "from-primary/10 to-primary/0",
-              },
-              {
-                icon: PenLine,
-                title: "Assess Handwritten Work",
-                body: "Upload handwritten essays and theory answers. Get marks, feedback and suggestions instantly.",
-                tags: ["Rubric grading", "Feedback"],
-                accent: "from-primary/15 to-primary/0",
-              },
-              {
-                icon: ListChecks,
-                title: "Quiz Generator",
-                body: "Generate quizzes, tests and exam questions instantly, with answer keys ready for the classroom.",
-                tags: ["MCQ", "Theory", "Answer keys"],
-                accent: "from-primary/10 to-primary/0",
-              },
-            ].map((c) => (
-              <motion.article
-                key={c.title}
-                variants={fadeUp}
-                className="group relative rounded-2xl border border-border bg-card p-8 hover:shadow-elevated hover:-translate-y-1 transition-all duration-300 overflow-hidden"
-              >
-                <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${c.accent} opacity-60`} />
-                <div className="relative">
-                  <div className="h-12 w-12 rounded-xl bg-gradient-primary text-white flex items-center justify-center shadow-glow">
-                    <c.icon className="h-6 w-6" />
-                  </div>
-                  <h3 className="mt-5 text-xl font-bold text-navy">{c.title}</h3>
-                  <p className="mt-2 text-muted-foreground leading-relaxed min-h-[72px]">{c.body}</p>
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {c.tags.map((t) => (
-                      <span key={t} className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-white border border-primary/20 text-primary">
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </motion.article>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ============================== HOW IT WORKS ============================== */}
-      <section id="how-it-works" className="py-24 bg-gradient-soft">
-        <div className="container mx-auto max-w-6xl px-4">
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-80px" }}
-            variants={fadeUp}
-            className="text-center max-w-2xl mx-auto"
-          >
-            <div className="text-xs font-bold uppercase tracking-wider text-primary mb-3">How Teazy AI works</div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-navy tracking-tight text-balance">
-              Built by teachers, for African classrooms
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              A lesson-note engine tuned to NERDC, NaCCA and CBC — with the language, structure and examples your school actually expects.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-60px" }}
-            variants={stagger}
-            className="mt-16 grid md:grid-cols-3 gap-6 relative"
-          >
-            {[
-              { n: 1, title: "Tell us your class", body: "Choose curriculum, class and topic, or switch to online teaching with an age group and platform." },
-              { n: 2, title: "Draft, then reviewed", body: "Teazy drafts the lesson, then runs a pedagogical review for curriculum fit, objectives and flow before you see it." },
-              { n: 3, title: "Teach or export", body: "Edit inline, teach straight from the screen, or export a clean Word or PDF ready for your school file." },
-            ].map((s, i) => (
-              <motion.div key={s.n} variants={fadeUp} className="relative">
-                <div className="rounded-2xl bg-card border border-border p-8 h-full hover:shadow-card transition-shadow">
-                  <div className="h-10 w-10 rounded-xl bg-gradient-primary text-white font-bold flex items-center justify-center shadow-glow">
-                    {s.n}
-                  </div>
-                  <h3 className="mt-5 text-xl font-bold text-navy">{s.title}</h3>
-                  <p className="mt-2 text-muted-foreground leading-relaxed">{s.body}</p>
-                </div>
-                {i < 2 && (
-                  <ChevronRight className="hidden md:block absolute top-1/2 -right-5 -translate-y-1/2 h-6 w-6 text-primary/40" />
-                )}
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-
-      {/* ============================== OUTCOMES ============================== */}
-      <section className="py-24 bg-gradient-soft">
-        <div className="container mx-auto max-w-6xl px-4">
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-80px" }}
-            variants={fadeUp}
-            className="text-center max-w-2xl mx-auto"
-          >
-            <div className="text-xs font-bold uppercase tracking-wider text-primary mb-3">Why teachers love Teazy AI</div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-navy tracking-tight text-balance">
-              Real outcomes, in real classrooms
-            </h2>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-60px" }}
-            variants={stagger}
-            className="mt-16 grid sm:grid-cols-2 lg:grid-cols-4 gap-6"
-          >
-            {OUTCOMES.map((o) => (
-              <motion.div
-                key={o.label}
-                variants={fadeUp}
-                className="rounded-2xl bg-card border border-border p-6 hover:shadow-card hover:-translate-y-1 transition-all"
-              >
-                {o.rotatePrices ? (
-                  <RotatingStat prices={o.rotatePrices} />
-                ) : (
-                  <div className="text-4xl font-bold gradient-text tracking-tight">{o.stat}</div>
-                )}
-                <div className="mt-2 font-semibold text-navy">{o.label}</div>
-                <div className="mt-1 text-sm text-muted-foreground">{o.sub}</div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ============================== TESTIMONIALS ============================== */}
-      <section className="py-24 sm:py-32">
-        <div className="container mx-auto max-w-6xl px-4">
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-80px" }}
-            variants={fadeUp}
-            className="text-center max-w-2xl mx-auto"
-          >
-            <div className="text-xs font-bold uppercase tracking-wider text-primary mb-3">Testimonials</div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-navy tracking-tight text-balance">
-              Trusted by teachers across Africa
-            </h2>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-60px" }}
-            variants={stagger}
-            className="mt-16 grid md:grid-cols-3 gap-6"
-          >
-            {TESTIMONIALS.map((t) => (
-              <motion.figure
-                key={t.name}
-                variants={fadeUp}
-                className="rounded-2xl border border-border bg-card p-8 hover:shadow-card transition-shadow"
-              >
-                <div className="flex gap-0.5 text-amber-500 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-current" />
-                  ))}
-                </div>
-                <blockquote className="text-navy leading-relaxed">"{t.quote}"</blockquote>
-                <figcaption className="mt-6 flex items-center gap-3 pt-6 border-t border-border">
-                  <div className="h-10 w-10 rounded-full bg-gradient-primary text-white font-bold flex items-center justify-center">
-                    {t.name.charAt(0)}
+            <div className="lg:col-span-7 space-y-14">
+              {CURRICULA.map((c, i) => (
+                <motion.article
+                  key={c.n}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.8, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                  className="group grid grid-cols-[auto_1fr] gap-8 pb-10 border-b border-paper/10 last:border-b-0"
+                >
+                  <div className="font-display text-4xl text-ember/80 leading-none pt-1">
+                    {c.n}
                   </div>
                   <div>
-                    <div className="font-semibold text-navy text-sm">{t.name}</div>
-                    <div className="text-xs text-muted-foreground">{t.role} · {t.school}</div>
+                    <div className="flex items-baseline gap-4">
+                      <h3 className="font-display text-3xl text-paper">
+                        {c.country}
+                      </h3>
+                      <span className="text-[11px] uppercase tracking-[0.28em] text-paper/50">
+                        {c.body}
+                      </span>
+                    </div>
+                    <p className="mt-4 text-paper/70 leading-relaxed max-w-xl">
+                      {c.line}
+                    </p>
+                  </div>
+                </motion.article>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================================================================== */}
+      {/* HOW IT WORKS — asymmetric editorial rhythm                          */}
+      {/* ================================================================== */}
+      <section id="how-it-works" className="bg-paper text-ink">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-28 lg:py-36">
+          <div className="grid lg:grid-cols-12 gap-16">
+            <div className="lg:col-span-4">
+              <Eyebrow>How Teazy AI works</Eyebrow>
+              <h2 className="font-display mt-6 text-4xl md:text-5xl leading-[1.05] text-ink text-balance">
+                Three quiet moves,
+                <br />
+                one finished lesson.
+              </h2>
+            </div>
+
+            <div className="lg:col-span-8">
+              <ol className="divide-y divide-paper-deep">
+                {STEPS.map((s, i) => (
+                  <motion.li
+                    key={s.n}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-40px" }}
+                    transition={{ duration: 0.7, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                    className="grid grid-cols-[auto_1fr] gap-8 py-10 first:pt-0"
+                  >
+                    <div className="font-display text-3xl text-ember pt-1">
+                      {s.n}
+                    </div>
+                    <div>
+                      <h3 className="font-display text-2xl md:text-3xl text-ink">
+                        {s.title}
+                      </h3>
+                      <p className="mt-3 text-ink/70 leading-relaxed max-w-2xl">
+                        {s.body}
+                      </p>
+                    </div>
+                  </motion.li>
+                ))}
+              </ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================================================================== */}
+      {/* PULL QUOTE — cream to deep-ink handoff wash                         */}
+      {/* ================================================================== */}
+      <section className="bg-paper text-ink relative">
+        <div className="max-w-4xl mx-auto px-6 lg:px-8 py-28 lg:py-36 text-center relative">
+          <div
+            className="absolute -top-6 left-1/2 -translate-x-1/2 font-display text-[180px] leading-none text-ink/[0.05] select-none pointer-events-none"
+            aria-hidden
+          >
+            &ldquo;
+          </div>
+          <motion.blockquote
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            className="font-display text-3xl md:text-5xl leading-[1.15] text-ink text-balance"
+          >
+            Teazy understands that the African classroom is not another
+            generic dashboard. It is built for our
+            <span className="italic text-ember"> reality</span>.
+          </motion.blockquote>
+          <div className="mt-12 flex flex-col items-center gap-2">
+            <div className="rule-hair w-16" />
+            <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.32em] text-ink">
+              Mrs. Amina Yusuf
+            </p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-ember">
+              Senior educator
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ================================================================== */}
+      {/* TESTIMONIALS — magazine pull-quote trio                              */}
+      {/* ================================================================== */}
+      <section className="bg-paper-deep/40 text-ink border-y border-paper-deep">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-24">
+          <div className="mb-16">
+            <Eyebrow>From the staff room</Eyebrow>
+            <h2 className="font-display mt-6 text-4xl md:text-5xl leading-[1.05] text-ink text-balance max-w-2xl">
+              Read by teachers.
+              <br />
+              Written like teachers write.
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-10 md:gap-16">
+            {TESTIMONIALS.map((t, i) => (
+              <motion.figure
+                key={t.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.7, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                className="relative"
+              >
+                <div className="font-display text-5xl text-ember/60 leading-none mb-4">
+                  &ldquo;
+                </div>
+                <blockquote className="font-display text-xl md:text-2xl text-ink leading-snug">
+                  {t.quote}
+                </blockquote>
+                <figcaption className="mt-8 pt-6 border-t border-paper-deep">
+                  <div className="text-sm font-semibold text-ink">{t.name}</div>
+                  <div className="text-[11px] uppercase tracking-[0.24em] text-ink/50 mt-1">
+                    {t.role} · {t.place}
                   </div>
                 </figcaption>
               </motion.figure>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* ============================== PRICING ============================== */}
-      <section id="pricing" className="py-24 bg-gradient-soft">
-        <div className="container mx-auto max-w-5xl px-4">
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-80px" }}
-            variants={fadeUp}
-            className="text-center max-w-2xl mx-auto"
-          >
-            <div className="text-xs font-bold uppercase tracking-wider text-primary mb-3">Pricing</div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-navy tracking-tight text-balance">
-              Priced for teachers, not enterprises
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Start free. Upgrade only when you need downloads and unlimited grading.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-60px" }}
-            variants={stagger}
-            className="mt-16 grid md:grid-cols-2 gap-6"
-          >
-            {/* Free */}
-            <motion.article
-              variants={fadeUp}
-              whileHover={{ y: -6 }}
-              transition={{ type: "spring", stiffness: 300, damping: 25 }}
-              className="rounded-2xl border border-border bg-card p-8 flex flex-col"
-            >
-              <div className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Free</div>
-              <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-5xl font-bold text-navy">₦0</span>
-                <span className="text-muted-foreground">/ forever</span>
+      {/* ================================================================== */}
+      {/* PRICING TEASER — single tall vertical block                         */}
+      {/* ================================================================== */}
+      <section id="pricing" className="bg-paper text-ink">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-28 lg:py-36">
+          <div className="grid lg:grid-cols-12 gap-16 items-center">
+            <div className="lg:col-span-6">
+              <Eyebrow>Priced for teachers</Eyebrow>
+              <h2 className="font-display mt-6 text-4xl md:text-5xl leading-[1.05] text-ink text-balance">
+                One tier.
+                <br />
+                Three currencies.
+                <br />
+                No enterprise theatre.
+              </h2>
+              <p className="mt-6 text-lg text-ink/70 leading-relaxed max-w-lg">
+                Start free. Upgrade only when you need Word and PDF exports and
+                unlimited handwritten-script grading.
+              </p>
+              <div className="mt-10 flex flex-wrap gap-4">
+                <Button
+                  asChild
+                  className="h-13 px-8 bg-ink hover:bg-ink/90 text-paper rounded-none text-sm font-medium tracking-wide shadow-lg"
+                >
+                  <Link to="/pricing">See full pricing</Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="h-13 px-8 border-ink/20 text-ink hover:bg-ink hover:text-paper rounded-none text-sm font-medium tracking-wide"
+                >
+                  <Link to="/app">Start free</Link>
+                </Button>
               </div>
-              <p className="mt-1 text-xs text-muted-foreground">GH₵ 0 · KSh 0</p>
-              <Button asChild variant="outline" className="mt-6 w-full h-11">
-                <Link to="/app">Start free</Link>
-              </Button>
-              <ul className="mt-6 space-y-3 text-sm">
-                {[
-                  "Unlimited lesson note generation",
-                  "2 free Writing Assessment uploads",
-                  "Quiz generator",
-                  "Copy generated content",
-                ].map((p) => (
-                  <li key={p} className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                    <span className="text-navy">{p}</span>
-                  </li>
-                ))}
-              </ul>
+            </div>
 
-              {/* Per-download pricing */}
-              <div className="mt-6 pt-6 border-t border-border">
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
-                  <Download className="h-3.5 w-3.5" /> Pay per download
+            <div className="lg:col-span-6 relative">
+              <div className="relative bg-white shadow-2xl border border-paper-deep p-10 lg:p-12 paper-grain">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.32em] text-ember mb-6">
+                  Teazy Pro · Monthly
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Need just one PDF or Word file? Unlock a single download without a subscription.
-                </p>
-                <div className="mt-3 grid grid-cols-3 gap-2">
+                <RotatingPrice />
+                <div className="mt-10 space-y-4">
                   {[
-                    { c: "Nigeria", p: "₦500" },
-                    { c: "Ghana", p: "GH₵5" },
-                    { c: "Kenya", p: "KSh50" },
-                  ].map((x) => (
-                    <div key={x.c} className="rounded-lg border border-border bg-secondary/50 p-2.5 text-center">
-                      <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{x.c}</div>
-                      <div className="mt-0.5 text-sm font-bold text-navy">{x.p}</div>
+                    "Unlimited lesson notes",
+                    "40 handwritten-script uploads / month",
+                    "Word and PDF exports",
+                    "Inline editing",
+                    "Priority processing",
+                  ].map((f) => (
+                    <div key={f} className="flex items-start gap-3">
+                      <span className="mt-2 h-1 w-4 bg-ember shrink-0" />
+                      <span className="text-ink text-sm">{f}</span>
                     </div>
                   ))}
                 </div>
-                <p className="mt-2 text-[11px] text-muted-foreground">One-time unlock per file. No account required.</p>
+                <div className="mt-10 pt-8 border-t border-paper-deep flex items-baseline justify-between">
+                  <span className="text-[10px] uppercase tracking-[0.28em] text-ink/50">
+                    Cancel anytime
+                  </span>
+                  <span className="font-display text-2xl text-ink/20">Teazy.</span>
+                </div>
               </div>
-            </motion.article>
-
-            {/* Pro */}
-            <ProPricingCard />
-          </motion.div>
+              <div className="absolute -top-4 -left-4 bg-ember text-white px-4 py-2 text-[10px] uppercase tracking-[0.28em] rotate-[-3deg] shadow">
+                Most chosen
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ============================== FAQ ============================== */}
-      <section className="py-24 sm:py-32">
-        <div className="container mx-auto max-w-3xl px-4">
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-80px" }}
-            variants={fadeUp}
-            className="text-center"
-          >
-            <div className="text-xs font-bold uppercase tracking-wider text-primary mb-3">FAQ</div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-navy tracking-tight text-balance">
-              Frequently asked questions
+      {/* ================================================================== */}
+      {/* FAQ                                                                 */}
+      {/* ================================================================== */}
+      <section className="bg-paper text-ink border-t border-paper-deep">
+        <div className="max-w-4xl mx-auto px-6 lg:px-8 py-28">
+          <div className="mb-14">
+            <Eyebrow>Questions, quietly answered</Eyebrow>
+            <h2 className="font-display mt-6 text-4xl md:text-5xl leading-[1.05] text-ink text-balance">
+              Before you begin.
             </h2>
-          </motion.div>
-
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-40px" }}
-            variants={fadeUp}
-          >
-            <Accordion type="single" collapsible className="mt-12 bg-card rounded-2xl border border-border px-6 shadow-soft">
-              {FAQS.map((f, i) => (
-                <AccordionItem key={i} value={`item-${i}`}>
-                  <AccordionTrigger className="text-left font-semibold text-navy hover:no-underline">
-                    {f.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed">
-                    {f.a}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ============================== FINAL CTA ============================== */}
-      <section className="py-24">
-        <div className="container mx-auto max-w-6xl px-4">
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, margin: "-80px" }}
-            variants={fadeUp}
-            className="relative overflow-hidden rounded-3xl bg-gradient-cta p-12 sm:p-16 lg:p-20 text-center shadow-elevated"
-          >
-            <div className="absolute inset-0 bg-grid opacity-20 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,black,transparent)]" />
-            <div className="absolute -top-20 left-1/2 -translate-x-1/2 h-64 w-64 rounded-full bg-primary-glow/40 blur-3xl" />
-
-            <div className="relative">
-              <GraduationCap className="h-12 w-12 mx-auto text-white" />
-              <h2 className="mt-6 text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight text-balance leading-tight">
-                Spend Less Time Preparing.<br />
-                <span className="text-white/80">Spend More Time Teaching.</span>
-              </h2>
-              <p className="mt-6 text-lg text-white/70 max-w-xl mx-auto">
-                Join teachers across Africa using Teazy AI to reclaim their evenings.
-              </p>
-              <Button asChild size="lg" className="mt-10 h-14 px-8 text-base bg-white text-navy hover:bg-white/90 shadow-glow">
-                <Link to="/app">
-                  Start Using Teazy AI <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ============================== FOOTER ============================== */}
-      <footer className="border-t border-border bg-secondary/40">
-        <div className="container mx-auto max-w-6xl px-4 py-16">
-          <div className="grid md:grid-cols-4 gap-10">
-            <div>
-              <div className="flex items-center gap-2.5">
-                <img src={teazyLogo} alt="Teazy Tech logo" className="h-10 w-10 rounded-xl object-contain bg-white border border-border shadow-soft" />
-                <span className="text-lg font-bold text-navy">Teazy Tech</span>
-              </div>
-              <p className="mt-4 text-sm text-muted-foreground leading-relaxed">
-                The AI teaching assistant built for African classrooms.
-              </p>
-              <div className="mt-6 flex gap-3">
-                {[Twitter, Facebook, Instagram, Linkedin].map((Icon, i) => (
-                  <a
-                    key={i}
-                    href="#"
-                    aria-label="social"
-                    className="h-9 w-9 rounded-lg border border-border bg-card flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/40 transition-colors"
-                  >
-                    <Icon className="h-4 w-4" />
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {[
-              { title: "Product", links: [["Features", "#features"], ["Pricing", "#pricing"], ["How it works", "#how-it-works"]] },
-              { title: "Company", links: [
-                ["About", "https://www.teazytech.org/about"],
-                ["Contact", "https://www.teazytech.org/contact"],
-                ["Blog", "https://www.teazytech.org/blog"],
-              ] },
-              { title: "Legal", links: [["Privacy Policy", "#"], ["Terms", "#"], ["Cookies", "#"]] },
-            ].map((col) => (
-              <div key={col.title}>
-                <div className="text-sm font-bold text-navy uppercase tracking-wider">{col.title}</div>
-                <ul className="mt-4 space-y-3">
-                  {col.links.map(([label, href]) => {
-                    const external = href.startsWith("http");
-                    return (
-                      <li key={label}>
-                        <a
-                          href={href}
-                          {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                          className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                        >
-                          {label}
-                        </a>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))}
           </div>
 
-          <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} Teazy Tech. Empowering teachers with technology.
+          <Accordion type="single" collapsible className="divide-y divide-paper-deep border-y border-paper-deep">
+            {FAQS.map((f, i) => (
+              <AccordionItem key={i} value={`item-${i}`} className="border-0">
+                <AccordionTrigger className="text-left py-6 font-display text-xl md:text-2xl text-ink hover:no-underline">
+                  {f.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-ink/70 leading-relaxed text-base pb-6 pr-8">
+                  {f.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </section>
+
+      {/* ================================================================== */}
+      {/* FINAL CTA — deep ink page-turn                                      */}
+      {/* ================================================================== */}
+      <section className="bg-ink text-paper relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.05] pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(hsl(var(--paper) / 0.35) 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
+          }}
+          aria-hidden
+        />
+        <div className="relative max-w-5xl mx-auto px-6 lg:px-8 py-28 lg:py-40 text-center">
+          <Eyebrow>The next lesson</Eyebrow>
+          <h2 className="font-display mt-8 text-5xl md:text-7xl leading-[1] text-paper text-balance">
+            Spend less time preparing.
+            <br />
+            <span className="italic text-ember">Spend more time teaching.</span>
+          </h2>
+          <p className="mt-8 text-lg text-paper/70 max-w-xl mx-auto leading-relaxed">
+            Draft your first curriculum-aligned lesson in the time it takes to
+            pour a cup of tea.
+          </p>
+          <div className="mt-12">
+            <Button
+              asChild
+              className="h-14 px-10 bg-paper hover:bg-paper/90 text-ink rounded-none text-base font-medium tracking-wide shadow-2xl"
+            >
+              <Link to="/app">Begin composing</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* ================================================================== */}
+      {/* FOOTER — editorial colophon                                         */}
+      {/* ================================================================== */}
+      <footer className="bg-paper text-ink border-t border-paper-deep">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-20">
+          <div className="grid lg:grid-cols-12 gap-14">
+            <div className="lg:col-span-4">
+              <div className="flex items-center gap-3">
+                <img
+                  src={teazyLogo}
+                  alt="Teazy Tech logo"
+                  className="h-10 w-10 rounded-lg object-contain bg-white border border-paper-deep"
+                />
+                <span className="font-display text-2xl text-ink">Teazy AI</span>
+              </div>
+              <p className="mt-6 text-sm text-ink/60 leading-relaxed max-w-xs">
+                A calm teaching assistant for African classrooms. Built with
+                care, aligned to your curriculum.
+              </p>
+            </div>
+
+            <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-3 gap-10">
+              {[
+                {
+                  title: "Product",
+                  links: [
+                    ["Lesson notes", "/app"],
+                    ["Quiz generator", "/app/quiz"],
+                    ["Writing assessment", "/app/writing"],
+                    ["Pricing", "/pricing"],
+                  ] as [string, string][],
+                },
+                {
+                  title: "Curricula",
+                  links: [
+                    ["Nigeria · NERDC", "/app"],
+                    ["Ghana · NaCCA", "/app"],
+                    ["Kenya · CBC", "/app"],
+                  ] as [string, string][],
+                },
+                {
+                  title: "Company",
+                  links: [
+                    ["About", "https://www.teazytech.org/about"],
+                    ["Contact", "https://www.teazytech.org/contact"],
+                    ["Blog", "https://www.teazytech.org/blog"],
+                  ] as [string, string][],
+                },
+              ].map((col) => (
+                <div key={col.title}>
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.28em] text-ember">
+                    {col.title}
+                  </div>
+                  <ul className="mt-5 space-y-3">
+                    {col.links.map(([label, href]) => {
+                      const external = href.startsWith("http");
+                      return (
+                        <li key={label}>
+                          <a
+                            href={href}
+                            {...(external
+                              ? { target: "_blank", rel: "noopener noreferrer" }
+                              : {})}
+                            className="group inline-block text-sm text-ink/70 hover:text-ink transition-colors"
+                          >
+                            <span className="relative">
+                              {label}
+                              <span className="absolute left-0 -bottom-0.5 h-px w-0 bg-ink transition-all duration-500 group-hover:w-full" />
+                            </span>
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-16 pt-8 border-t border-paper-deep flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-[11px] uppercase tracking-[0.28em] text-ink/40">
+              © {new Date().getFullYear()} Teazy Tech
             </p>
-            <p className="text-xs text-muted-foreground">Made with care for African classrooms.</p>
+            <div className="flex gap-8 text-[11px] uppercase tracking-[0.28em] text-ink/40">
+              <span>Lagos</span>
+              <span>Accra</span>
+              <span>Nairobi</span>
+            </div>
           </div>
         </div>
       </footer>
