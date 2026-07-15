@@ -622,10 +622,13 @@ export default function HomePage() {
             variants={fadeUp}
             className="text-center max-w-2xl mx-auto"
           >
-            <div className="text-xs font-bold uppercase tracking-wider text-primary mb-3">How it works</div>
+            <div className="text-xs font-bold uppercase tracking-wider text-primary mb-3">How Teazy AI works</div>
             <h2 className="text-4xl sm:text-5xl font-bold text-navy tracking-tight text-balance">
-              Three Steps to Smarter Teaching
+              Built by teachers, for African classrooms
             </h2>
+            <p className="mt-4 text-muted-foreground">
+              A lesson-note engine tuned to NERDC, NaCCA and CBC — with the language, structure and examples your school actually expects.
+            </p>
           </motion.div>
 
           <motion.div
@@ -636,9 +639,9 @@ export default function HomePage() {
             className="mt-16 grid md:grid-cols-3 gap-6 relative"
           >
             {[
-              { n: 1, title: "Choose subject & topic", body: "Pick your curriculum, class and topic. Teazy AI adapts to your syllabus." },
-              { n: 2, title: "Generate or upload", body: "Generate AI content, or upload handwritten work for instant grading." },
-              { n: 3, title: "Download or share", body: "Export as Word or PDF, edit inline, or share with your class." },
+              { n: 1, title: "Tell us your class", body: "Choose curriculum, class and topic, or switch to online teaching with an age group and platform." },
+              { n: 2, title: "Draft, then reviewed", body: "Teazy drafts the lesson, then runs a pedagogical review for curriculum fit, objectives and flow before you see it." },
+              { n: 3, title: "Teach or export", body: "Edit inline, teach straight from the screen, or export a clean Word or PDF ready for your school file." },
             ].map((s, i) => (
               <motion.div key={s.n} variants={fadeUp} className="relative">
                 <div className="rounded-2xl bg-card border border-border p-8 h-full hover:shadow-card transition-shadow">
