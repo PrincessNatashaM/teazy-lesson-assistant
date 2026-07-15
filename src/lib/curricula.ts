@@ -12,11 +12,16 @@ export type MarkingProfile =
   | "religious"
   | "general";
 
+export type SchoolLevel = "primary" | "junior" | "senior";
+
 export interface Subject {
   id: string;
   label: string;
   profile: MarkingProfile;
+  /** Which school levels this subject is taught at. Omit = all levels. */
+  levels?: SchoolLevel[];
 }
+
 
 export interface Curriculum {
   id: string;
