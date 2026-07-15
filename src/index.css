@@ -122,4 +122,27 @@
     background-clip: text;
     color: transparent;
   }
+  .font-display { font-family: var(--font-display); letter-spacing: -0.01em; }
+  /* Editorial paper craft: subtle fibre grain for cream surfaces */
+  .paper-grain {
+    background-image:
+      radial-gradient(hsl(var(--ink) / 0.035) 1px, transparent 1px),
+      radial-gradient(hsl(var(--ink) / 0.025) 1px, transparent 1px);
+    background-size: 3px 3px, 7px 7px;
+    background-position: 0 0, 1px 2px;
+  }
+  .rule-hair {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--ink) / 0.18), transparent);
+  }
+  /* Section-to-section handoff washes */
+  .wash-cream-to-ink {
+    background: linear-gradient(180deg, hsl(var(--paper)) 0%, hsl(var(--paper)) 55%, hsl(var(--ink)) 55%, hsl(var(--ink)) 100%);
+  }
+  .wash-ink-to-cream {
+    background: linear-gradient(180deg, hsl(var(--ink)) 0%, hsl(var(--ink)) 45%, hsl(var(--paper)) 45%, hsl(var(--paper)) 100%);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .motion-safe-only { animation: none !important; transition: none !important; }
+  }
 }
