@@ -367,33 +367,55 @@ export default function WritingAssessmentPage() {
           </div>
         </StepCard>
 
-        {/* STEP 2 — Subject (+ optional class inline) */}
-        {curriculum && (
-          <StepCard n={2} title="Select subject" done={!!subjectId}>
+        {/* STEP 2 — Class / grade (skipped for terminal exam bodies) */}
+        {curriculum && !isTerminalExamBody(curriculum.id) && (
+          <StepCard n={2} title={`Select ${curriculum.terminology.class.toLowerCase()}`} done={!!classLevel}>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+              {curriculum.classes.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setClassLevel(c)}
+                  className={cn(
+                    "rounded-md border px-2 py-2 text-sm font-medium transition-colors",
+                    classLevel === c
+                      ? "border-accent bg-accent/10 text-accent"
+                      : "border-border hover:bg-muted",
+                  )}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </StepCard>
+        )}
+
+        {/* STEP 3 — Subject (filtered by class) */}
+        {curriculum && (isTerminalExamBody(curriculum.id) || classLevel) && (
+          <StepCard n={isTerminalExamBody(curriculum.id) ? 2 : 3} title="Select subject" done={!!subjectId}>
+            {!isTerminalExamBody(curriculum.id) && (
+              <p className="text-xs text-muted-foreground mb-2">
+                Showing subjects offered at <span className="font-medium text-foreground">{classLevel}</span>.
+              </p>
+            )}
+            {isTerminalExamBody(curriculum.id) && (
+              <p className="text-xs text-muted-foreground mb-2">
+                {curriculum.label} is a terminal SS 3 examination — all listed subjects are SS 3 papers.
+              </p>
+            )}
             <SubjectCombobox
-              subjects={curriculum.subjects}
+              subjects={availableSubjects}
               value={subjectId}
               onChange={setSubjectId}
               placeholder={`Search ${curriculum.label} subjects...`}
             />
-            {subjectId && (
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <Label className="text-xs text-muted-foreground">{curriculum.terminology.class}:</Label>
-                <select
-                  className="h-9 rounded-md border border-input bg-background px-2 text-sm"
-                  value={classLevel}
-                  onChange={(e) => setClassLevel(e.target.value)}
-                >
-                  {curriculum.classes.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-            )}
           </StepCard>
         )}
 
-        {/* STEP 3 — Upload */}
-        {curriculum && subject && (
-          <StepCard n={3} title="Upload assessment" done={uploadReady && pages.length > 0}>
+        {/* STEP 4 — Upload */}
+        {curriculum && subject && classLevel && (
+          <StepCard n={isTerminalExamBody(curriculum.id) ? 3 : 4} title="Upload assessment" done={uploadReady && pages.length > 0}>
+
             <div
               className="border-2 border-dashed border-border rounded-xl p-8 bg-muted/30 text-center cursor-pointer hover:border-accent/50 transition-colors"
               onClick={() => fileInputRef.current?.click()}
