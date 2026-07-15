@@ -326,6 +326,12 @@ export default function WritingAssessmentPage() {
 
       <UsageMeter status={status} onBuyPack={() => setShowBuyPack(true)} />
 
+      {user && (
+        <div className="mb-4">
+          <UsageTracker only="writing" compact />
+        </div>
+      )}
+
       <div className="space-y-6">
         {/* STEP 1 — Curriculum */}
         <StepCard n={1} title="Select curriculum" done={!!curriculumId}>
