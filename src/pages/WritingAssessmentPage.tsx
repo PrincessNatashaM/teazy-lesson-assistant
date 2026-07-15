@@ -24,6 +24,7 @@ import {
   getCurriculum, type AssessmentTypeId, type MarkingStyleId,
 } from "@/lib/curricula";
 import AssessmentResults, { type AssessmentResult } from "@/components/AssessmentResults";
+import SubjectCombobox from "@/components/SubjectCombobox";
 
 const OCR_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-handwriting`;
 const ASSESS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-script`;
