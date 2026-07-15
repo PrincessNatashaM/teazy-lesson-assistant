@@ -22,6 +22,7 @@ import {
   BookOpen, Brain, PenLine, Search, Copy, Download, Trash2,
   Pencil, Loader2, Eye, FileText,
 } from "lucide-react";
+import UsageTracker from "@/components/UsageTracker";
 
 type SavedLesson = {
   id: string; title: string; curriculum: string | null; subject: string | null;
