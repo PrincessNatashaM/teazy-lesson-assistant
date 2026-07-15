@@ -65,6 +65,12 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        paper: {
+          DEFAULT: "hsl(var(--paper))",
+          deep: "hsl(var(--paper-deep))",
+        },
+        ink: "hsl(var(--ink))",
+        ember: "hsl(var(--ember))",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -88,11 +94,16 @@ export default {
             height: "0",
           },
         },
+        "ink-rise": {
+          "0%": { opacity: "0", transform: "translateY(0.6em)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       fontFamily: {
-        heading: ['Inter', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
-        sans: ['Inter', 'sans-serif'],
+        heading: ['"DM Serif Display"', 'Poppins', 'serif'],
+        display: ['"DM Serif Display"', 'serif'],
+        body: ['"Fira Sans"', 'Inter', 'sans-serif'],
+        sans: ['"Fira Sans"', 'Inter', 'sans-serif'],
       },
       boxShadow: {
         soft: 'var(--shadow-soft)',
