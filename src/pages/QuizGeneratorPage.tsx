@@ -141,6 +141,12 @@ Generate a quiz suitable for this topic and level.`;
 
   return (
     <div>
+      {user && (
+        <div className="mb-4">
+          <UsageTracker only="quiz" compact />
+        </div>
+      )}
+      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} feature="quiz" />
       <div className="bg-card border border-border rounded-xl p-6 sm:p-8 shadow-sm mb-8 space-y-4">
         <div className="space-y-2">
           <Label htmlFor="topic">Quiz Topic *</Label>
