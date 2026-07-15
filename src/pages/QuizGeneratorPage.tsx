@@ -79,6 +79,17 @@ export default function QuizGeneratorPage() {
       formData: { topic: t, curriculum: c, classLevel: cl, language: lang, notes: n },
       autoSubmit: true,
     })) return;
+
+    if (user) {
+      const gate = await consumeFeatureUsage(user.id, "quiz");
+      if (!gate.allowed) {
+        setUpgradeOpen(true);
+        await usage.refresh();
+        return;
+      }
+      usage.refresh();
+    }
+
     setIsLoading(true);
     setQuiz(null);
     setShowAnswers(false);
