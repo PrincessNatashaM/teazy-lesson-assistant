@@ -109,6 +109,18 @@ export default function LessonNotesPage() {
       autoSubmit: true,
     })) return;
 
+    // Enforce monthly free-plan quota (server-side).
+    if (user) {
+      const gate = await consumeFeatureUsage(user.id, "lesson");
+      if (!gate.allowed) {
+        setUpgradeOpen(true);
+        await usage.refresh();
+        return;
+      }
+      // Refresh tracker after successful consumption.
+      usage.refresh();
+    }
+
     setIsLoading(true);
     setLessonPlan("");
     setImages([]);
