@@ -449,6 +449,15 @@ export default function MyWorkspacePage() {
         <p className="text-muted-foreground mt-1">Everything you generate is saved here automatically.</p>
       </header>
 
+      <section className="mb-6">
+        <div className="mb-2 flex items-baseline justify-between">
+          <h2 className="text-sm font-semibold text-navy">This month's usage</h2>
+          <Link to="/pricing" className="text-xs font-medium text-accent hover:underline">Upgrade plan</Link>
+        </div>
+        <UsageTracker />
+      </section>
+
+
       <Tabs value={tab} onValueChange={(v) => setParams({ tab: v })}>
         <TabsList className="mb-4">
           <TabsTrigger value="lessons"><BookOpen className="h-4 w-4 mr-1.5" /> Lesson Notes</TabsTrigger>
