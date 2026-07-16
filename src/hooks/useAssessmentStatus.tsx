@@ -43,7 +43,7 @@ export function useAssessmentStatus(): AssessmentStatus {
       supabase.from("subscriptions").select("status,plan,current_period_end").eq("user_id", user.id).maybeSingle(),
       supabase.from("assessment_credits").select("remaining").eq("user_id", user.id).maybeSingle(),
       supabase.from("monthly_assessment_usage").select("uploads_used").eq("user_id", user.id).eq("period_start", periodStartISO).maybeSingle(),
-      supabase.from("usage_counters").select("count").eq("user_id", user.id).eq("kind", "free_assessment").maybeSingle(),
+      supabase.from("monthly_feature_usage").select("count").eq("user_id", user.id).eq("kind", "writing").eq("period_start", periodStartISO).maybeSingle(),
     ]);
 
     const active =
