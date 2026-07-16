@@ -272,8 +272,8 @@ const OUTCOMES: {
   sub: string;
   rotatePrices?: { country: string; price: string }[];
 }[] = [
-  { stat: "10+ hrs", label: "Saved every week", sub: "Cut prep time from evenings to minutes." },
-  { stat: "5×", label: "Faster essay marking", sub: "Upload handwritten scripts, get rubric feedback." },
+  { stat: "10+ hrs", label: "Saved every week", sub: "Cut prep time from hours to minutes." },
+  { stat: "5×", label: "Faster essay marking", sub: "Upload handwritten scripts, get personalized feedback." },
   { stat: "3", label: "Curricula supported", sub: "NERDC, NaCCA and CBC out of the box." },
   {
     stat: "₦2,000",
@@ -328,7 +328,7 @@ const TESTIMONIALS = [
     name: "Mr. Otieno",
     role: "CBC Educator",
     school: "Nairobi, Kenya",
-    quote: "The curriculum alignment feels local and accurate. My CBC lesson plans now take minutes, not evenings.",
+    quote: "The curriculum alignment feels local and accurate. My CBC lesson plans now take minutes, not the entire weekend.",
   },
   {
     name: "Ms. Mensah",
@@ -340,10 +340,11 @@ const TESTIMONIALS = [
 
 const FAQS = [
   { q: "Can I use the Nigerian curriculum?", a: "Yes. Teazy AI generates Nigerian lesson notes that follow the NERDC structure: behavioural objectives, set induction, presentation, evaluation and assignment." },
-  { q: "Does it assess handwriting?", a: "Absolutely. Upload a photo of a handwritten essay, Teazy AI extracts the text and grades it using a rubric covering content, grammar, structure and originality." },
+  { q: "Does it assess handwritten essays and exam scripts?", a: "Absolutely. Upload a photo of a handwritten essay or exam script, Teazy AI extracts the text and grades it using a rubric covering content, grammar, structure and originality." },
   { q: "Can I edit generated lessons?", a: "Yes. Every generated lesson note is fully editable inside Teazy AI before you export it as Word or PDF." },
   { q: "Can I download Word and PDF?", a: "Word and PDF downloads are part of the Pro tier. Free users can generate and copy content freely, then upgrade when they need a formatted file." },
   { q: "Is there a free version?", a: "Yes. Lesson notes, quizzes, copying outputs and your first 2 Writing Assessment uploads are free forever." },
+  { q: "Is there a paid version?", a: "Yes. Teazy AI Pro unlocks unlimited downloads, inline editing, 40 Writing Assessment uploads per month and priority access." },
 ];
 
 const PRO_PRICES_ROTATE = [
@@ -411,11 +412,10 @@ function ProPricingCard() {
       <ul className="mt-6 space-y-3 text-sm">
         {[
           "Unlimited lesson generation",
-          "40 Writing Assessment uploads / month",
-          "PDF and Word downloads",
+          "40 Writing assessment uploads per month",
           "Inline editing",
           "Priority access",
-          "No per-download fees",
+          "Unlimited Downloads",
         ].map((p) => (
           <li key={p} className="flex items-start gap-2">
             <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -574,7 +574,7 @@ export default function HomePage() {
               {
                 icon: PenLine,
                 title: "Assess Handwritten Work",
-                body: "Upload handwritten essays and theory answers. Get marks, feedback and suggestions instantly.",
+                body: "Upload handwritten essays and theory answers. Get marks, personalized feedback and suggestions instantly.",
                 tags: ["Rubric grading", "Feedback"],
                 accent: "from-primary/15 to-primary/0",
               },
@@ -624,7 +624,7 @@ export default function HomePage() {
           >
             <div className="text-xs font-bold uppercase tracking-wider text-primary mb-3">How Teazy AI works</div>
             <h2 className="text-4xl sm:text-5xl font-bold text-navy tracking-tight text-balance">
-              Built by teachers, for African classrooms
+              Built for African classrooms
             </h2>
             <p className="mt-4 text-muted-foreground">
               A lesson-note engine tuned to NERDC, NaCCA and CBC — with the language, structure and examples your school actually expects.
@@ -797,10 +797,10 @@ export default function HomePage() {
               </Button>
               <ul className="mt-6 space-y-3 text-sm">
                 {[
-                  "Unlimited lesson note generation",
+                  "Lesson note generation",
                   "2 free Writing Assessment uploads",
                   "Quiz generator",
-                  "Copy generated content",
+                  "Copy and paste generated content",
                 ].map((p) => (
                   <li key={p} className="flex items-start gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
