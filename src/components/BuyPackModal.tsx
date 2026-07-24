@@ -66,6 +66,14 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
         onClose();
       };
 
+      // Close the Radix Dialog before opening gateway overlays — Radix's
+      // pointer-events lock + focus trap block clicks on Paystack/Flutterwave
+      // channel tabs (Card, Transfer, USSD, OPay, etc.) otherwise.
+      onClose();
+      requestAnimationFrame(() => {
+        document.body.style.pointerEvents = "";
+      });
+
       if (gateway === "flutterwave") {
         const FlutterwaveCheckout = await loadFlutterwave();
         FlutterwaveCheckout({
