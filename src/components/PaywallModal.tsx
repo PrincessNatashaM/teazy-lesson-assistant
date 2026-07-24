@@ -176,6 +176,16 @@ export default function PaywallModal({ open, onClose, purpose, onSuccess }: Prop
       }
       if (!init.public_key) throw new Error("Payment gateway not configured. Contact support.");
 
+      // Close our Radix Dialog BEFORE opening gateway overlays.
+      // Radix sets pointer-events:none on <body> and traps focus while open,
+      // which blocks clicks on Paystack/Flutterwave channel tabs.
+      onClose();
+      // Also defensively clear the body pointer-events lock in case the
+      // dialog unmount transition hasn't cleaned up yet.
+      requestAnimationFrame(() => {
+        document.body.style.pointerEvents = "";
+      });
+
       if (gateway === "flutterwave") {
         const FlutterwaveCheckout = await loadFlutterwave();
         FlutterwaveCheckout({
