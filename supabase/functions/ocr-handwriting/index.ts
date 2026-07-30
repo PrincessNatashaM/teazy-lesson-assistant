@@ -37,6 +37,11 @@ serve(async (req) => {
       });
     }
 
+    // Server-side abuse guard BEFORE any AI provider call. Identity comes from
+    // the verified JWT, never from the request body.
+    const limited = await enforceRateLimit(auth.id, "ocr");
+    if (limited) return limited;
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
