@@ -109,17 +109,14 @@ export default function LessonNotesPage() {
       autoSubmit: true,
     })) return;
 
-    // Enforce monthly free-plan quota (server-side).
-    if (user) {
-      const gate = await consumeFeatureUsage(user.id, "lesson");
-      if (!gate.allowed) {
-        setUpgradeOpen(true);
-        await usage.refresh();
-        return;
-      }
-      // Refresh tracker after successful consumption.
-      usage.refresh();
+    // Quota is enforced server-side inside the generate-lesson edge function.
+    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = session?.access_token;
+    if (!accessToken) {
+      requireAuth({ feature: "lesson", formData: data, autoSubmit: true });
+      return;
     }
+
 
     setIsLoading(true);
     setLessonPlan("");
