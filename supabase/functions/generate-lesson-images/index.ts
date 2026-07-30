@@ -77,7 +77,23 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { subject, classLevel, topic, curriculum } = await req.json();
+    const auth = await requireUser(req);
+    if (auth instanceof Response) return auth;
+
+    const parsed = await readJsonBody(req, 32 * 1024);
+    if (parsed instanceof Response) return parsed;
+    const { subject, classLevel, topic, curriculum } = parsed as Record<string, any>;
+
+    const fields: Array<[unknown, number]> = [
+      [subject, 120], [classLevel, 80], [topic, 300], [curriculum, 120],
+    ];
+    for (const [v, max] of fields) {
+      if (v !== undefined && v !== null && (typeof v !== "string" || v.length > max)) {
+        return new Response(JSON.stringify({ error: "Invalid request." }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     if (!topic || !subject) {
       return new Response(JSON.stringify({ error: "Subject and topic are required." }), {
@@ -85,6 +101,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
