@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { requireUser, readJsonBody } from "../_shared/authz.ts";
+import { requireUser, readJsonBody, enforceRateLimit } from "../_shared/authz.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -36,6 +36,11 @@ serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Server-side abuse guard BEFORE any AI provider call. Identity comes from
+    // the verified JWT, never from the request body.
+    const limited = await enforceRateLimit(auth.id, "ocr");
+    if (limited) return limited;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");

@@ -253,6 +253,33 @@ export type Database = {
         }
         Relationships: []
       }
+      edge_rate_limits: {
+        Row: {
+          bucket: string
+          count: number
+          created_at: string
+          updated_at: string
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          count?: number
+          created_at?: string
+          updated_at?: string
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          bucket?: string
+          count?: number
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       entitlements: {
         Row: {
           created_at: string
@@ -763,6 +790,10 @@ export type Database = {
       consume_assessment_upload: { Args: { _user_id: string }; Returns: Json }
       consume_feature_usage: {
         Args: { _kind: string; _user_id: string }
+        Returns: Json
+      }
+      consume_rate_limit: {
+        Args: { _bucket: string; _user_id: string }
         Returns: Json
       }
       get_assessment_status: { Args: { _user_id: string }; Returns: Json }

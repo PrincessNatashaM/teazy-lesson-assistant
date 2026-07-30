@@ -145,11 +145,36 @@ Deno.serve(async (req) => {
       }).select().single();
     if (payErr) throw payErr;
 
+    // Register the transaction with Paystack server-side so the amount and
+    // currency for this reference are provider-bound (client cannot alter them).
+    let access_code: string | null = null;
+    try {
+      const initRes = await fetch("https://api.paystack.co/transaction/initialize", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${Deno.env.get("PAYSTACK_SECRET_KEY")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: user.email,
+          amount: minor,
+          currency: charge_currency,
+          reference,
+        }),
+      });
+      const initJson = await initRes.json();
+      if (initRes.ok && initJson?.status) access_code = initJson.data?.access_code ?? null;
+      else console.error("Paystack initialize failed", initJson);
+    } catch (e) {
+      console.error("Paystack initialize error", e);
+    }
+
     return json({
       reference,
       amount_minor: minor,
       currency: charge_currency,
       payment_id: payment.id,
+      access_code,
       public_key: Deno.env.get("PAYSTACK_PUBLIC_KEY") || "",
     });
   } catch (e) {
