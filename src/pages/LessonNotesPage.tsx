@@ -165,10 +165,17 @@ export default function LessonNotesPage() {
 
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: "Something went wrong" }));
-        toast({ title: "Error", description: err.error, variant: "destructive" });
+        if (resp.status === 403) {
+          setUpgradeOpen(true);
+        } else {
+          toast({ title: "Error", description: err.error, variant: "destructive" });
+        }
+        await usage.refresh();
         setIsLoading(false);
         return;
       }
+      usage.refresh();
+
 
       if (!resp.body) throw new Error("No response body");
       const reader = resp.body.getReader();
