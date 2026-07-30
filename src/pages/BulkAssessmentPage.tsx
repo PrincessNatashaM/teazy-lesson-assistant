@@ -17,7 +17,10 @@ import { cn } from "@/lib/utils";
 
 const OCR_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-handwriting`;
 const BATCH_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-batch`;
-const AUTH_HEADER = { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` };
+async function authHeaders(): Promise<Record<string, string>> {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token ? { Authorization: `Bearer ` } : {};
+}
 
 interface StagedFile {
   id: string;
@@ -84,7 +87,7 @@ export default function BulkAssessmentPage() {
     try {
       const resp = await fetch(OCR_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...AUTH_HEADER },
+        headers: { "Content-Type": "application/json", ...(await authHeaders()) },
         body: JSON.stringify({ imageBase64: base64, mimeType: mime }),
       });
       const data = await resp.json();

@@ -774,6 +774,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      redeem_free_promo: {
+        Args: {
+          _code: string
+          _lesson_hash?: string
+          _purpose: string
+          _user_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"

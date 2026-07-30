@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import { consumePendingAction } from "@/lib/pendingAction";
-import { consumeFeatureUsage, useFeatureUsage } from "@/hooks/useFeatureUsage";
+import { useFeatureUsage } from "@/hooks/useFeatureUsage";
 
 const LESSON_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson`;
 const IMAGES_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-lesson-images`;
@@ -109,17 +109,14 @@ export default function LessonNotesPage() {
       autoSubmit: true,
     })) return;
 
-    // Enforce monthly free-plan quota (server-side).
-    if (user) {
-      const gate = await consumeFeatureUsage(user.id, "lesson");
-      if (!gate.allowed) {
-        setUpgradeOpen(true);
-        await usage.refresh();
-        return;
-      }
-      // Refresh tracker after successful consumption.
-      usage.refresh();
+    // Quota is enforced server-side inside the generate-lesson edge function.
+    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = session?.access_token;
+    if (!accessToken) {
+      requireAuth({ feature: "lesson", formData: data, autoSubmit: true });
+      return;
     }
+
 
     setIsLoading(true);
     setLessonPlan("");
@@ -138,7 +135,7 @@ export default function LessonNotesPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
           subject: data.subject,
@@ -161,17 +158,24 @@ export default function LessonNotesPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(data),
       });
 
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: "Something went wrong" }));
-        toast({ title: "Error", description: err.error, variant: "destructive" });
+        if (resp.status === 403) {
+          setUpgradeOpen(true);
+        } else {
+          toast({ title: "Error", description: err.error, variant: "destructive" });
+        }
+        await usage.refresh();
         setIsLoading(false);
         return;
       }
+      usage.refresh();
+
 
       if (!resp.body) throw new Error("No response body");
       const reader = resp.body.getReader();

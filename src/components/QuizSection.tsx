@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Brain, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface QuizData {
   multipleChoice: {
@@ -34,11 +35,12 @@ export default function QuizSection({ lessonContent, language }: QuizSectionProp
     setShowAnswers(false);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const resp = await fetch(QUIZ_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${session?.access_token ?? ""}`,
         },
         body: JSON.stringify({ lessonContent, language }),
       });

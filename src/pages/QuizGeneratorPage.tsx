@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import { consumePendingAction } from "@/lib/pendingAction";
-import { consumeFeatureUsage, useFeatureUsage } from "@/hooks/useFeatureUsage";
+import { useFeatureUsage } from "@/hooks/useFeatureUsage";
 import UsageTracker from "@/components/UsageTracker";
 import UpgradeModal from "@/components/UpgradeModal";
 
@@ -80,15 +80,18 @@ export default function QuizGeneratorPage() {
       autoSubmit: true,
     })) return;
 
-    if (user) {
-      const gate = await consumeFeatureUsage(user.id, "quiz");
-      if (!gate.allowed) {
-        setUpgradeOpen(true);
-        await usage.refresh();
-        return;
-      }
-      usage.refresh();
+    // Quota is enforced server-side inside the generate-quiz edge function.
+    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = session?.access_token;
+    if (!accessToken) {
+      requireAuth({
+        feature: "quiz",
+        formData: { topic: t, curriculum: c, classLevel: cl, language: lang, notes: n },
+        autoSubmit: true,
+      });
+      return;
     }
+
 
     setIsLoading(true);
     setQuiz(null);
@@ -106,18 +109,25 @@ Generate a quiz suitable for this topic and level.`;
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ lessonContent, language }),
       });
 
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: "Something went wrong" }));
-        toast({ title: "Error", description: err.error, variant: "destructive" });
+        if (resp.status === 403) {
+          setUpgradeOpen(true);
+        } else {
+          toast({ title: "Error", description: err.error, variant: "destructive" });
+        }
+        await usage.refresh();
         return;
       }
       const data = await resp.json();
       setQuiz(data);
+      usage.refresh();
+
       // Auto-save to workspace
       if (user && data?.multipleChoice) {
         supabase.from("saved_quizzes").insert({

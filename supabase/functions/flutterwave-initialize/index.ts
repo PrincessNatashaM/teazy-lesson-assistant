@@ -81,17 +81,21 @@ Deno.serve(async (req) => {
     }
 
     if (minor === 0 && promo) {
-      // Free grant path (mirrors paystack-initialize)
-      const end = new Date(Date.now() + 30 * 86400 * 1000);
-      if (purpose === "sub_standard" || purpose === "sub_pro") {
-        await admin.from("subscriptions").upsert({
-          user_id: user.id, status: "active",
-          plan: purpose === "sub_standard" ? "standard" : "pro",
-          current_period_end: end.toISOString(),
-        }, { onConflict: "user_id" });
+      // Atomic, audited free-promo redemption (validates expiry, max uses,
+      // duplicate redemption, writes the ledger entry and activates access).
+      const { data: redeem, error: redeemErr } = await admin.rpc("redeem_free_promo", {
+        _user_id: user.id,
+        _code: String(promoCode).toUpperCase(),
+        _purpose: purpose,
+        _lesson_hash: lessonHash,
+      });
+      if (redeemErr) return json({ error: "Could not apply promo code" }, 400);
+      if (!(redeem as any)?.granted) {
+        return json({ error: "Promo code could not be applied", reason: (redeem as any)?.reason }, 400);
       }
       return json({ granted_free: true });
     }
+
 
     const reference = `tzy_flw_${user.id.slice(0, 8)}_${Date.now()}`;
     const { error: payErr } = await admin.from("payments").insert({
