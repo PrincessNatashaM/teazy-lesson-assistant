@@ -116,11 +116,18 @@ Generate a quiz suitable for this topic and level.`;
 
       if (!resp.ok) {
         const err = await resp.json().catch(() => ({ error: "Something went wrong" }));
-        toast({ title: "Error", description: err.error, variant: "destructive" });
+        if (resp.status === 403) {
+          setUpgradeOpen(true);
+        } else {
+          toast({ title: "Error", description: err.error, variant: "destructive" });
+        }
+        await usage.refresh();
         return;
       }
       const data = await resp.json();
       setQuiz(data);
+      usage.refresh();
+
       // Auto-save to workspace
       if (user && data?.multipleChoice) {
         supabase.from("saved_quizzes").insert({
