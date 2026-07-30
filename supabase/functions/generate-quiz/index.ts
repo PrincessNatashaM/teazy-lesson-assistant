@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getCachedQuiz, saveCachedQuiz, hashString } from "../_shared/cache.ts";
+import { requireUser, readJsonBody, consumeQuota } from "../_shared/authz.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,16 +12,31 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { lessonContent, language } = await req.json();
+    const auth = await requireUser(req);
+    if (auth instanceof Response) return auth;
 
-    if (!lessonContent) {
+    const parsed = await readJsonBody(req, 128 * 1024);
+    if (parsed instanceof Response) return parsed;
+    const { lessonContent, language } = parsed as Record<string, any>;
+
+    if (typeof lessonContent !== "string" || !lessonContent.trim() || lessonContent.length > 60000) {
       return new Response(JSON.stringify({ error: "Lesson content is required." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (language !== undefined && language !== null && (typeof language !== "string" || language.length > 60)) {
+      return new Response(JSON.stringify({ error: "Invalid request." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const lang = language || "English";
+
+    // Server-authoritative quota check before any AI or cache work.
+    const quota = await consumeQuota(auth, "quiz");
+    if (quota) return quota;
 
     // Cache lookup by content hash
     const lessonHash = await hashString(lessonContent.slice(0, 4000) + "|" + lang);
@@ -31,6 +47,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json", "X-Cache": "HIT" },
       });
     }
+
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
