@@ -49,9 +49,10 @@ Deno.serve(async (req) => {
       await admin.from("payments").update({ status: "failed", metadata: { ...payment.metadata, paystack: verifyBody } }).eq("id", payment.id);
       return json({ success: false, error: "Payment not successful" });
     }
-    if (Number(verifyBody.data.amount) !== Number(payment.amount_minor)) {
+    if (Number(verifyBody.data.amount) !== Number(payment.amount_minor) ||
+        String(verifyBody.data.currency ?? "") !== String(payment.currency)) {
       await admin.from("payments").update({ status: "failed", metadata: { ...payment.metadata, mismatch: true } }).eq("id", payment.id);
-      return json({ success: false, error: "Amount mismatch" });
+      return json({ success: false, error: "Amount/currency mismatch" });
     }
 
     await admin.from("payments").update({ status: "success", metadata: { ...payment.metadata, paystack: verifyBody.data } }).eq("id", payment.id);

@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
 
     // Amount check: FLW returns major-unit "amount"
     const paidMinor = Math.round(Number(tx.amount) * 100);
-    if (paidMinor < Number(payment.amount_minor) || String(tx.currency) !== String(payment.currency)) {
+    if (paidMinor !== Number(payment.amount_minor) || String(tx.currency ?? "") !== String(payment.currency)) {
       await admin.from("payments").update({
         status: "failed", metadata: { ...payment.metadata, mismatch: true, flutterwave: tx },
       }).eq("id", payment.id);
