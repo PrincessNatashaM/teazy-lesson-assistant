@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { buildLessonSystemPrompt, normalizeTopic } from "../_shared/curriculum.ts";
 import { getCachedLesson, saveCachedLesson } from "../_shared/cache.ts";
+import { requireUser, readJsonBody, consumeQuota } from "../_shared/authz.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
