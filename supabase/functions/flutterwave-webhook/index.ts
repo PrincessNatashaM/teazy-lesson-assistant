@@ -72,14 +72,47 @@ Deno.serve(async (req) => {
       return new Response("Payment not found", { status: 404 });
     }
 
-    if (payment.status !== "success") {
-      await admin
-        .from("payments")
-        .update({
-          status: "success",
-          metadata: { ...(payment.metadata ?? {}), gateway: "flutterwave", webhook: tx },
-        })
-        .eq("id", payment.id);
+    if (payment.status === "success") {
+      // Idempotent: never grant twice for the same payment.
+      return new Response("ok", { status: 200 });
+    }
+
+    // Authoritative amount + currency comparison against the stored record.
+    // Flutterwave returns major units; the DB stores minor units.
+    const expectedMinor = Number(payment.amount_minor);
+    const expectedCurrency = String(payment.currency);
+    const paidMinor = Math.round(Number(tx.amount) * 100);
+    const paidCurrency = String(tx.currency ?? "");
+
+    if (paidMinor !== expectedMinor || paidCurrency !== expectedCurrency) {
+      await admin.from("payments").update({
+        metadata: {
+          ...(payment.metadata ?? {}),
+          mismatch: {
+            at: new Date().toISOString(),
+            expected_amount_minor: expectedMinor,
+            expected_currency: expectedCurrency,
+            paid_amount_minor: paidMinor,
+            paid_currency: paidCurrency,
+            gateway: "flutterwave",
+          },
+        },
+      }).eq("id", payment.id);
+      return new Response("Amount/currency mismatch", { status: 400 });
+    }
+
+    const { data: claimed } = await admin
+      .from("payments")
+      .update({
+        status: "success",
+        metadata: { ...(payment.metadata ?? {}), gateway: "flutterwave", webhook: tx },
+      })
+      .eq("id", payment.id)
+      .neq("status", "success")
+      .select("id")
+      .maybeSingle();
+
+    if (claimed) {
       await grant(admin, payment);
     }
 
