@@ -33,7 +33,10 @@ import UsageTracker from "@/components/UsageTracker";
 const OCR_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-handwriting`;
 const ASSESS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-script`;
 const RUBRIC_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-writing`;
-const AUTH_HEADER = { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` };
+async function authHeaders(): Promise<Record<string, string>> {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token ? { Authorization: `Bearer ` } : {};
+}
 
 interface ScriptPage {
   id: string;
@@ -142,7 +145,7 @@ export default function WritingAssessmentPage() {
     try {
       const resp = await fetch(OCR_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...AUTH_HEADER },
+        headers: { "Content-Type": "application/json", ...(await authHeaders()) },
         body: JSON.stringify({ imageBase64: base64, mimeType: mime }),
       });
       const data = await resp.json();
@@ -182,7 +185,7 @@ export default function WritingAssessmentPage() {
     try {
       const resp = await fetch(RUBRIC_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json", ...AUTH_HEADER },
+        headers: { "Content-Type": "application/json", ...(await authHeaders()) },
         body: JSON.stringify({
           curriculum: curriculum.label,
           classLevel,
@@ -247,7 +250,7 @@ export default function WritingAssessmentPage() {
       const { data: { session } } = await supabase.auth.getSession();
       const authHeader = session?.access_token
         ? { Authorization: `Bearer ${session.access_token}` }
-        : AUTH_HEADER;
+        : {};
       const resp = await fetch(ASSESS_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...authHeader },
@@ -558,7 +561,7 @@ export default function WritingAssessmentPage() {
                       onChange={async (e) => {
                         const f = e.target.files?.[0]; if (!f) return;
                         if (f.type.startsWith("text/")) setQuestionPaper(await f.text());
-                        else { const { base64, mime } = await readFile(f); const r = await fetch(OCR_URL, { method: "POST", headers: { "Content-Type": "application/json", ...AUTH_HEADER }, body: JSON.stringify({ imageBase64: base64, mimeType: mime }) }); const d = await r.json(); setQuestionPaper(d.extractedText || ""); }
+                        else { const { base64, mime } = await readFile(f); const r = await fetch(OCR_URL, { method: "POST", headers: { "Content-Type": "application/json", ...(await authHeaders()) }, body: JSON.stringify({ imageBase64: base64, mimeType: mime }) }); const d = await r.json(); setQuestionPaper(d.extractedText || ""); }
                         e.target.value = "";
                       }} />
                   </div>
@@ -580,7 +583,7 @@ export default function WritingAssessmentPage() {
                       onChange={async (e) => {
                         const f = e.target.files?.[0]; if (!f) return;
                         if (f.type.startsWith("text/")) setMarkingScheme(await f.text());
-                        else { const { base64, mime } = await readFile(f); const r = await fetch(OCR_URL, { method: "POST", headers: { "Content-Type": "application/json", ...AUTH_HEADER }, body: JSON.stringify({ imageBase64: base64, mimeType: mime }) }); const d = await r.json(); setMarkingScheme(d.extractedText || ""); }
+                        else { const { base64, mime } = await readFile(f); const r = await fetch(OCR_URL, { method: "POST", headers: { "Content-Type": "application/json", ...(await authHeaders()) }, body: JSON.stringify({ imageBase64: base64, mimeType: mime }) }); const d = await r.json(); setMarkingScheme(d.extractedText || ""); }
                         e.target.value = "";
                       }} />
                   </div>
