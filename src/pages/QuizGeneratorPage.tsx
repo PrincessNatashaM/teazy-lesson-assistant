@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import { consumePendingAction } from "@/lib/pendingAction";
-import { consumeFeatureUsage, useFeatureUsage } from "@/hooks/useFeatureUsage";
+import { useFeatureUsage } from "@/hooks/useFeatureUsage";
 import UsageTracker from "@/components/UsageTracker";
 import UpgradeModal from "@/components/UpgradeModal";
 
