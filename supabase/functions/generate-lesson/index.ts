@@ -132,7 +132,12 @@ serve(async (req) => {
       }
     }
 
+    // Server-authoritative quota: consume BEFORE any AI/cache work.
+    const quota = await consumeQuota(auth, "lesson");
+    if (quota) return quota;
+
     const lang = language || "English";
+
     const cacheKey = {
       curriculum: isOnline ? `online:${platform}:${ageGroup}` : curriculum,
       subject,
