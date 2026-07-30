@@ -80,15 +80,18 @@ export default function QuizGeneratorPage() {
       autoSubmit: true,
     })) return;
 
-    if (user) {
-      const gate = await consumeFeatureUsage(user.id, "quiz");
-      if (!gate.allowed) {
-        setUpgradeOpen(true);
-        await usage.refresh();
-        return;
-      }
-      usage.refresh();
+    // Quota is enforced server-side inside the generate-quiz edge function.
+    const { data: { session } } = await supabase.auth.getSession();
+    const accessToken = session?.access_token;
+    if (!accessToken) {
+      requireAuth({
+        feature: "quiz",
+        formData: { topic: t, curriculum: c, classLevel: cl, language: lang, notes: n },
+        autoSubmit: true,
+      });
+      return;
     }
+
 
     setIsLoading(true);
     setQuiz(null);
