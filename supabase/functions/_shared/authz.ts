@@ -124,3 +124,29 @@ export async function consumeQuota(user: AuthedUser, kind: FeatureKind): Promise
   }
   return null;
 }
+
+/**
+ * Technical abuse guard (not a commercial quota). Buckets and their limits are
+ * defined server-side inside the consume_rate_limit DB function; the client
+ * cannot influence them. Uses the service role so the RPC is unreachable from
+ * the browser.
+ */
+export async function enforceRateLimit(userId: string, bucket: string): Promise<Response | null> {
+  const admin = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+  const { data, error } = await admin.rpc("consume_rate_limit", {
+    _user_id: userId,
+    _bucket: bucket,
+  });
+  if (error) return jsonResponse({ error: "Could not verify your usage allowance." }, 500);
+  const result = (data ?? {}) as Record<string, unknown>;
+  if (!result.allowed) {
+    return jsonResponse(
+      { error: "Too many requests. Please wait a moment and try again.", reason: result.reason ?? "rate_limited" },
+      429,
+    );
+  }
+  return null;
+}
