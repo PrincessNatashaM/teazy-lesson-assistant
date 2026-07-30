@@ -84,7 +84,13 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const body = await req.json();
+    // Server-authoritative auth: identity comes from the bearer token only.
+    const auth = await requireUser(req);
+    if (auth instanceof Response) return auth;
+
+    const parsed = await readJsonBody(req, 64 * 1024);
+    if (parsed instanceof Response) return parsed;
+    const body = parsed as Record<string, any>;
     const {
       subject, classLevel, topic, duration, teachingStyle, curriculum, language,
       environment, ageGroup, platform, objectives, additionalInstructions,
@@ -92,12 +98,26 @@ serve(async (req) => {
 
     const isOnline = environment === "online";
 
+    const fields: Array<[unknown, number]> = [
+      [subject, 120], [classLevel, 80], [topic, 300], [duration, 40], [teachingStyle, 80],
+      [curriculum, 120], [language, 60], [environment, 40], [ageGroup, 80], [platform, 80],
+      [objectives, 2000], [additionalInstructions, 2000],
+    ];
+    for (const [v, max] of fields) {
+      if (v !== undefined && v !== null && (typeof v !== "string" || v.length > max)) {
+        return new Response(JSON.stringify({ error: "Invalid request." }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     if (!subject || !topic) {
       return new Response(JSON.stringify({ error: "Subject and topic are required." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
     if (isOnline) {
       if (!ageGroup || !platform) {
         return new Response(JSON.stringify({ error: "Age group and platform are required for online lessons." }), {
