@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { requireUser, readJsonBody, consumeQuota } from "../_shared/authz.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -15,17 +16,43 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { curriculum, classLevel, writingType, studentWriting, language } = await req.json();
+    const auth = await requireUser(req);
+    if (auth instanceof Response) return auth;
 
-    if (!curriculum || !classLevel || !writingType || !studentWriting) {
+    const parsed = await readJsonBody(req, 256 * 1024);
+    if (parsed instanceof Response) return parsed;
+    const { curriculum, classLevel, writingType, studentWriting, language } = parsed as Record<string, any>;
+
+    const shortFields: Array<[unknown, number]> = [
+      [curriculum, 120], [classLevel, 80], [writingType, 120], [language, 60],
+    ];
+    for (const [v, max] of shortFields) {
+      if (v !== undefined && v !== null && (typeof v !== "string" || v.length > max)) {
+        return new Response(JSON.stringify({ error: "Invalid request." }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    if (!curriculum || !classLevel || !writingType || typeof studentWriting !== "string" || !studentWriting.trim()) {
       return new Response(JSON.stringify({ error: "All fields are required." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    if (studentWriting.length > 40000) {
+      return new Response(JSON.stringify({ error: "Submission is too long." }), {
+        status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Server-authoritative quota check before calling the AI provider.
+    const quota = await consumeQuota(auth, "writing");
+    if (quota) return quota;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
 
     const focus = curriculumFocus[curriculum] || curriculumFocus["Nigeria (NERDC)"];
     const lang = language || "English";
