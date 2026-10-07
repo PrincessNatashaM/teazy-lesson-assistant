@@ -74,16 +74,14 @@ const STRENGTH_COLOR = [
 ];
 
 const emailSchema = z.string().email().max(255);
-const phoneSchema = z.string().min(6).max(30);
 const nameSchema = z.string().trim().min(2).max(100);
 
 export default function AuthGateModal({ open, onClose, feature }: Props) {
   const [mode, setMode] = useState<"signup" | "signin">("signup");
   const [loading, setLoading] = useState(false);
-  const [oauthLoading, setOauthLoading] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [password, setPassword] = useState("");
   const { toast } = useToast();
   const copy = COPY[feature];
@@ -93,33 +91,10 @@ export default function AuthGateModal({ open, onClose, feature }: Props) {
   useEffect(() => {
     if (!open) {
       setPassword("");
+      setConfirm("");
+      setLoading(false);
     }
   }, [open]);
-
-  const handleGoogle = async () => {
-    setOauthLoading(true);
-    try {
-      // Preserve the full current URL so the user returns to the exact page
-      // they were on after the Google round-trip. Uses Supabase's standard
-      // OAuth flow — works on any host (Lovable, Render, custom domains) and
-      // does not depend on the Lovable-only /~oauth/initiate proxy.
-      const returnUrl = window.location.origin + window.location.pathname + window.location.search;
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: returnUrl },
-      });
-      if (error) {
-        toast({ title: "Google sign-in failed", description: error.message, variant: "destructive" });
-        setOauthLoading(false);
-        return;
-      }
-      // Browser will now redirect to Google; nothing else to do here.
-    } catch (err: any) {
-      toast({ title: "Google sign-in failed", description: err?.message ?? "Try again", variant: "destructive" });
-      setOauthLoading(false);
-    }
-  };
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,8 +103,8 @@ export default function AuthGateModal({ open, onClose, feature }: Props) {
     if (mode === "signup") {
       if (!nameSchema.safeParse(fullName).success) return toast({ title: "Enter your full name", variant: "destructive" });
       if (!emailSchema.safeParse(email).success) return toast({ title: "Enter a valid email", variant: "destructive" });
-      if (!phoneSchema.safeParse(phone).success) return toast({ title: "Enter a valid phone number", variant: "destructive" });
       if (pwScore < 5) return toast({ title: "Password does not meet all requirements", variant: "destructive" });
+      if (password !== confirm) return toast({ title: "Passwords do not match", variant: "destructive" });
     } else {
       if (!emailSchema.safeParse(email).success) return toast({ title: "Enter a valid email", variant: "destructive" });
       if (!password) return toast({ title: "Enter your password", variant: "destructive" });
@@ -138,7 +113,7 @@ export default function AuthGateModal({ open, onClose, feature }: Props) {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data: su, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -146,13 +121,21 @@ export default function AuthGateModal({ open, onClose, feature }: Props) {
             data: {
               display_name: fullName,
               full_name: fullName,
-              phone,
             },
           },
         });
         if (error) throw error;
-        const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-        if (signInErr) throw signInErr;
+        if (!su.session) {
+          const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
+          if (signInErr) {
+            if (/confirm/i.test(signInErr.message)) {
+              toast({ title: "Check your email", description: "Confirm your email address, then sign in." });
+              setMode("signin");
+              return;
+            }
+            throw signInErr;
+          }
+        }
         // Best-effort: update profiles with name/phone
         try {
           const { data: { user } } = await supabase.auth.getUser();
@@ -160,7 +143,6 @@ export default function AuthGateModal({ open, onClose, feature }: Props) {
             await supabase.from("profiles").update({
               display_name: fullName,
               full_name: fullName,
-              phone,
             } as any).eq("id", user.id);
           }
         } catch {}
@@ -186,54 +168,30 @@ export default function AuthGateModal({ open, onClose, feature }: Props) {
           <DialogDescription>{copy.description}</DialogDescription>
         </DialogHeader>
 
-        <Button
-          type="button"
-          onClick={handleGoogle}
-          disabled={oauthLoading || loading}
-          variant="outline"
-          className="w-full h-11 border-border bg-white text-foreground hover:bg-muted/60 font-medium"
-        >
-          {oauthLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <>
-              <GoogleIcon />
-              <span className="ml-2">Continue with Google</span>
-            </>
-          )}
-        </Button>
-
-        <div className="relative my-1">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">or continue with email</span>
-          </div>
-        </div>
-
         <form onSubmit={handleSubmit} className="space-y-3">
           {mode === "signup" && (
             <>
               <div className="space-y-1">
-                <Label htmlFor="fullName">Full Name</Label>
+                <Label htmlFor="fullName">Name</Label>
                 <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" />
               </div>
             </>
           )}
           <div className="space-y-1">
-            <Label htmlFor="email">Email Address</Label>
+            <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
           </div>
-          {mode === "signup" && (
-            <div className="space-y-1">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" />
-            </div>
-          )}
           <div className="space-y-1">
             <Label htmlFor="pw">Password</Label>
             <Input id="pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
               autoComplete={mode === "signup" ? "new-password" : "current-password"} />
           </div>
+          {mode === "signup" && (
+            <div className="space-y-1">
+              <Label htmlFor="pw2">Confirm Password</Label>
+              <Input id="pw2" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} autoComplete="new-password" />
+            </div>
+          )}
 
           {mode === "signup" && (
             <div className="space-y-2 pt-1">
@@ -257,10 +215,10 @@ export default function AuthGateModal({ open, onClose, feature }: Props) {
 
           <Button
             type="submit"
-            disabled={loading || oauthLoading}
+            disabled={loading}
             className="w-full h-11 bg-accent text-accent-foreground hover:bg-accent/90"
           >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Continue"}
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : mode === "signup" ? "Create Account" : "Sign In"}
           </Button>
         </form>
 
@@ -295,16 +253,5 @@ function PwRule({ ok, label }: { ok: boolean; label: string }) {
       <Check className={`h-3.5 w-3.5 ${ok ? "opacity-100" : "opacity-40"}`} />
       {label}
     </li>
-  );
-}
-
-function GoogleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.26 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-    </svg>
   );
 }
