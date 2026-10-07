@@ -166,8 +166,6 @@ export default function AuthPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete={mode === "signup" ? "new-password" : "current-password"}
-                required
-                minLength={8}
               />
               {mode === "signup" && (
                 <p className="text-xs text-muted-foreground">
