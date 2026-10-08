@@ -108,9 +108,13 @@ export default function WritingAssessmentPage() {
     () => (curriculum ? subjectsForClass(curriculum, classLevel) : []),
     [curriculum, classLevel],
   );
+  const [customSubject, setCustomSubject] = useState("");
+  const openSystem = isOpenSystem(curriculumId);
   const subject = useMemo(
-    () => availableSubjects.find((s) => s.id === subjectId),
-    [availableSubjects, subjectId],
+    () => openSystem
+      ? (customSubject.trim() ? { id: "custom", label: customSubject.trim().slice(0, 120), profile: "general" as const } : undefined)
+      : availableSubjects.find((s) => s.id === subjectId),
+    [openSystem, customSubject, availableSubjects, subjectId],
   );
 
   // WAEC/NECO are SS-3 only — auto-set and skip the class picker.
@@ -118,6 +122,8 @@ export default function WritingAssessmentPage() {
     if (!curriculum) return;
     if (isTerminalExamBody(curriculum.id)) {
       if (classLevel !== "SS 3") setClassLevel("SS 3");
+    } else if (isOpenSystem(curriculum.id)) {
+      if (classLevel !== curriculum.classes[0]) setClassLevel(curriculum.classes[0]);
     }
   }, [curriculum, classLevel]);
 
@@ -309,7 +315,7 @@ export default function WritingAssessmentPage() {
   };
 
   const resetAll = () => {
-    setCurriculumId(""); setSubjectId(""); setClassLevel("");
+    setCurriculumId(""); setSubjectId(""); setCustomSubject(""); setClassLevel("");
     setPages([]); setAssessmentType(""); setQuestionPaper(""); setMarkingScheme("");
     setMarkingStyle("standard"); setAssessment(null); setShowAdvanced(false); setShowOcrReview(false);
   };
@@ -328,7 +334,7 @@ export default function WritingAssessmentPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">Writing Assessment</h1>
           <p className="mt-2 text-muted-foreground max-w-2xl">
-            Three quick steps: pick your curriculum, pick the subject, upload the script.
+            Pick your curriculum or education system (University and No Specific Curriculum are supported), choose or type the subject, then upload the script.
             The AI handles the rest.
           </p>
         </div>
@@ -350,13 +356,13 @@ export default function WritingAssessmentPage() {
 
       <div className="space-y-6">
         {/* STEP 1 — Curriculum */}
-        <StepCard n={1} title="Select curriculum" done={!!curriculumId}>
+        <StepCard n={1} title="Select curriculum or education system" done={!!curriculumId}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {ASSESSMENT_SYSTEMS.map((c) => (
               <button
                 key={c.id}
                 type="button"
-                onClick={() => { setCurriculumId(c.id); setSubjectId(""); setClassLevel(""); }}
+                onClick={() => { setCurriculumId(c.id); setSubjectId(""); setCustomSubject(""); setClassLevel(""); }}
                 className={cn(
                   "text-left rounded-xl border-2 p-4 transition-all hover:shadow-md hover:border-accent/50",
                   curriculumId === c.id ? "border-accent bg-accent/5 shadow-md" : "border-border bg-background",
@@ -371,7 +377,7 @@ export default function WritingAssessmentPage() {
         </StepCard>
 
         {/* STEP 2 — Class / grade (skipped for terminal exam bodies) */}
-        {curriculum && !isTerminalExamBody(curriculum.id) && (
+        {curriculum && !isTerminalExamBody(curriculum.id) && !openSystem && (
           <StepCard n={2} title={`Select ${curriculum.terminology.class.toLowerCase()}`} done={!!classLevel}>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
               {curriculum.classes.map((c) => (
@@ -394,9 +400,9 @@ export default function WritingAssessmentPage() {
         )}
 
         {/* STEP 3 — Subject (filtered by class) */}
-        {curriculum && (isTerminalExamBody(curriculum.id) || classLevel) && (
-          <StepCard n={isTerminalExamBody(curriculum.id) ? 2 : 3} title="Select subject" done={!!subjectId}>
-            {!isTerminalExamBody(curriculum.id) && (
+        {curriculum && (isTerminalExamBody(curriculum.id) || openSystem || classLevel) && (
+          <StepCard n={(isTerminalExamBody(curriculum.id) || openSystem) ? 2 : 3} title={openSystem ? customSubjectCopy(curriculum.id).label : "Select subject"} done={!!subject}>
+            {!isTerminalExamBody(curriculum.id) && !openSystem && (
               <p className="text-xs text-muted-foreground mb-2">
                 Showing subjects offered at <span className="font-medium text-foreground">{classLevel}</span>.
               </p>
@@ -406,18 +412,32 @@ export default function WritingAssessmentPage() {
                 {curriculum.label} is a terminal SS 3 examination — all listed subjects are SS 3 papers.
               </p>
             )}
-            <SubjectCombobox
-              subjects={availableSubjects}
-              value={subjectId}
-              onChange={setSubjectId}
-              placeholder={`Search ${curriculum.label} subjects...`}
-            />
+            {openSystem ? (
+              <>
+                <p className="text-xs text-muted-foreground mb-2">
+                  No formal curriculum needed. Type any course or subject. Add your marking scheme under Advanced options and it will be used as the main basis for marking.
+                </p>
+                <Input
+                  value={customSubject}
+                  maxLength={120}
+                  onChange={(e) => setCustomSubject(e.target.value)}
+                  placeholder={customSubjectCopy(curriculum.id).placeholder}
+                />
+              </>
+            ) : (
+              <SubjectCombobox
+                subjects={availableSubjects}
+                value={subjectId}
+                onChange={setSubjectId}
+                placeholder={`Search ${curriculum.label} subjects...`}
+              />
+            )}
           </StepCard>
         )}
 
         {/* STEP 4 — Upload */}
         {curriculum && subject && classLevel && (
-          <StepCard n={isTerminalExamBody(curriculum.id) ? 3 : 4} title="Upload assessment" done={uploadReady && pages.length > 0}>
+          <StepCard n={(isTerminalExamBody(curriculum.id) || openSystem) ? 3 : 4} title="Upload assessment" done={uploadReady && pages.length > 0}>
 
             <div
               className="border-2 border-dashed border-border rounded-xl p-8 bg-muted/30 text-center cursor-pointer hover:border-accent/50 transition-colors"
