@@ -11,7 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { useToast } from "@/hooks/use-toast";
-import { CURRICULA, getCurriculum, subjectsForClass, isTerminalExamBody } from "@/lib/curricula";
+import { CURRICULA, getCurriculum, subjectsForClass, isTerminalExamBody, ASSESSMENT_SYSTEMS, getAssessmentSystem, isOpenSystem, customSubjectCopy } from "@/lib/curricula";
 import SubjectCombobox from "@/components/SubjectCombobox";
 import { cn } from "@/lib/utils";
 
@@ -50,18 +50,23 @@ export default function BulkAssessmentPage() {
   const [files, setFiles] = useState<StagedFile[]>([]);
   const [creating, setCreating] = useState(false);
 
-  const curriculum = useMemo(() => getCurriculum(curriculumId), [curriculumId]);
+  const curriculum = useMemo(() => getAssessmentSystem(curriculumId), [curriculumId]);
   const availableSubjects = useMemo(
     () => (curriculum ? subjectsForClass(curriculum, classLevel) : []),
     [curriculum, classLevel],
   );
-  const subject = availableSubjects.find((s) => s.id === subjectId);
+  const [customSubject, setCustomSubject] = useState("");
+  const openSystem = isOpenSystem(curriculumId);
+  const subject = openSystem
+    ? (customSubject.trim() ? { id: "custom", label: customSubject.trim().slice(0, 120), profile: "general" as const } : undefined)
+    : availableSubjects.find((s) => s.id === subjectId);
   const terminal = curriculum ? isTerminalExamBody(curriculum.id) : false;
 
-  // WAEC/NECO: auto-lock class to SS 3.
+  // WAEC/NECO: auto-lock class to SS 3. Open systems: single implicit level.
   useEffect(() => {
     if (terminal && classLevel !== "SS 3") setClassLevel("SS 3");
-  }, [terminal, classLevel]);
+    if (openSystem && curriculum && classLevel !== curriculum.classes[0]) setClassLevel(curriculum.classes[0]);
+  }, [terminal, openSystem, curriculum, classLevel]);
 
   // Clear subject when it's not available for the current class.
   useEffect(() => {
@@ -121,7 +126,7 @@ export default function BulkAssessmentPage() {
     }
   };
 
-  const canStart = !!(batchName && curriculumId && subjectId && classLevel &&
+  const canStart = !!(batchName && curriculumId && subject && classLevel &&
     files.length > 0 && files.every((f) => f.ocrDone && f.ocrText.trim().length > 20));
 
   const startBatch = async () => {
@@ -235,14 +240,14 @@ export default function BulkAssessmentPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <Label>Curriculum</Label>
+            <Label>Curriculum / education system</Label>
             <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-              value={curriculumId} onChange={(e) => { setCurriculumId(e.target.value); setSubjectId(""); setClassLevel(""); }}>
+              value={curriculumId} onChange={(e) => { setCurriculumId(e.target.value); setSubjectId(""); setCustomSubject(""); setClassLevel(""); }}>
               <option value="">Select...</option>
-              {CURRICULA.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+              {ASSESSMENT_SYSTEMS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
             </select>
           </div>
-          {!terminal && (
+          {!terminal && !openSystem && (
             <div>
               <Label>Class / grade</Label>
               <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
@@ -252,7 +257,15 @@ export default function BulkAssessmentPage() {
               </select>
             </div>
           )}
-          <div className={terminal ? "md:col-span-2" : ""}>
+          <div className={terminal || openSystem ? "md:col-span-2" : ""}>
+            {openSystem && curriculum ? (
+              <>
+                <Label>{customSubjectCopy(curriculum.id).label}</Label>
+                <Input value={customSubject} maxLength={120} onChange={(e) => setCustomSubject(e.target.value)}
+                  placeholder={customSubjectCopy(curriculum.id).placeholder} />
+                <p className="text-xs text-muted-foreground mt-1">No formal curriculum needed. Your marking scheme below is used as the main basis for marking.</p>
+              </>
+            ) : (<>
             <Label>Subject {terminal && <span className="text-xs text-muted-foreground">(SS 3 papers)</span>}</Label>
             <SubjectCombobox
               subjects={availableSubjects}
@@ -267,6 +280,7 @@ export default function BulkAssessmentPage() {
                   : `Search ${curriculum.label} subjects...`
               }
             />
+            </>)}
           </div>
         </div>
 

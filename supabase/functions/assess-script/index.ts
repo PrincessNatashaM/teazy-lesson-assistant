@@ -8,6 +8,10 @@ const corsHeaders = {
 };
 
 const curriculumFocus: Record<string, string> = {
+  "Higher Education / University":
+    "University-level marking. Do not assume any national school curriculum. Use the lecturer's marking scheme or rubric as the primary and authoritative basis for marks; never invent a different scheme when one is supplied. Expect higher-order reasoning, correct terminology and rigour appropriate to undergraduate or postgraduate work.",
+  "Other / No Specific Curriculum":
+    "No formal curriculum applies. Do not reference NERDC, WAEC, NECO, CBC or NaCCA. Use the supplied marking scheme or rubric as the primary basis for marks; if none is supplied, mark on accuracy, completeness, clarity and quality of reasoning for the stated subject or assessment area.",
   "Nigeria (NERDC)":
     "Follow NERDC scheme of work. Value grammatical correctness, clear structure, mark allocation transparency, and neatness. Use Nigerian classroom conventions (e.g. 'Well done', 'Read the question again').",
   WAEC:
