@@ -6,6 +6,7 @@ import {
   ChevronDown, FileText, Settings2, Brain,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
@@ -22,8 +23,7 @@ import BuyPackModal from "@/components/BuyPackModal";
 import {
   CURRICULA, ASSESSMENT_TYPES, MARKING_STYLES,
   getCurriculum, subjectsForClass, isTerminalExamBody,
-  type AssessmentTypeId, type MarkingStyleId,
-} from "@/lib/curricula";
+  type AssessmentTypeId, type MarkingStyleId, ASSESSMENT_SYSTEMS, getAssessmentSystem, isOpenSystem, customSubjectCopy } from "@/lib/curricula";
 
 import AssessmentResults, { type AssessmentResult } from "@/components/AssessmentResults";
 import SubjectCombobox from "@/components/SubjectCombobox";
@@ -103,7 +103,7 @@ export default function WritingAssessmentPage() {
   const qpFileRef = useRef<HTMLInputElement>(null);
   const msFileRef = useRef<HTMLInputElement>(null);
 
-  const curriculum = useMemo(() => getCurriculum(curriculumId), [curriculumId]);
+  const curriculum = useMemo(() => getAssessmentSystem(curriculumId), [curriculumId]);
   const availableSubjects = useMemo(
     () => (curriculum ? subjectsForClass(curriculum, classLevel) : []),
     [curriculum, classLevel],
@@ -352,7 +352,7 @@ export default function WritingAssessmentPage() {
         {/* STEP 1 — Curriculum */}
         <StepCard n={1} title="Select curriculum" done={!!curriculumId}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {CURRICULA.map((c) => (
+            {ASSESSMENT_SYSTEMS.map((c) => (
               <button
                 key={c.id}
                 type="button"

@@ -238,3 +238,45 @@ export function isTerminalExamBody(curriculumId: string): boolean {
   return curriculumId === "waec" || curriculumId === "neco";
 }
 
+
+/* ---------- Writing Assessment only: open education systems ---------- */
+// These are NOT used by lesson generation. They let lecturers and other
+// educators type their own course instead of picking from a curriculum list.
+export const OPEN_SYSTEM_IDS = ["higher-ed", "other"] as const;
+
+export const ASSESSMENT_SYSTEMS: Curriculum[] = [
+  ...CURRICULA,
+  {
+    id: "higher-ed",
+    label: "Higher Education / University",
+    flag: "🎓",
+    country: "Lecturers, any course",
+    terminology: { exam: "Examination", class: "Level" },
+    classes: ["University"],
+    subjects: [],
+  },
+  {
+    id: "other",
+    label: "Other / No Specific Curriculum",
+    flag: "📝",
+    country: "Private, professional, training",
+    terminology: { exam: "Assessment", class: "Level" },
+    classes: ["General"],
+    subjects: [],
+  },
+];
+
+export function getAssessmentSystem(id: string): Curriculum | undefined {
+  return ASSESSMENT_SYSTEMS.find((c) => c.id === id);
+}
+
+/** Systems where the user types their own course/subject and no class step is shown. */
+export function isOpenSystem(id: string): boolean {
+  return (OPEN_SYSTEM_IDS as readonly string[]).includes(id);
+}
+
+export function customSubjectCopy(id: string) {
+  return id === "higher-ed"
+    ? { label: "Course / Subject", placeholder: "e.g. Thermodynamics, Educational Psychology, Organic Chemistry, Research Methods" }
+    : { label: "Subject / Course / Assessment Area", placeholder: "e.g. Entrance exam, Professional exam, Essay, Training assessment" };
+}

@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Loader2, Upload, X, Crown, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { useToast } from "@/hooks/use-toast";
-import { CURRICULA, getCurriculum, subjectsForClass, isTerminalExamBody } from "@/lib/curricula";
+import { CURRICULA, getCurriculum, subjectsForClass, isTerminalExamBody, ASSESSMENT_SYSTEMS, getAssessmentSystem, isOpenSystem, customSubjectCopy } from "@/lib/curricula";
 import SubjectCombobox from "@/components/SubjectCombobox";
 import { cn } from "@/lib/utils";
 
@@ -50,7 +51,7 @@ export default function BulkAssessmentPage() {
   const [files, setFiles] = useState<StagedFile[]>([]);
   const [creating, setCreating] = useState(false);
 
-  const curriculum = useMemo(() => getCurriculum(curriculumId), [curriculumId]);
+  const curriculum = useMemo(() => getAssessmentSystem(curriculumId), [curriculumId]);
   const availableSubjects = useMemo(
     () => (curriculum ? subjectsForClass(curriculum, classLevel) : []),
     [curriculum, classLevel],
@@ -239,7 +240,7 @@ export default function BulkAssessmentPage() {
             <select className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
               value={curriculumId} onChange={(e) => { setCurriculumId(e.target.value); setSubjectId(""); setClassLevel(""); }}>
               <option value="">Select...</option>
-              {CURRICULA.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+              {ASSESSMENT_SYSTEMS.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
             </select>
           </div>
           {!terminal && (
