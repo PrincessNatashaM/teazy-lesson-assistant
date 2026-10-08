@@ -26,6 +26,7 @@ import {
   type AssessmentTypeId, type MarkingStyleId, ASSESSMENT_SYSTEMS, getAssessmentSystem, isOpenSystem, customSubjectCopy } from "@/lib/curricula";
 
 import AssessmentResults, { type AssessmentResult } from "@/components/AssessmentResults";
+import SavedSchemePicker from "@/components/SavedSchemePicker";
 import SubjectCombobox from "@/components/SubjectCombobox";
 import UpgradeModal from "@/components/UpgradeModal";
 import UsageTracker from "@/components/UsageTracker";
@@ -598,6 +599,8 @@ export default function WritingAssessmentPage() {
                         </Button>
                       </div>
                     </div>
+                    <SavedSchemePicker markingScheme={markingScheme} questionPaper={questionPaper} subject={subject?.label}
+                      onLoad={(x) => { setMarkingScheme(x.markingScheme); if (x.questionPaper) setQuestionPaper(x.questionPaper); }} />
                     <Textarea id="ms" value={markingScheme} onChange={(e) => setMarkingScheme(e.target.value)} placeholder="Paste the marking scheme, or generate one with AI." className="min-h-[120px]" />
                     <input ref={msFileRef} type="file" accept="image/*,application/pdf,text/plain" className="hidden"
                       onChange={async (e) => {
