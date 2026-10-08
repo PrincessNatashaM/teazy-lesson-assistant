@@ -653,6 +653,39 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_marking_schemes: {
+        Row: {
+          created_at: string
+          id: string
+          marking_scheme: string
+          name: string
+          question_paper: string | null
+          subject: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          marking_scheme: string
+          name: string
+          question_paper?: string | null
+          subject?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          marking_scheme?: string
+          name?: string
+          question_paper?: string | null
+          subject?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       saved_quizzes: {
         Row: {
           class_level: string | null
