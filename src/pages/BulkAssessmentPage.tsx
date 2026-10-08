@@ -12,6 +12,7 @@ import { useAuthGate } from "@/hooks/useAuthGate";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { useToast } from "@/hooks/use-toast";
 import { CURRICULA, getCurriculum, subjectsForClass, isTerminalExamBody, ASSESSMENT_SYSTEMS, getAssessmentSystem, isOpenSystem, customSubjectCopy } from "@/lib/curricula";
+import SavedSchemePicker from "@/components/SavedSchemePicker";
 import SubjectCombobox from "@/components/SubjectCombobox";
 import { cn } from "@/lib/utils";
 
@@ -292,7 +293,9 @@ export default function BulkAssessmentPage() {
           </div>
           <div>
             <Label>Marking scheme (optional but recommended)</Label>
-            <Textarea rows={4} value={markingScheme} onChange={(e) => setMarkingScheme(e.target.value)} placeholder="Paste the scheme so scripts are marked against it..." />
+            <SavedSchemePicker markingScheme={markingScheme} questionPaper={questionPaper} subject={subject?.label}
+              onLoad={(x) => { setMarkingScheme(x.markingScheme); if (x.questionPaper) setQuestionPaper(x.questionPaper); }} />
+            <Textarea className="mt-2" rows={4} value={markingScheme} onChange={(e) => setMarkingScheme(e.target.value)} placeholder="Paste the scheme so scripts are marked against it..." />
           </div>
         </div>
 
