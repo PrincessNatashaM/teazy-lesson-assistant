@@ -106,16 +106,21 @@ export type Database = {
           created_at: string
           curriculum: string
           failed_count: number
+          folder_id: string | null
           id: string
+          instructions: string | null
           language: string | null
+          last_opened_at: string | null
           marking_scheme: string | null
           marking_style: string | null
           name: string
           question_paper: string | null
+          scheme_name: string | null
           script_count: number
           status: string
           subject: string
           subject_profile: string | null
+          total_marks: number | null
           updated_at: string
           user_id: string
         }
@@ -127,16 +132,21 @@ export type Database = {
           created_at?: string
           curriculum: string
           failed_count?: number
+          folder_id?: string | null
           id?: string
+          instructions?: string | null
           language?: string | null
+          last_opened_at?: string | null
           marking_scheme?: string | null
           marking_style?: string | null
           name: string
           question_paper?: string | null
+          scheme_name?: string | null
           script_count?: number
           status?: string
           subject: string
           subject_profile?: string | null
+          total_marks?: number | null
           updated_at?: string
           user_id: string
         }
@@ -148,20 +158,33 @@ export type Database = {
           created_at?: string
           curriculum?: string
           failed_count?: number
+          folder_id?: string | null
           id?: string
+          instructions?: string | null
           language?: string | null
+          last_opened_at?: string | null
           marking_scheme?: string | null
           marking_style?: string | null
           name?: string
           question_paper?: string | null
+          scheme_name?: string | null
           script_count?: number
           status?: string
           subject?: string
           subject_profile?: string | null
+          total_marks?: number | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "assessment_batches_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       assessment_credits: {
         Row: {
@@ -182,6 +205,30 @@ export type Database = {
           created_at?: string
           id?: string
           remaining?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      assessment_folders: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
           updated_at?: string
           user_id?: string
         }
@@ -820,7 +867,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assessment_period: {
+        Args: { _user_id: string }
+        Returns: {
+          period_start: string
+          resets_at: string
+        }[]
+      }
       consume_assessment_upload: { Args: { _user_id: string }; Returns: Json }
+      consume_batch_uploads: {
+        Args: { _n: number; _user_id: string }
+        Returns: Json
+      }
       consume_feature_usage: {
         Args: { _kind: string; _user_id: string }
         Returns: Json
@@ -831,6 +889,7 @@ export type Database = {
       }
       get_assessment_status: { Args: { _user_id: string }; Returns: Json }
       get_feature_usage: { Args: { _user_id: string }; Returns: Json }
+      get_my_assessment_quota: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
