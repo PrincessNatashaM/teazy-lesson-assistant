@@ -47,7 +47,7 @@ export interface Analytics {
 }
 
 export function analyseBatch(items: BatchItemRow[]): Analytics {
-  const done = items.filter((i) => i.status === "done" && i.percent !== null);
+  const done = items.filter((i) => (i.status === "done" || i.status === "needs_review") && i.percent !== null);
   const percents = done.map((d) => Number(d.percent));
   const gradeCounts: Record<string, number> = {};
   done.forEach((d) => {
