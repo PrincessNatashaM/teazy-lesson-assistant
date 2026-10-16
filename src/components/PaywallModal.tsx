@@ -45,6 +45,8 @@ interface Props {
   purpose: Purpose;
   lessonHash?: string | null;
   onSuccess?: () => void;
+  /** Preselect a plan when opened. */
+  initialPlan?: SubPurpose;
 }
 
 const CONTEXT_COPY: Record<Purpose, { title: string; message: string }> = {
@@ -66,7 +68,7 @@ const CONTEXT_COPY: Record<Purpose, { title: string; message: string }> = {
   },
 };
 
-export default function PaywallModal({ open, onClose, purpose, onSuccess }: Props) {
+export default function PaywallModal({ open, onClose, purpose, onSuccess, initialPlan }: Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -82,6 +84,10 @@ export default function PaywallModal({ open, onClose, purpose, onSuccess }: Prop
   } | null>(null);
   const [validatingPromo, setValidatingPromo] = useState(false);
   const [paying, setPaying] = useState(false);
+
+  useEffect(() => {
+    if (open && initialPlan) setSelected(initialPlan);
+  }, [open, initialPlan]);
 
   useEffect(() => {
     if (!open || !user) return;
@@ -304,7 +310,7 @@ export default function PaywallModal({ open, onClose, purpose, onSuccess }: Prop
               <div className="text-[11px] font-bold uppercase text-muted-foreground">Assessment Pro</div>
               <div className="mt-1 font-bold text-navy">{PRO_PRICES[country].display}</div>
               <div className="text-[11px] text-muted-foreground mt-1">
-                Unlimited assessments · bulk marking · analytics
+                Up to 1000 handwritten scripts / month · folders · saved schemes
               </div>
             </button>
           </div>

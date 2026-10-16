@@ -162,6 +162,27 @@ serve(async (req) => {
     const { data: items } = await admin.from("assessment_batch_items").select("*").eq("batch_id", batchId).eq("status", "queued");
     const queue = items || [];
 
+    // Server-side monthly allowance (1000 scripts per billing month).
+    if (queue.length > 0) {
+      const { data: quota, error: qErr } = await admin.rpc("consume_batch_uploads", { _user_id: user.id, _n: queue.length });
+      if (qErr || !(quota as any)?.allowed) {
+        const q = (quota ?? {}) as any;
+        await admin.from("assessment_batch_items").update({ status: "failed", error: "Monthly upload limit reached" })
+          .eq("batch_id", batchId).eq("status", "queued");
+        return new Response(JSON.stringify({
+          error: q.reason === "monthly_limit_reached"
+            ? `You've reached your 1000-script monthly limit. ${q.remaining ?? 0} scripts remaining.`
+            : "Could not check your upload allowance.",
+          quota: q,
+        }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
+
+    const schemeExtra = [
+      batch.total_marks ? `TOTAL MARKS FOR THIS ASSESSMENT: ${batch.total_marks}` : "",
+      batch.instructions ? `ADDITIONAL MARKER INSTRUCTIONS (from the teacher):\n${String(batch.instructions).slice(0, 4000)}` : "",
+    ].filter(Boolean).join("\n\n");
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY missing");
 
@@ -178,13 +199,15 @@ serve(async (req) => {
             assessmentType: batch.assessment_type || undefined,
             markingStyle: batch.marking_style || "standard",
             questionPaper: batch.question_paper || undefined,
-            markingScheme: batch.marking_scheme || undefined,
+            markingScheme: [batch.marking_scheme || "", schemeExtra].filter(Boolean).join("\n\n") || undefined,
             studentScript: item.ocr_text || "",
             language: batch.language || "English",
             priority: "high",
           }, LOVABLE_API_KEY);
+          const unreliable = result.manualReviewRecommended || result.confidence < 75 || (item.ocr_text || "").trim().length < 40;
           await admin.from("assessment_batch_items").update({
-            status: "done",
+            status: unreliable ? "needs_review" : "done",
+            error: unreliable ? "Low confidence: please check this mark before relying on it." : null,
             result_json: result,
             awarded: result.overallScore,
             max_score: result.maxScore,

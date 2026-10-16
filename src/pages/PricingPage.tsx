@@ -34,7 +34,11 @@ const STANDARD_FEATURES = [
 
 const PRO_FEATURES = [
   "Everything in Teazy AI Pro",
-  "Unlimited Writing Assessment uploads",
+  "Up to 1000 handwritten script uploads per month",
+  "Unlimited marking within your 1000-script monthly allowance",
+  "Saved marking schemes",
+  "Subject and course folders",
+  "Organised assessment management in your Teacher Dashboard",
   "Bulk marking (multiple scripts at once)",
   "Mark against uploaded marking schemes",
   "Question paper comparison",

@@ -17,7 +17,7 @@ interface Props {
   markingScheme: string;
   questionPaper?: string;
   subject?: string;
-  onLoad: (s: { markingScheme: string; questionPaper?: string }) => void;
+  onLoad: (s: { markingScheme: string; questionPaper?: string; name?: string }) => void;
 }
 
 /** Save the current marking scheme under a name, or load a previously saved one. */
@@ -45,7 +45,7 @@ export default function SavedSchemePicker({ markingScheme, questionPaper, subjec
     setSelected(id);
     const s = schemes.find((x) => x.id === id);
     if (!s) return;
-    onLoad({ markingScheme: s.marking_scheme, questionPaper: s.question_paper || undefined });
+    onLoad({ markingScheme: s.marking_scheme, questionPaper: s.question_paper || undefined, name: s.name });
     setName(s.name);
     toast({ title: "Marking scheme loaded", description: s.name });
   };

@@ -14,6 +14,7 @@ interface Batch {
   script_count: number; completed_count: number; failed_count: number;
   avg_percent: number | null; status: string; created_at: string;
   marking_scheme: string | null; question_paper: string | null;
+  folder_id: string | null; total_marks: number | null; scheme_name: string | null;
 }
 
 interface Item {
@@ -40,6 +41,7 @@ export default function BatchDetailPage() {
         supabase.from("assessment_batch_items").select("*").eq("batch_id", id).order("student_name"),
       ]);
       setBatch(b as Batch);
+      if (b) supabase.from("assessment_batches").update({ last_opened_at: new Date().toISOString() }).eq("id", id).then(() => {});
       setItems((it as Item[]) || []);
       setLoading(false);
     })();
@@ -81,13 +83,18 @@ export default function BatchDetailPage() {
       <Helmet><title>{batch.name} | Batch | Teazy AI</title></Helmet>
 
       <div className="mb-4">
-        <Button asChild variant="ghost" size="sm"><Link to="/app/writing/batches"><ArrowLeft className="mr-1 h-4 w-4" /> All batches</Link></Button>
+        <Button asChild variant="ghost" size="sm"><Link to={batch.folder_id ? `/dashboard/folders/${batch.folder_id}` : "/dashboard"}><ArrowLeft className="mr-1 h-4 w-4" /> {batch.folder_id ? "Back to folder" : "Dashboard"}</Link></Button>
       </div>
 
       <header className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">{batch.name}</h1>
-          <p className="text-muted-foreground mt-1">{batch.curriculum} · {batch.subject} · {batch.class_level}</p>
+          <p className="text-muted-foreground mt-1">{batch.subject}{batch.curriculum && !batch.curriculum.startsWith("Other") ? ` · ${batch.curriculum}` : ""}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Created {new Date(batch.created_at).toLocaleDateString()}
+            {batch.total_marks ? ` · ${Number(batch.total_marks)} marks` : ""}
+            {` · Marking scheme: ${batch.scheme_name || (batch.marking_scheme ? "Custom scheme" : "None (AI model answer)")}`}
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={exportCSV} disabled={!items.some((i) => i.status === "done")}>
@@ -108,12 +115,14 @@ export default function BatchDetailPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         {[
-          { label: "Marked", value: `${analytics.count}/${batch.script_count}` },
-          { label: "Class avg", value: `${analytics.avg}%` },
-          { label: "Range", value: analytics.count ? `${analytics.min}–${analytics.max}%` : "—" },
-          { label: "Needs review", value: analytics.needsReview, tone: analytics.needsReview > 0 ? "warn" : "" },
+          { label: "Scripts uploaded", value: batch.script_count },
+          { label: "Marked", value: items.filter((i) => i.status === "done" || i.status === "needs_review").length },
+          { label: "Average", value: analytics.count ? `${analytics.avg}%` : "-" },
+          { label: "Highest", value: analytics.count ? `${analytics.max}%` : "-" },
+          { label: "Lowest", value: analytics.count ? `${analytics.min}%` : "-" },
+          { label: "Needs review", value: items.filter((i) => i.status === "needs_review").length, tone: items.some((i) => i.status === "needs_review") ? "warn" : "" },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-border bg-card p-4">
             <div className="text-xs text-muted-foreground">{s.label}</div>
@@ -166,14 +175,14 @@ export default function BatchDetailPage() {
             <tbody className="divide-y divide-border">
               {items.map((it) => (
                 <tr key={it.id}
-                  className={`hover:bg-muted/40 ${it.status === "done" ? "cursor-pointer" : ""}`}
-                  onClick={() => it.status === "done" && setOpenStudent(it)}>
+                  className={`hover:bg-muted/40 ${it.result_json ? "cursor-pointer" : ""}`}
+                  onClick={() => it.result_json && setOpenStudent(it)}>
                   <td className="px-4 py-2 font-medium text-foreground">
                     {it.student_name}
-                    {(it.confidence ?? 100) < 75 && it.status === "done" && (
-                      <span className="ml-2 inline-flex items-center gap-1 text-xs text-accent">
-                        <AlertTriangle className="h-3 w-3" /> review
-                      </span>
+                    {it.status === "needs_review" && it.error && (
+                      <div className="text-xs font-normal text-accent flex items-center gap-1 mt-0.5">
+                        <AlertTriangle className="h-3 w-3" /> {it.error}
+                      </div>
                     )}
                   </td>
                   <td className="text-right px-4 py-2">
@@ -185,10 +194,11 @@ export default function BatchDetailPage() {
                   <td className="text-center px-4 py-2">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${
                       it.status === "done" ? "bg-success/15 text-success" :
+                      it.status === "needs_review" ? "bg-accent/15 text-accent" :
                       it.status === "processing" ? "bg-accent/15 text-accent" :
                       it.status === "failed" ? "bg-destructive/15 text-destructive" :
                       "bg-muted text-muted-foreground"
-                    }`}>{it.status === "processing" ? "marking..." : it.status}</span>
+                    }`}>{({ queued: "Uploaded", processing: "Processing", done: "Marked", needs_review: "Needs review", failed: "Failed" } as Record<string, string>)[it.status] || it.status}</span>
                   </td>
                 </tr>
               ))}
