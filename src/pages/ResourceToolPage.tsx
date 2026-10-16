@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "@/hooks/useAuthGate";
+import VideoMaker from "@/components/VideoMaker";
 
 export type ToolType = "worksheet" | "slides" | "rubric" | "video";
 
@@ -16,7 +17,7 @@ const META: Record<ToolType, { title: string; intro: string; topicLabel: string;
   worksheet: { title: "Worksheet Designer", intro: "Printable practice worksheets with an answer key.", topicLabel: "Topic", placeholder: "e.g. Fractions: adding unlike denominators", button: "Design worksheet" },
   slides: { title: "Presentation Slides", intro: "Ready-to-teach slides with speaker notes. Download as PowerPoint.", topicLabel: "Topic", placeholder: "e.g. Photosynthesis", button: "Create slides" },
   rubric: { title: "Rubric Generator", intro: "Clear, weighted marking rubrics for essays, projects and presentations.", topicLabel: "Assignment", placeholder: "e.g. 2,000-word argumentative essay on climate policy", button: "Generate rubric" },
-  video: { title: "Animated Video Maker", intro: "Describe your lesson. We write the scenes and narration, then give you ready-made prompts for Google Whisk and Google Flow.", topicLabel: "What should the video teach?", placeholder: "e.g. The water cycle for Primary 4", button: "Plan my video" },
+  video: { title: "Animated Video Maker", intro: "Describe your lesson. Teazy plans the scenes and narration, then animates a narrated video for you.", topicLabel: "What should the video teach?", placeholder: "e.g. The water cycle for Primary 4", button: "Plan my video" },
 };
 
 const URL_ = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-resource`;
@@ -139,30 +140,7 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
             </div>
           )}
 
-          {type === "video" && (
-            <div className="mt-4 space-y-4">
-              <ol className="text-sm list-decimal pl-5 text-muted-foreground space-y-1">
-                <li>Open Whisk, paste each picture prompt and save the images you like.</li>
-                <li>Open Flow, add a picture, paste the matching clip prompt, and generate.</li>
-                <li>Put the clips in order and record or paste the narration.</li>
-              </ol>
-              <div className="flex flex-wrap gap-2">
-                <Button asChild variant="outline"><a href="https://labs.google/fx/tools/whisk" target="_blank" rel="noreferrer">Open Whisk</a></Button>
-                <Button asChild variant="outline"><a href="https://labs.google/fx/tools/flow" target="_blank" rel="noreferrer">Open Flow</a></Button>
-                <Button variant="outline" onClick={() => copy(data.scenes.map((s: any, i: number) => `Scene ${i + 1}: ${s.narration}`).join("\n"))}>Copy full narration</Button>
-              </div>
-              {data.scenes.map((s: any, i: number) => (
-                <div key={i} className="rounded-lg border border-border p-4 space-y-2">
-                  <div className="font-semibold text-navy">Scene {i + 1}</div>
-                  <p className="text-sm"><span className="font-medium">Narration:</span> {s.narration}</p>
-                  <div className="flex flex-wrap gap-2">
-                    <Button size="sm" variant="secondary" onClick={() => copy(s.imagePrompt)}>Copy picture prompt (Whisk)</Button>
-                    <Button size="sm" variant="secondary" onClick={() => copy(s.videoPrompt)}>Copy clip prompt (Flow)</Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          {type === "video" && <div className="mt-4"><VideoMaker key={data.title} title={data.title} scenes={data.scenes} /></div>}
         </div>
       )}
     </div>
