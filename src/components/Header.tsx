@@ -58,8 +58,8 @@ export default function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">
-          {(user ? PRIVATE_NAV : PUBLIC_NAV).map(({ to, label }) => (
-            <NavLink key={to} to={to} end={to === "/app"} className={linkClass}>
+          {(user && proActive ? PRO_NAV : BASE_NAV).map(({ to, label }) => (
+            <NavLink key={to} to={to} end className={linkClass}>
               {label}
             </NavLink>
           ))}
@@ -113,8 +113,8 @@ export default function Header() {
 
       {open && (
         <nav className="md:hidden border-t border-navy-foreground/10 bg-navy px-4 py-3 flex flex-col gap-1 animate-fade-in">
-          {(user ? PRIVATE_NAV : PUBLIC_NAV).map(({ to, label }) => (
-            <NavLink key={to} to={to} end={to === "/app"} onClick={() => setOpen(false)} className={linkClass}>
+          {(user && proActive ? PRO_NAV : BASE_NAV).map(({ to, label }) => (
+            <NavLink key={to} to={to} end onClick={() => setOpen(false)} className={linkClass}>
               {label}
             </NavLink>
           ))}
