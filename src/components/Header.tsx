@@ -8,16 +8,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import PaywallModal from "./PaywallModal";
 
-const PUBLIC_NAV = [
-  { to: "/app", label: "Lesson Notes" },
-  { to: "/app/quiz", label: "Quiz Generator" },
-  { to: "/app/writing", label: "Writing Assessment" },
-];
-const PRIVATE_NAV = [
-  { to: "/dashboard", label: "Dashboard" },
-  ...PUBLIC_NAV,
+const BASE_NAV = [
+  { to: "/k12", label: "K12" },
+  { to: "/higher-ed", label: "Higher Ed" },
   { to: "/app/workspace", label: "My Workspace" },
 ];
+const PRO_NAV = [{ to: "/dashboard", label: "Dashboard" }, ...BASE_NAV];
 
 export default function Header() {
   const [open, setOpen] = useState(false);
