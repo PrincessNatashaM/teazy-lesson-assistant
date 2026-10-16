@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Loader2, Camera, Upload, X, Check, Sparkles, Wand2, Zap, Crown,
   ChevronDown, FileText, Settings2, Brain,
@@ -81,7 +81,9 @@ export default function WritingAssessmentPage() {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   // Primary inputs
-  const [curriculumId, setCurriculumId] = useState("");
+  const [params] = useSearchParams();
+  const higherEd = params.get("for") === "higher-ed";
+  const [curriculumId, setCurriculumId] = useState(higherEd ? "higher-ed" : "");
   const [subjectId, setSubjectId] = useState("");
   const [classLevel, setClassLevel] = useState("");
   const [pages, setPages] = useState<ScriptPage[]>([]);
@@ -91,7 +93,7 @@ export default function WritingAssessmentPage() {
   const [markingStyle, setMarkingStyle] = useState<MarkingStyleId>("standard");
   const [questionPaper, setQuestionPaper] = useState("");
   const [markingScheme, setMarkingScheme] = useState("");
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(higherEd);
   const [showOcrReview, setShowOcrReview] = useState(false);
   const [rubricLoading, setRubricLoading] = useState(false);
 
@@ -355,9 +357,9 @@ export default function WritingAssessmentPage() {
         </div>
       )}
 
-      <div className="space-y-6">
+      <div className="flex flex-col gap-6">
         {/* STEP 1 — Curriculum */}
-        <StepCard n={1} title="Select curriculum or education system" done={!!curriculumId}>
+        {!higherEd && <StepCard n={1} title="Select curriculum or education system" done={!!curriculumId}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {ASSESSMENT_SYSTEMS.map((c) => (
               <button
