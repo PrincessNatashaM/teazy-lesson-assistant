@@ -862,6 +862,33 @@ export type Database = {
         }
         Relationships: []
       }
+      video_jobs: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          status: string
+          storage_path: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id: string
+          status?: string
+          storage_path?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          status?: string
+          storage_path?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

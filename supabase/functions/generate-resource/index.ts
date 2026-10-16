@@ -10,8 +10,9 @@ const SHAPES: Record<Kind, string> = {
 10-14 slides. 3-5 concise bullets each. Include an objectives slide, content slides, a check-for-understanding slide and a summary.`,
   rubric: `{"title":"...","levels":["Excellent","Good","Fair","Needs improvement"],"criteria":[{"name":"...","weight":25,"descriptors":["...","...","...","..."]}]}
 4-6 criteria; weights sum to 100; one descriptor per level, specific and observable.`,
-  video: `{"title":"...","style":"short visual style description","character":"recurring character or subject description","scenes":[{"narration":"what the narrator says","imagePrompt":"Whisk still-image prompt","videoPrompt":"Flow 8-second clip prompt describing motion and camera"}]}
-5-8 scenes, each about 8 seconds. Prompts must be self-contained, repeat the style and character, contain no text overlays, and be child-safe.`,
+  video: `{"title":"...","style":"short visual style description","character":"recurring character or subject description","scenes":[{"narration":"what the narrator says","imagePrompt":"short description of what is shown","videoPrompt":"full video prompt"}]}
+Exactly 4 or 5 scenes. Each scene is an 8-second animated clip. narration: 15-20 words, simple and clear for learners.
+videoPrompt must be fully self-contained (each clip is generated separately): repeat the full visual style and the full character description word for word, describe the action, camera and setting, then: 'A warm, friendly narrator voiceover says: "<the exact narration>". Gentle background music. No other dialogue. No on-screen text. Consider micro-detail, expression and timing.' Child-safe, educational, colourful 2D/3D animation.`,
 };
 
 Deno.serve(async (req) => {
