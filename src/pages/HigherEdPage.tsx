@@ -11,11 +11,10 @@ export default function HigherEdPage() {
           { name: "Writing assessment", desc: "Mark scripts against your own marking scheme. Choose Higher Education / University as the curriculum.", to: "/app/writing" },
           { name: "Bulk script marking", desc: "Upload a whole class of scripts and review results together.", to: "/app/writing/bulk" },
           { name: "Quiz generator", desc: "Quizzes and test questions with answer keys.", to: "/app/quiz" },
-          { name: "Rubric generator", desc: "Marking rubrics for essays, projects and presentations." },
+          { name: "Rubric generator", desc: "Marking rubrics for essays, projects and presentations.", to: "/app/higher-ed/rubric" },
         ]},
         { title: "Teach", tools: [
-          { name: "Presentation slides", desc: "Lecture slides from your topic or notes." },
-          { name: "Course outline builder", desc: "Structure a course into weekly topics and outcomes." },
+          { name: "Presentation slides", desc: "Lecture slides with speaker notes, downloadable as PowerPoint.", to: "/app/higher-ed/slides" },
         ]},
       ]}
     />
