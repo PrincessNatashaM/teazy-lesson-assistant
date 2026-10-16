@@ -22,6 +22,7 @@ import DashboardPage from "./pages/DashboardPage";
 import FolderPage from "./pages/FolderPage";
 import K12Page from "./pages/K12Page";
 import HigherEdPage from "./pages/HigherEdPage";
+import ResourceToolPage from "./pages/ResourceToolPage";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "./hooks/useAuth";
 import { AuthGateProvider } from "./hooks/useAuthGate";
@@ -56,6 +57,11 @@ const App = () => (
                   <Route path="writing/batches" element={<BatchesListPage />} />
                   <Route path="writing/batches/:id" element={<BatchDetailPage />} />
                   <Route path="workspace" element={<MyWorkspacePage />} />
+                  <Route path="worksheet" element={<ResourceToolPage key="ws" type="worksheet" />} />
+                  <Route path="slides" element={<ResourceToolPage key="sl" type="slides" />} />
+                  <Route path="video" element={<ResourceToolPage key="vd" type="video" />} />
+                  <Route path="higher-ed/slides" element={<ResourceToolPage key="hsl" type="slides" audience="higher-ed" />} />
+                  <Route path="higher-ed/rubric" element={<ResourceToolPage key="hrb" type="rubric" audience="higher-ed" />} />
                   <Route path="marker" element={<Navigate to="/app/writing" replace />} />
                 </Route>
                 <Route path="/quiz" element={<Navigate to="/app/quiz" replace />} />
