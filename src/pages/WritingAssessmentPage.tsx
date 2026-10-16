@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Loader2, Camera, Upload, X, Check, Sparkles, Wand2, Zap, Crown,
   ChevronDown, FileText, Settings2, Brain,
@@ -81,7 +81,9 @@ export default function WritingAssessmentPage() {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   // Primary inputs
-  const [curriculumId, setCurriculumId] = useState("");
+  const [params] = useSearchParams();
+  const higherEd = params.get("for") === "higher-ed";
+  const [curriculumId, setCurriculumId] = useState(higherEd ? "higher-ed" : "");
   const [subjectId, setSubjectId] = useState("");
   const [classLevel, setClassLevel] = useState("");
   const [pages, setPages] = useState<ScriptPage[]>([]);
@@ -91,7 +93,7 @@ export default function WritingAssessmentPage() {
   const [markingStyle, setMarkingStyle] = useState<MarkingStyleId>("standard");
   const [questionPaper, setQuestionPaper] = useState("");
   const [markingScheme, setMarkingScheme] = useState("");
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(higherEd);
   const [showOcrReview, setShowOcrReview] = useState(false);
   const [rubricLoading, setRubricLoading] = useState(false);
 
@@ -316,9 +318,9 @@ export default function WritingAssessmentPage() {
   };
 
   const resetAll = () => {
-    setCurriculumId(""); setSubjectId(""); setCustomSubject(""); setClassLevel("");
+    setCurriculumId(higherEd ? "higher-ed" : ""); setSubjectId(""); setCustomSubject(""); setClassLevel("");
     setPages([]); setAssessmentType(""); setQuestionPaper(""); setMarkingScheme("");
-    setMarkingStyle("standard"); setAssessment(null); setShowAdvanced(false); setShowOcrReview(false);
+    setMarkingStyle("standard"); setAssessment(null); setShowAdvanced(higherEd); setShowOcrReview(false);
   };
 
   const uploadReady = pages.length > 0 && pages.every((p) => p.ocrDone);
@@ -335,8 +337,8 @@ export default function WritingAssessmentPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">Writing Assessment</h1>
           <p className="mt-2 text-muted-foreground max-w-2xl">
-            Pick your curriculum or education system (University and No Specific Curriculum are supported), choose or type the subject, then upload the script.
-            The AI handles the rest.
+            {higherEd ? "Add your marking scheme and question paper, type the course, then upload the script. The AI handles the rest."
+              : "Pick your curriculum or education system (University and No Specific Curriculum are supported), choose or type the subject, then upload the script. The AI handles the rest."}
           </p>
         </div>
         <div className="flex gap-2">
@@ -355,9 +357,9 @@ export default function WritingAssessmentPage() {
         </div>
       )}
 
-      <div className="space-y-6">
+      <div className="flex flex-col gap-6">
         {/* STEP 1 — Curriculum */}
-        <StepCard n={1} title="Select curriculum or education system" done={!!curriculumId}>
+        {!higherEd && <StepCard n={1} title="Select curriculum or education system" done={!!curriculumId}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {ASSESSMENT_SYSTEMS.map((c) => (
               <button
@@ -375,7 +377,7 @@ export default function WritingAssessmentPage() {
               </button>
             ))}
           </div>
-        </StepCard>
+        </StepCard>}
 
         {/* STEP 2 — Class / grade (skipped for terminal exam bodies) */}
         {curriculum && !isTerminalExamBody(curriculum.id) && !openSystem && (
@@ -402,7 +404,7 @@ export default function WritingAssessmentPage() {
 
         {/* STEP 3 — Subject (filtered by class) */}
         {curriculum && (isTerminalExamBody(curriculum.id) || openSystem || classLevel) && (
-          <StepCard n={(isTerminalExamBody(curriculum.id) || openSystem) ? 2 : 3} title={openSystem ? customSubjectCopy(curriculum.id).label : "Select subject"} done={!!subject}>
+          <StepCard n={higherEd ? 1 : (isTerminalExamBody(curriculum.id) || openSystem) ? 2 : 3} title={openSystem ? customSubjectCopy(curriculum.id).label : "Select subject"} done={!!subject}>
             {!isTerminalExamBody(curriculum.id) && !openSystem && (
               <p className="text-xs text-muted-foreground mb-2">
                 Showing subjects offered at <span className="font-medium text-foreground">{classLevel}</span>.
@@ -438,7 +440,7 @@ export default function WritingAssessmentPage() {
 
         {/* STEP 4 — Upload */}
         {curriculum && subject && classLevel && (
-          <StepCard n={(isTerminalExamBody(curriculum.id) || openSystem) ? 3 : 4} title="Upload assessment" done={uploadReady && pages.length > 0}>
+          <StepCard n={higherEd ? 2 : (isTerminalExamBody(curriculum.id) || openSystem) ? 3 : 4} title="Upload assessment" done={uploadReady && pages.length > 0}>
 
             <div
               className="border-2 border-dashed border-border rounded-xl p-8 bg-muted/30 text-center cursor-pointer hover:border-accent/50 transition-colors"
@@ -527,7 +529,7 @@ export default function WritingAssessmentPage() {
 
         {/* Advanced Options */}
         {curriculum && (
-          <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+          <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced} className={cn(higherEd && "order-first")}>
             <CollapsibleTrigger asChild>
               <button type="button" className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-navy hover:bg-muted transition-colors">
                 <span className="flex items-center gap-2"><Settings2 className="h-4 w-4" /> Advanced Options (Optional)</span>

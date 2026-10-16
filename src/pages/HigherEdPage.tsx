@@ -8,8 +8,8 @@ export default function HigherEdPage() {
       other={{ to: "/k12", label: "K12" }}
       groups={[
         { title: "Assess", tools: [
-          { name: "Writing assessment", desc: "Mark scripts against your own marking scheme. Choose Higher Education / University as the curriculum.", to: "/app/writing" },
-          { name: "Bulk script marking", desc: "Upload a whole class of scripts and review results together.", to: "/app/writing/bulk" },
+          { name: "Writing assessment", desc: "Mark scripts against your own marking scheme and question paper.", to: "/app/writing?for=higher-ed" },
+          { name: "Bulk script marking", desc: "Upload a whole class of scripts and review results together.", to: "/app/writing/bulk?for=higher-ed" },
           { name: "Quiz generator", desc: "Quizzes and test questions with answer keys.", to: "/app/quiz" },
           { name: "Rubric generator", desc: "Marking rubrics for essays, projects and presentations.", to: "/app/higher-ed/rubric" },
         ]},
