@@ -53,7 +53,7 @@ export default function BulkAssessmentPage() {
   const [schemeName, setSchemeName] = useState<string | null>(null);
 
   const [batchName, setBatchName] = useState("");
-  const [sp] = useSP();
+  const [sp] = useSearchParams();
   const [curriculumId, setCurriculumId] = useState(sp.get("for") === "higher-ed" ? "higher-ed" : "");
   const [subjectId, setSubjectId] = useState("");
   const [classLevel, setClassLevel] = useState("");
