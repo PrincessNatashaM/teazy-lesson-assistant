@@ -318,7 +318,7 @@ export default function WritingAssessmentPage() {
   };
 
   const resetAll = () => {
-    setCurriculumId(""); setSubjectId(""); setCustomSubject(""); setClassLevel("");
+    setCurriculumId(higherEd ? "higher-ed" : ""); setSubjectId(""); setCustomSubject(""); setClassLevel("");
     setPages([]); setAssessmentType(""); setQuestionPaper(""); setMarkingScheme("");
     setMarkingStyle("standard"); setAssessment(null); setShowAdvanced(higherEd); setShowOcrReview(false);
   };
@@ -404,7 +404,7 @@ export default function WritingAssessmentPage() {
 
         {/* STEP 3 — Subject (filtered by class) */}
         {curriculum && (isTerminalExamBody(curriculum.id) || openSystem || classLevel) && (
-          <StepCard n={(isTerminalExamBody(curriculum.id) || openSystem) ? 2 : 3} title={openSystem ? customSubjectCopy(curriculum.id).label : "Select subject"} done={!!subject}>
+          <StepCard n={higherEd ? 1 : (isTerminalExamBody(curriculum.id) || openSystem) ? 2 : 3} title={openSystem ? customSubjectCopy(curriculum.id).label : "Select subject"} done={!!subject}>
             {!isTerminalExamBody(curriculum.id) && !openSystem && (
               <p className="text-xs text-muted-foreground mb-2">
                 Showing subjects offered at <span className="font-medium text-foreground">{classLevel}</span>.
@@ -440,7 +440,7 @@ export default function WritingAssessmentPage() {
 
         {/* STEP 4 — Upload */}
         {curriculum && subject && classLevel && (
-          <StepCard n={(isTerminalExamBody(curriculum.id) || openSystem) ? 3 : 4} title="Upload assessment" done={uploadReady && pages.length > 0}>
+          <StepCard n={higherEd ? 2 : (isTerminalExamBody(curriculum.id) || openSystem) ? 3 : 4} title="Upload assessment" done={uploadReady && pages.length > 0}>
 
             <div
               className="border-2 border-dashed border-border rounded-xl p-8 bg-muted/30 text-center cursor-pointer hover:border-accent/50 transition-colors"
