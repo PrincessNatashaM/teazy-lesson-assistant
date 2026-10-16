@@ -18,6 +18,8 @@ import AuthPage from "./pages/AuthPage";
 import AccountPage from "./pages/AccountPage";
 import AdminPage from "./pages/AdminPage";
 import MyWorkspacePage from "./pages/MyWorkspacePage";
+import DashboardPage from "./pages/DashboardPage";
+import FolderPage from "./pages/FolderPage";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "./hooks/useAuth";
 import { AuthGateProvider } from "./hooks/useAuthGate";
@@ -40,6 +42,8 @@ const App = () => (
                 <Route path="/account" element={<AccountPage />} />
                 <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/admin" element={<AdminPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/dashboard/folders/:id" element={<FolderPage />} />
                 <Route path="/app" element={<AppShell />}>
                   <Route index element={<LessonNotesPage />} />
                   <Route path="quiz" element={<QuizGeneratorPage />} />

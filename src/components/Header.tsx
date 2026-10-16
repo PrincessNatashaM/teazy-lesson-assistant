@@ -14,6 +14,7 @@ const PUBLIC_NAV = [
   { to: "/app/writing", label: "Writing Assessment" },
 ];
 const PRIVATE_NAV = [
+  { to: "/dashboard", label: "Dashboard" },
   ...PUBLIC_NAV,
   { to: "/app/workspace", label: "My Workspace" },
 ];

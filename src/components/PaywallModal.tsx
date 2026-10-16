@@ -45,6 +45,8 @@ interface Props {
   purpose: Purpose;
   lessonHash?: string | null;
   onSuccess?: () => void;
+  /** Preselect a plan when opened. */
+  initialPlan?: SubPurpose;
 }
 
 const CONTEXT_COPY: Record<Purpose, { title: string; message: string }> = {
@@ -66,7 +68,7 @@ const CONTEXT_COPY: Record<Purpose, { title: string; message: string }> = {
   },
 };
 
-export default function PaywallModal({ open, onClose, purpose, onSuccess }: Props) {
+export default function PaywallModal({ open, onClose, purpose, onSuccess, initialPlan }: Props) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -82,6 +84,10 @@ export default function PaywallModal({ open, onClose, purpose, onSuccess }: Prop
   } | null>(null);
   const [validatingPromo, setValidatingPromo] = useState(false);
   const [paying, setPaying] = useState(false);
+
+  useEffect(() => {
+    if (open && initialPlan) setSelected(initialPlan);
+  }, [open, initialPlan]);
 
   useEffect(() => {
     if (!open || !user) return;

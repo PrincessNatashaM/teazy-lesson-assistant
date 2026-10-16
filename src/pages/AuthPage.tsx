@@ -62,7 +62,7 @@ export default function AuthPage() {
   const [params] = useSearchParams();
   const { user } = useAuth();
 
-  const next = params.get("next") || "/app";
+  const next = params.get("next") || "/dashboard";
 
   const pwChecks = useMemo(() => checkPassword(password), [password]);
   const pwScore = scoreOf(pwChecks);
