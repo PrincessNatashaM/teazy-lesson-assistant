@@ -304,7 +304,7 @@ export default function PaywallModal({ open, onClose, purpose, onSuccess }: Prop
               <div className="text-[11px] font-bold uppercase text-muted-foreground">Assessment Pro</div>
               <div className="mt-1 font-bold text-navy">{PRO_PRICES[country].display}</div>
               <div className="text-[11px] text-muted-foreground mt-1">
-                Unlimited assessments · bulk marking · analytics
+                Up to 1000 handwritten scripts / month · folders · saved schemes
               </div>
             </button>
           </div>

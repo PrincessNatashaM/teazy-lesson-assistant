@@ -738,16 +738,7 @@ function UsageMeter({
   onBuyPack: () => void;
 }) {
   if (status.loading) return null;
-  if (status.plan === "pro") {
-    return (
-      <div className="mb-6 flex items-center gap-3 rounded-xl border border-accent/30 bg-accent/5 px-4 py-3 text-sm">
-        <Crown className="h-4 w-4 text-accent" />
-        <span className="font-semibold text-navy">Assessment Pro</span>
-        <span className="text-muted-foreground">, unlimited uploads.</span>
-      </div>
-    );
-  }
-  if (status.plan === "standard") {
+  if (status.plan === "standard" || status.plan === "pro") {
     const used = status.monthlyUsed ?? 0;
     const limit = status.monthlyLimit ?? 40;
     const remaining = Math.max(0, limit - used);

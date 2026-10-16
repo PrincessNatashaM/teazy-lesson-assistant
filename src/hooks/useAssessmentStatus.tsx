@@ -9,21 +9,17 @@ export interface AssessmentStatus {
   packRemaining: number;
   freeUsed?: number;
   freeLimit?: number;
+  /** When the current allowance resets (ISO). */
+  resetsAt?: string | null;
   loading: boolean;
   refresh: () => Promise<void>;
 }
 
-/**
- * Reads the current user's Writing Assessment quota state directly from tables
- * (the SECURITY DEFINER RPC is service-role only, so we compose the same view here).
- */
+/** Reads the signed-in user's Writing Assessment allowance from the server (source of truth). */
 export function useAssessmentStatus(): AssessmentStatus {
   const { user } = useAuth();
   const [state, setState] = useState<Omit<AssessmentStatus, "refresh" | "loading">>({
-    plan: "free",
-    packRemaining: 0,
-    freeUsed: 0,
-    freeLimit: 2,
+    plan: "free", packRemaining: 0, freeUsed: 0, freeLimit: 2,
   });
   const [loading, setLoading] = useState(true);
 
@@ -33,36 +29,17 @@ export function useAssessmentStatus(): AssessmentStatus {
       setLoading(false);
       return;
     }
-    setLoading(true);
-    const periodStart = new Date();
-    periodStart.setUTCDate(1);
-    periodStart.setUTCHours(0, 0, 0, 0);
-    const periodStartISO = periodStart.toISOString().slice(0, 10);
-
-    const [{ data: sub }, { data: credits }, { data: usage }, { data: freeUsage }] = await Promise.all([
-      supabase.from("subscriptions").select("status,plan,current_period_end").eq("user_id", user.id).maybeSingle(),
-      supabase.from("assessment_credits").select("remaining").eq("user_id", user.id).maybeSingle(),
-      supabase.from("monthly_assessment_usage").select("uploads_used").eq("user_id", user.id).eq("period_start", periodStartISO).maybeSingle(),
-      supabase.from("monthly_feature_usage").select("count").eq("user_id", user.id).eq("kind", "writing").eq("period_start", periodStartISO).maybeSingle(),
-    ]);
-
-    const active =
-      sub?.status === "active" &&
-      (!sub.current_period_end || new Date(sub.current_period_end) > new Date());
-    const plan: "free" | "standard" | "pro" =
-      active && (sub?.plan === "pro" || sub?.plan === "pro_monthly")
-        ? "pro"
-        : active && sub?.plan === "standard"
-          ? "standard"
-          : "free";
-
+    const { data } = await (supabase as any).rpc("get_my_assessment_quota");
+    const j = (data ?? {}) as any;
+    const plan = (j.plan === "pro" || j.plan === "standard" ? j.plan : "free") as AssessmentStatus["plan"];
     setState({
       plan,
-      monthlyUsed: usage?.uploads_used ?? 0,
-      monthlyLimit: 40,
-      packRemaining: credits?.remaining ?? 0,
-      freeUsed: freeUsage?.count ?? 0,
+      monthlyUsed: plan === "free" ? 0 : j.used ?? 0,
+      monthlyLimit: plan === "pro" ? 1000 : 40,
+      packRemaining: j.pack_remaining ?? 0,
+      freeUsed: plan === "free" ? j.used ?? 0 : 0,
       freeLimit: 2,
+      resetsAt: j.resets_at ?? null,
     });
     setLoading(false);
   }, [user]);
