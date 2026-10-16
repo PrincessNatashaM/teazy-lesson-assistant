@@ -8,16 +8,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import PaywallModal from "./PaywallModal";
 
-const PUBLIC_NAV = [
-  { to: "/app", label: "Lesson Notes" },
-  { to: "/app/quiz", label: "Quiz Generator" },
-  { to: "/app/writing", label: "Writing Assessment" },
-];
-const PRIVATE_NAV = [
-  { to: "/dashboard", label: "Dashboard" },
-  ...PUBLIC_NAV,
+const BASE_NAV = [
+  { to: "/k12", label: "K12" },
+  { to: "/higher-ed", label: "Higher Ed" },
   { to: "/app/workspace", label: "My Workspace" },
 ];
+const PRO_NAV = [{ to: "/dashboard", label: "Dashboard" }, ...BASE_NAV];
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -62,8 +58,8 @@ export default function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">
-          {(user ? PRIVATE_NAV : PUBLIC_NAV).map(({ to, label }) => (
-            <NavLink key={to} to={to} end={to === "/app"} className={linkClass}>
+          {(user && proActive ? PRO_NAV : BASE_NAV).map(({ to, label }) => (
+            <NavLink key={to} to={to} end className={linkClass}>
               {label}
             </NavLink>
           ))}
@@ -117,8 +113,8 @@ export default function Header() {
 
       {open && (
         <nav className="md:hidden border-t border-navy-foreground/10 bg-navy px-4 py-3 flex flex-col gap-1 animate-fade-in">
-          {(user ? PRIVATE_NAV : PUBLIC_NAV).map(({ to, label }) => (
-            <NavLink key={to} to={to} end={to === "/app"} onClick={() => setOpen(false)} className={linkClass}>
+          {(user && proActive ? PRO_NAV : BASE_NAV).map(({ to, label }) => (
+            <NavLink key={to} to={to} end onClick={() => setOpen(false)} className={linkClass}>
               {label}
             </NavLink>
           ))}

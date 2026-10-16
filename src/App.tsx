@@ -20,6 +20,8 @@ import AdminPage from "./pages/AdminPage";
 import MyWorkspacePage from "./pages/MyWorkspacePage";
 import DashboardPage from "./pages/DashboardPage";
 import FolderPage from "./pages/FolderPage";
+import K12Page from "./pages/K12Page";
+import HigherEdPage from "./pages/HigherEdPage";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "./hooks/useAuth";
 import { AuthGateProvider } from "./hooks/useAuthGate";
@@ -39,6 +41,8 @@ const App = () => (
               <Route element={<Layout />}>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/auth" element={<AuthPage />} />
+                <Route path="/k12" element={<K12Page />} />
+                <Route path="/higher-ed" element={<HigherEdPage />} />
                 <Route path="/account" element={<AccountPage />} />
                 <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/admin" element={<AdminPage />} />
