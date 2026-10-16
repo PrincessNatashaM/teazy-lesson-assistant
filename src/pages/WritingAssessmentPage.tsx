@@ -320,7 +320,7 @@ export default function WritingAssessmentPage() {
   const resetAll = () => {
     setCurriculumId(""); setSubjectId(""); setCustomSubject(""); setClassLevel("");
     setPages([]); setAssessmentType(""); setQuestionPaper(""); setMarkingScheme("");
-    setMarkingStyle("standard"); setAssessment(null); setShowAdvanced(false); setShowOcrReview(false);
+    setMarkingStyle("standard"); setAssessment(null); setShowAdvanced(higherEd); setShowOcrReview(false);
   };
 
   const uploadReady = pages.length > 0 && pages.every((p) => p.ocrDone);
@@ -337,8 +337,8 @@ export default function WritingAssessmentPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-navy font-heading">Writing Assessment</h1>
           <p className="mt-2 text-muted-foreground max-w-2xl">
-            Pick your curriculum or education system (University and No Specific Curriculum are supported), choose or type the subject, then upload the script.
-            The AI handles the rest.
+            {higherEd ? "Add your marking scheme and question paper, type the course, then upload the script. The AI handles the rest."
+              : "Pick your curriculum or education system (University and No Specific Curriculum are supported), choose or type the subject, then upload the script. The AI handles the rest."}
           </p>
         </div>
         <div className="flex gap-2">
@@ -377,7 +377,7 @@ export default function WritingAssessmentPage() {
               </button>
             ))}
           </div>
-        </StepCard>
+        </StepCard>}
 
         {/* STEP 2 — Class / grade (skipped for terminal exam bodies) */}
         {curriculum && !isTerminalExamBody(curriculum.id) && !openSystem && (
@@ -529,7 +529,7 @@ export default function WritingAssessmentPage() {
 
         {/* Advanced Options */}
         {curriculum && (
-          <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced}>
+          <Collapsible open={showAdvanced} onOpenChange={setShowAdvanced} className={cn(higherEd && "order-first")}>
             <CollapsibleTrigger asChild>
               <button type="button" className="w-full flex items-center justify-between rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium text-navy hover:bg-muted transition-colors">
                 <span className="flex items-center gap-2"><Settings2 className="h-4 w-4" /> Advanced Options (Optional)</span>
