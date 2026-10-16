@@ -174,7 +174,7 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
           </Button>
 
           <Button asChild variant="ghost" className="w-full text-xs">
-            <Link to="/pricing" onClick={onClose}>Or upgrade to Assessment Pro for unlimited →</Link>
+            <Link to="/pricing" onClick={onClose}>Or upgrade to Assessment Pro: up to 1000 scripts a month</Link>
           </Button>
         </div>
       </DialogContent>

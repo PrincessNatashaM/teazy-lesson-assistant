@@ -20,11 +20,12 @@ export const STANDARD_PRICES: Record<DisplayCurrency, PriceRow> = {
   KES: { display: "KSh200/month", chargeCurrency: "KES", chargeMinor: 20000 },
 };
 
-/** Assessment Pro (monthly) */
+/** Assessment Pro (monthly): up to 1000 handwritten scripts per billing month. */
+export const PRO_MONTHLY_SCRIPT_LIMIT = 1000;
 export const PRO_PRICES: Record<DisplayCurrency, PriceRow> = {
-  NGN: { display: "₦5,000/month", chargeCurrency: "NGN", chargeMinor: 500000 },
-  GHS: { display: "GH₵50/month",  chargeCurrency: "GHS", chargeMinor: 5000 },
-  KES: { display: "KSh500/month", chargeCurrency: "KES", chargeMinor: 50000 },
+  NGN: { display: "₦8,000/month", chargeCurrency: "NGN", chargeMinor: 800000 },
+  GHS: { display: "GH₵80/month",  chargeCurrency: "GHS", chargeMinor: 8000 },
+  KES: { display: "KSh800/month", chargeCurrency: "KES", chargeMinor: 80000 },
 };
 
 /** Pay-per-download — single unlock, no subscription. */
