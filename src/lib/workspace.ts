@@ -65,7 +65,7 @@ export async function saveTextResource(kind: string, title: string, content: str
   if (!u.user) throw new Error("Sign in required.");
   const { error } = await supabase.from("saved_resources").insert({
     user_id: u.user.id, kind, title: title.slice(0, 200), content, metadata: metadata ?? null,
-  });
+  } as any);
   if (error) throw new Error(error.message);
 }
 
@@ -77,7 +77,7 @@ export async function saveFileResource(kind: string, title: string, blob: Blob, 
   if (up.error) throw new Error(up.error.message);
   const { error } = await supabase.from("saved_resources").insert({
     user_id: u.user.id, kind, title: title.slice(0, 200), storage_path: path, metadata: metadata ?? null,
-  });
+  } as any);
   if (error) {
     await supabase.storage.from("workspace-files").remove([path]);
     throw new Error(error.message);
