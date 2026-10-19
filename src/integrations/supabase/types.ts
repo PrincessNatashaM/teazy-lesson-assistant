@@ -775,6 +775,42 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_resources: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          kind: string
+          metadata: Json | null
+          storage_path: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          metadata?: Json | null
+          storage_path?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          metadata?: Json | null
+          storage_path?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string
@@ -867,24 +903,36 @@ export type Database = {
           created_at: string
           error: string | null
           id: string
+          saved: boolean
+          scene_index: number | null
           status: string
           storage_path: string | null
+          title: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
           error?: string | null
           id: string
+          saved?: boolean
+          scene_index?: number | null
           status?: string
           storage_path?: string | null
+          title?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
           error?: string | null
           id?: string
+          saved?: boolean
+          scene_index?: number | null
           status?: string
           storage_path?: string | null
+          title?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

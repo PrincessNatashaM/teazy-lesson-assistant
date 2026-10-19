@@ -29,6 +29,13 @@
       "when": 1792166083779,
       "tag": "0003_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792403477073,
+      "tag": "0004_workspace_videos_and_saved_resources",
+      "breakpoints": true
     }
   ]
 }
