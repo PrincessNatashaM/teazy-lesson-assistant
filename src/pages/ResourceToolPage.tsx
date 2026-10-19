@@ -285,6 +285,16 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
           )}
 
           {type === "video" && <div className="mt-4"><VideoMaker key={data.title} title={data.title} scenes={data.scenes} /></div>}
+
+          {type !== "video" && (
+            <SaveToWorkspaceDialog
+              open={saveDlg}
+              onOpenChange={setSaveDlg}
+              itemTitle={data.title}
+              onSave={saveCurrent}
+              onDelete={() => { setData(null); setImages([]); pptxBlob.current = null; }}
+            />
+          )}
         </div>
       )}
     </div>
