@@ -10,11 +10,13 @@ Deno.serve(async (req) => {
     if (auth instanceof Response) return auth;
     const body = await readJsonBody(req, 16 * 1024);
     if (body instanceof Response) return body;
-    const { prompts, topic } = body as Record<string, unknown>;
+    const { prompts, topic, style } = body as Record<string, unknown>;
     if (!Array.isArray(prompts) || prompts.length < 1 || prompts.length > 8 || prompts.some((p) => typeof p !== "string" || !p.trim() || p.length > 600))
       return jsonResponse({ error: "Invalid request." }, 400);
     if (typeof topic !== "string" || topic.length > 300) return jsonResponse({ error: "Invalid request." }, 400);
 
+    const WS = "Simple black-and-white line-art educational diagram for a printable school worksheet. Clear outlines, white background, accurate to the subject, no words, letters, numbers or labels, no shading, no watermark.";
+    const styleText = style === "worksheet" ? WS : STYLE;
     const limited = await enforceRateLimit(auth.id, "lesson_images");
     if (limited) return limited;
 
@@ -26,7 +28,7 @@ Deno.serve(async (req) => {
       const r = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
         method: "POST",
         headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: MODEL, prompt: `${p}. Topic: ${topic}. ${STYLE}`, size: "1536x1024", quality: "low" }),
+        body: JSON.stringify({ model: MODEL, prompt: `${p}. Topic: ${topic}. ${styleText}`, size: "1536x1024", quality: "low" }),
       });
       if (!r.ok) {
         if (r.status === 402 || r.status === 429 || r.status === 403) blocked = r.status;
