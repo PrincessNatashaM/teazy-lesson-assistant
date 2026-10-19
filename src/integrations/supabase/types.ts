@@ -898,6 +898,24 @@ export type Database = {
         }
         Relationships: []
       }
+      video_credits: {
+        Row: {
+          remaining: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          remaining?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          remaining?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       video_jobs: {
         Row: {
           created_at: string
@@ -962,9 +980,14 @@ export type Database = {
         Args: { _bucket: string; _user_id: string }
         Returns: Json
       }
+      feature_limit: { Args: { _kind: string; _plan: string }; Returns: number }
       get_assessment_status: { Args: { _user_id: string }; Returns: Json }
       get_feature_usage: { Args: { _user_id: string }; Returns: Json }
       get_my_assessment_quota: { Args: never; Returns: Json }
+      grant_video_credits: {
+        Args: { _n: number; _user_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
