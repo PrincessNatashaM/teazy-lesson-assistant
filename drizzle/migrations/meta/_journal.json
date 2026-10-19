@@ -36,6 +36,13 @@
       "when": 1792403477073,
       "tag": "0004_workspace_videos_and_saved_resources",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792403488527,
+      "tag": "0005_storage_owner_policies_workspace_and_videos",
+      "breakpoints": true
     }
   ]
 }
