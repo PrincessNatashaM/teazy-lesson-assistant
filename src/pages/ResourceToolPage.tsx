@@ -13,11 +13,14 @@ import VideoMaker from "@/components/VideoMaker";
 import SaveToWorkspaceDialog from "@/components/SaveToWorkspaceDialog";
 import { saveFileResource, saveTextResource, downloadBlob } from "@/lib/workspace";
 import { readOcrResponse } from "@/lib/assessmentUpload";
+import WorksheetDocument from "@/components/worksheet/WorksheetDocument";
+import { normalizeWorksheet, imageRequests, answerKeyLines, type Worksheet } from "@/lib/worksheet";
+import { worksheetPdf, worksheetDocx, answerKeyPdf } from "@/lib/worksheetExport";
 
 export type ToolType = "worksheet" | "slides" | "rubric" | "video";
 
 const META: Record<ToolType, { title: string; intro: string; topicLabel: string; placeholder: string; button: string }> = {
-  worksheet: { title: "Worksheet Designer", intro: "Printable practice worksheets with an answer key.", topicLabel: "Topic", placeholder: "e.g. Fractions: adding unlike denominators", button: "Design worksheet" },
+  worksheet: { title: "Worksheet Designer", intro: "Classroom-ready printable worksheets with answer spaces, plus a separate teacher answer key.", topicLabel: "Topic", placeholder: "e.g. Fractions: adding unlike denominators", button: "Design worksheet" },
   slides: { title: "Presentation Slides", intro: "Ready-to-teach slides with speaker notes. Download as PowerPoint.", topicLabel: "Topic", placeholder: "e.g. Photosynthesis", button: "Create slides" },
   rubric: { title: "Rubric Generator", intro: "Clear, weighted marking rubrics for essays, projects and presentations.", topicLabel: "Assignment", placeholder: "e.g. 2,000-word argumentative essay on climate policy", button: "Generate rubric" },
   video: { title: "Animated Video Maker", intro: "Describe your lesson. Teazy plans the scenes and narration, then animates a narrated video for you.", topicLabel: "What should the video teach?", placeholder: "e.g. The water cycle for Primary 4", button: "Plan my video" },
@@ -54,6 +57,9 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
   const [saveDlg, setSaveDlg] = useState(false);
   const [savedToWorkspace, setSavedToWorkspace] = useState(false);
   const pptxBlob = useRef<Blob | null>(null);
+  const wsRef = useRef<HTMLDivElement>(null);
+  const [wsImages, setWsImages] = useState<Record<string, string>>({});
+  const [exporting, setExporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const headers = async () => {
@@ -98,10 +104,39 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
     } finally { setImgBusy(false); }
   };
 
+  const makeWsImages = async (ws: Worksheet) => {
+    const reqs = imageRequests(ws);
+    if (!reqs.length) return;
+    setImgBusy(true);
+    try {
+      const r = await fetch(IMG_URL, { method: "POST", headers: await headers(), body: JSON.stringify({ prompts: reqs.map((x) => x.prompt), topic: ws.topic || ws.title, style: "worksheet" }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Image generation failed.");
+      const out: Record<string, string> = {};
+      reqs.forEach((x, i) => { if (j.images?.[i]) out[x.key] = j.images[i]; });
+      setWsImages(out);
+    } catch (e: any) {
+      toast({ title: "Worksheet ready, but diagrams failed", description: e.message, variant: "destructive" });
+    } finally { setImgBusy(false); }
+  };
+
+  const exportWs = async (kind: "pdf" | "docx" | "key") => {
+    if (!data) return;
+    setExporting(true);
+    try {
+      const name = data.title.slice(0, 60);
+      if (kind === "pdf" && wsRef.current) downloadBlob(await worksheetPdf(wsRef.current, data.title), `${name}.pdf`);
+      if (kind === "docx") downloadBlob(await worksheetDocx(data, wsImages), `${name}.docx`);
+      if (kind === "key") downloadBlob(await answerKeyPdf(data), `${name} - Answer key.pdf`);
+    } catch (e: any) {
+      toast({ title: "Download failed", description: e.message, variant: "destructive" });
+    } finally { setExporting(false); }
+  };
+
   const run = async () => {
     if (!user) return openGate("lesson");
     if (!topic.trim()) return;
-    setBusy(true); setData(null); setImages([]); setSavedToWorkspace(false); pptxBlob.current = null;
+    setBusy(true); setData(null); setImages([]); setWsImages({}); setSavedToWorkspace(false); pptxBlob.current = null;
     try {
       const r = await fetch(URL_, {
         method: "POST",
@@ -110,7 +145,8 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
       });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || "Generation failed.");
-      setData(j);
+      if (type === "worksheet") { const ws = normalizeWorksheet(j); setData(ws); makeWsImages(ws); }
+      else setData(j);
       if (type === "slides") makeImages(j);
     } catch (e: any) {
       toast({ title: "Could not generate", description: e.message, variant: "destructive" });
@@ -154,10 +190,11 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
   const textContent = () => {
     if (!data) return "";
     if (type === "worksheet") {
+      let n = 0;
       return [data.title, "", data.instructions, ...data.sections.flatMap((sec: any) => [
         "", sec.heading,
-        ...sec.questions.map((q: any, j: number) => `${j + 1}. ${q.question}\n   Answer: ${q.answer}`),
-      ])].join("\n");
+        ...sec.questions.map((q: any) => `${++n}. ${q.prompt}${q.options?.length ? "\n   " + q.options.join(" / ") : ""}`),
+      ]), "", "ANSWER KEY", ...answerKeyLines(data)].join("\n");
     }
     if (type === "rubric") {
       const header = ["Criterion (weight)", ...data.levels].join(" | ");
@@ -223,10 +260,15 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
         <div className="mt-6 rounded-xl border border-border bg-card p-5">
           <div className="flex flex-wrap items-center justify-between gap-2 print:hidden">
             <h2 className="text-xl font-bold text-navy">{data.title}</h2>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {type === "slides" && <Button onClick={downloadPptx} disabled={imgBusy}>{imgBusy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding pictures...</> : "Download PowerPoint"}</Button>}
-              {type === "worksheet" && <Button variant="outline" onClick={() => setShowAnswers((v) => !v)}>{showAnswers ? "Hide answers" : "Show answers"}</Button>}
-              {(type === "worksheet" || type === "rubric") && <Button variant="outline" onClick={() => window.print()}>Print</Button>}
+              {type === "worksheet" && <>
+                <Button onClick={() => exportWs("pdf")} disabled={exporting || imgBusy}>{imgBusy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Drawing diagrams...</> : "Download PDF"}</Button>
+                <Button variant="outline" onClick={() => exportWs("docx")} disabled={exporting || imgBusy}>Download Word</Button>
+                <Button variant="outline" onClick={() => exportWs("key")} disabled={exporting}>Answer key (teacher)</Button>
+                <Button variant="outline" onClick={() => setShowAnswers((v) => !v)}>{showAnswers ? "Hide answers" : "Show answers"}</Button>
+              </>}
+              {type === "rubric" && <Button variant="outline" onClick={() => window.print()}>Print</Button>}
               {(type === "worksheet" || type === "rubric") && !savedToWorkspace && (
                 <Button variant="outline" onClick={() => setSaveDlg(true)}>Save to My Workspace</Button>
               )}
@@ -235,18 +277,14 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
           <h2 className="hidden print:block text-xl font-bold">{data.title}</h2>
 
           {type === "worksheet" && (
-            <div className="mt-4 space-y-5">
-              <p className="italic">{data.instructions}</p>
-              {data.sections.map((sec: any, i: number) => (
-                <div key={i}>
-                  <h3 className="font-semibold text-navy">{sec.heading}</h3>
-                  <ol className="list-decimal pl-6 mt-2 space-y-2">
-                    {sec.questions.map((q: any, j: number) => (
-                      <li key={j}>{q.question}{showAnswers && <div className="text-sm text-success">Answer: {q.answer}</div>}</li>
-                    ))}
-                  </ol>
+            <div className="mt-4 overflow-x-auto">
+              <WorksheetDocument ref={wsRef} ws={data} images={wsImages} />
+              {showAnswers && (
+                <div className="mx-auto mt-4 max-w-[794px] rounded-lg border border-border bg-secondary/40 p-4 text-sm">
+                  <div className="font-semibold text-navy">Answer key (teacher copy, not on the student worksheet)</div>
+                  {answerKeyLines(data).map((l, i) => <div key={i} className={l.startsWith("Section") ? "mt-2 font-semibold" : ""}>{l}</div>)}
                 </div>
-              ))}
+              )}
             </div>
           )}
 
