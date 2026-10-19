@@ -1,12 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireUser, readJsonBody, enforceRateLimit } from "../_shared/authz.ts";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { ocrMediaPart } from "./media.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
-
-const ALLOWED_MIME = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp", "image/heic", "image/heif"]);
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -30,9 +26,11 @@ serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    if (mimeType !== undefined && mimeType !== null &&
-        (typeof mimeType !== "string" || !ALLOWED_MIME.has(mimeType.toLowerCase()))) {
-      return new Response(JSON.stringify({ error: "Unsupported image type." }), {
+    let mediaPart;
+    try {
+      mediaPart = ocrMediaPart(imageBase64, mimeType);
+    } catch {
+      return new Response(JSON.stringify({ error: "Unsupported file type." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -57,24 +55,19 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are an OCR specialist. Extract ALL readable text from the handwritten essay image. 
+            content: `You are an OCR specialist. Extract ALL readable text from the uploaded image or PDF, including every page in order. 
 Rules:
 - Transcribe the handwriting as accurately as possible
 - Preserve paragraph breaks
 - If a word is unclear, make your best guess — do NOT skip it
 - Do NOT add any commentary, headers, or formatting — just the raw transcribed text
-- If the image is not readable at all, respond with: [UNREADABLE]`
+- If the document is not readable at all, respond with: [UNREADABLE]`
           },
           {
             role: "user",
             content: [
-              { type: "text", text: "Extract all the handwritten text from this image:" },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:${mimeType || "image/jpeg"};base64,${imageBase64}`
-                }
-              }
+              { type: "text", text: "Extract all readable text from this document:" },
+              mediaPart,
             ]
           }
         ],

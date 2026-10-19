@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import VideoMaker from "@/components/VideoMaker";
+import { readOcrResponse } from "@/lib/assessmentUpload";
 
 export type ToolType = "worksheet" | "slides" | "rubric" | "video";
 
@@ -68,9 +69,7 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
       } else if (f.type === "application/pdf" || f.type.startsWith("image/")) {
         if (f.size > 8 * 1024 * 1024) throw new Error("File is too large (max 8 MB).");
         const r = await fetch(OCR_URL, { method: "POST", headers: await headers(), body: JSON.stringify({ imageBase64: await toB64(f), mimeType: f.type }) });
-        const d = await r.json();
-        if (!r.ok) throw new Error(d.error || "Could not read the file.");
-        text = d.extractedText || "";
+        text = await readOcrResponse(r);
       } else throw new Error("Use a Word (.docx), PDF, text file or photo.");
       if (!text.trim()) throw new Error("No text found in that file.");
       setNotes(text.slice(0, 40000)); setNotesName(f.name);

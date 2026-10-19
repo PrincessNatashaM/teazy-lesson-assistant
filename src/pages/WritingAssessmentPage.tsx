@@ -30,13 +30,14 @@ import SavedSchemePicker from "@/components/SavedSchemePicker";
 import SubjectCombobox from "@/components/SubjectCombobox";
 import UpgradeModal from "@/components/UpgradeModal";
 import UsageTracker from "@/components/UsageTracker";
+import { assessmentAuthHeaders, readOcrResponse } from "@/lib/assessmentUpload";
 
 const OCR_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-handwriting`;
 const ASSESS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-script`;
 const RUBRIC_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assess-writing`;
 async function authHeaders(): Promise<Record<string, string>> {
   const { data: { session } } = await supabase.auth.getSession();
-  return session?.access_token ? { Authorization: `Bearer ` } : {};
+  return assessmentAuthHeaders(session?.access_token);
 }
 
 interface ScriptPage {
@@ -157,12 +158,12 @@ export default function WritingAssessmentPage() {
         headers: { "Content-Type": "application/json", ...(await authHeaders()) },
         body: JSON.stringify({ imageBase64: base64, mimeType: mime }),
       });
-      const data = await resp.json();
-      const text = data.extractedText === "[UNREADABLE]" ? "" : (data.extractedText || "");
+      const text = await readOcrResponse(resp);
       setPages((prev) => prev.map((p) => p.id === pageId
         ? { ...p, extractedText: text, ocrLoading: false, ocrDone: true } : p));
-    } catch {
-      setPages((prev) => prev.map((p) => p.id === pageId ? { ...p, ocrLoading: false } : p));
+    } catch (error) {
+      setPages((prev) => prev.map((p) => p.id === pageId ? { ...p, ocrLoading: false, ocrDone: false } : p));
+      toast({ title: "Could not read script", description: error instanceof Error ? error.message : "Please upload the file again.", variant: "destructive" });
     }
   };
 
@@ -188,6 +189,24 @@ export default function WritingAssessmentPage() {
 
   const removePage = (id: string) => setPages((prev) => prev.filter((p) => p.id !== id));
 
+  const importDocument = async (file: File, setText: (text: string) => void) => {
+    try {
+      if (file.type.startsWith("text/")) {
+        setText(await file.text());
+        return;
+      }
+      const { base64, mime } = await readFile(file);
+      const response = await fetch(OCR_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+        body: JSON.stringify({ imageBase64: base64, mimeType: mime }),
+      });
+      setText(await readOcrResponse(response));
+    } catch (error) {
+      toast({ title: "Could not import document", description: error instanceof Error ? error.message : "Please upload the file again.", variant: "destructive" });
+    }
+  };
+
   const generateRubric = async () => {
     if (!curriculum || !subject || !classLevel) return;
     setRubricLoading(true);
@@ -204,11 +223,12 @@ export default function WritingAssessmentPage() {
         }),
       });
       const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || "Couldn't generate rubric");
       const rubricText = data.teacherComment || data.suggestedRewrite || JSON.stringify(data, null, 2);
       setMarkingScheme(rubricText);
       toast({ title: "Rubric generated", description: "Review and edit before grading." });
-    } catch {
-      toast({ title: "Couldn't generate rubric", variant: "destructive" });
+    } catch (error) {
+      toast({ title: "Couldn't generate rubric", description: error instanceof Error ? error.message : undefined, variant: "destructive" });
     } finally {
       setRubricLoading(false);
     }
@@ -583,8 +603,7 @@ export default function WritingAssessmentPage() {
                     <input ref={qpFileRef} type="file" accept="image/*,application/pdf,text/plain" className="hidden"
                       onChange={async (e) => {
                         const f = e.target.files?.[0]; if (!f) return;
-                        if (f.type.startsWith("text/")) setQuestionPaper(await f.text());
-                        else { const { base64, mime } = await readFile(f); const r = await fetch(OCR_URL, { method: "POST", headers: { "Content-Type": "application/json", ...(await authHeaders()) }, body: JSON.stringify({ imageBase64: base64, mimeType: mime }) }); const d = await r.json(); setQuestionPaper(d.extractedText || ""); }
+                        await importDocument(f, setQuestionPaper);
                         e.target.value = "";
                       }} />
                   </div>
@@ -607,8 +626,7 @@ export default function WritingAssessmentPage() {
                     <input ref={msFileRef} type="file" accept="image/*,application/pdf,text/plain" className="hidden"
                       onChange={async (e) => {
                         const f = e.target.files?.[0]; if (!f) return;
-                        if (f.type.startsWith("text/")) setMarkingScheme(await f.text());
-                        else { const { base64, mime } = await readFile(f); const r = await fetch(OCR_URL, { method: "POST", headers: { "Content-Type": "application/json", ...(await authHeaders()) }, body: JSON.stringify({ imageBase64: base64, mimeType: mime }) }); const d = await r.json(); setMarkingScheme(d.extractedText || ""); }
+                        await importDocument(f, setMarkingScheme);
                         e.target.value = "";
                       }} />
                   </div>
