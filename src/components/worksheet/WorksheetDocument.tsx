@@ -57,7 +57,7 @@ function QuestionBody({ q, format, n, gap, images, qKey }: { q: WsQuestion; form
       return <>{head(q.prompt)}<div className="mt-2 flex h-56 items-center justify-center rounded border-2 border-dashed border-foreground/60">{img && <img src={img} alt="Picture to colour" className="max-h-52 object-contain" />}</div></>;
     case "tracing":
       return <>{head("Trace, then write it yourself.")}<div className="mt-2 flex flex-wrap gap-6 text-6xl font-bold tracking-widest" style={{ color: "transparent", WebkitTextStroke: "2px hsl(var(--foreground) / 0.45)" }}>
-        {[0, 1, 2].map((i) => <span key={i} className="border-b-2 border-dashed border-foreground/40 pb-1">{q.prompt}</span>)}</div><Lines n={1} gap={70} /></>;
+        {[0, 1, 2].map((i) => <span key={i} className="border-b-2 border-dashed border-foreground/40 pb-1">{q.prompt}</span>)}</div><Lines n={2} gap={70} /></>;
     default: return <>{head(q.prompt)}<Lines n={3} gap={gap} /></>;
   }
 }
