@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { HelmetProvider } from "react-helmet-async";
 import Layout from "./components/Layout";
 import AppShell from "./components/AppShell";
+import DashboardLayout from "./components/DashboardLayout";
+import UsagePage from "./pages/UsagePage";
 import HomePage from "./pages/HomePage";
 import LessonNotesPage from "./pages/LessonNotesPage";
 import QuizGeneratorPage from "./pages/QuizGeneratorPage";
@@ -47,8 +49,12 @@ const App = () => (
                 <Route path="/account" element={<AccountPage />} />
                 <Route path="/pricing" element={<PricingPage />} />
                 <Route path="/admin" element={<AdminPage />} />
-                <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/dashboard/folders/:id" element={<FolderPage />} />
+                <Route element={<DashboardLayout />}>
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/dashboard/usage" element={<UsagePage />} />
+                  <Route path="/dashboard/folders/:id" element={<FolderPage />} />
+                  <Route path="/app/workspace" element={<MyWorkspacePage />} />
+                </Route>
                 <Route path="/app" element={<AppShell />}>
                   <Route index element={<LessonNotesPage />} />
                   <Route path="quiz" element={<QuizGeneratorPage />} />
@@ -56,7 +62,6 @@ const App = () => (
                   <Route path="writing/bulk" element={<BulkAssessmentPage />} />
                   <Route path="writing/batches" element={<BatchesListPage />} />
                   <Route path="writing/batches/:id" element={<BatchDetailPage />} />
-                  <Route path="workspace" element={<MyWorkspacePage />} />
                   <Route path="worksheet" element={<ResourceToolPage key="ws" type="worksheet" />} />
                   <Route path="slides" element={<ResourceToolPage key="sl" type="slides" />} />
                   <Route path="video" element={<ResourceToolPage key="vd" type="video" />} />
