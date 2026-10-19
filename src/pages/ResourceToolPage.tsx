@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import VideoMaker from "@/components/VideoMaker";
+import SaveToWorkspaceDialog from "@/components/SaveToWorkspaceDialog";
+import { saveFileResource, saveTextResource, downloadBlob } from "@/lib/workspace";
 import { readOcrResponse } from "@/lib/assessmentUpload";
 
 export type ToolType = "worksheet" | "slides" | "rubric" | "video";
@@ -49,6 +51,9 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
   const [reading, setReading] = useState(false);
   const [images, setImages] = useState<(string | null)[]>([]);
   const [imgBusy, setImgBusy] = useState(false);
+  const [saveDlg, setSaveDlg] = useState(false);
+  const [savedToWorkspace, setSavedToWorkspace] = useState(false);
+  const pptxBlob = useRef<Blob | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const headers = async () => {
@@ -96,7 +101,7 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
   const run = async () => {
     if (!user) return openGate("lesson");
     if (!topic.trim()) return;
-    setBusy(true); setData(null); setImages([]);
+    setBusy(true); setData(null); setImages([]); setSavedToWorkspace(false); pptxBlob.current = null;
     try {
       const r = await fetch(URL_, {
         method: "POST",
@@ -140,7 +145,36 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
       sl.addText(`${i + 1}`, { x: 12.3, y: 6.9, w: 0.6, h: 0.4, fontSize: 12, color: ORANGE, align: "right" });
       if (s.notes) sl.addNotes(s.notes);
     });
-    await p.writeFile({ fileName: `${data.title.slice(0, 60)}.pptx` });
+    const blob = (await p.write({ outputType: "blob" })) as Blob;
+    pptxBlob.current = blob;
+    downloadBlob(blob, `${data.title.slice(0, 60)}.pptx`);
+    setSaveDlg(true);
+  };
+
+  const textContent = () => {
+    if (!data) return "";
+    if (type === "worksheet") {
+      return [data.title, "", data.instructions, ...data.sections.flatMap((sec: any) => [
+        "", sec.heading,
+        ...sec.questions.map((q: any, j: number) => `${j + 1}. ${q.question}\n   Answer: ${q.answer}`),
+      ])].join("\n");
+    }
+    if (type === "rubric") {
+      const header = ["Criterion (weight)", ...data.levels].join(" | ");
+      const rows = data.criteria.map((c: any) => [`${c.name} (${c.weight}%)`, ...c.descriptors].join(" | "));
+      return [data.title, "", header, ...rows].join("\n");
+    }
+    return "";
+  };
+
+  const saveCurrent = async () => {
+    if (savedToWorkspace) return;
+    if (type === "slides" && pptxBlob.current) {
+      await saveFileResource("slides", data.title, pptxBlob.current, "pptx", { topic, subject, level });
+    } else {
+      await saveTextResource(type, data.title, textContent(), { topic, subject, level });
+    }
+    setSavedToWorkspace(true);
   };
 
   const copy = (text: string) => { navigator.clipboard.writeText(text); toast({ title: "Copied" }); };
@@ -193,6 +227,9 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
               {type === "slides" && <Button onClick={downloadPptx} disabled={imgBusy}>{imgBusy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding pictures...</> : "Download PowerPoint"}</Button>}
               {type === "worksheet" && <Button variant="outline" onClick={() => setShowAnswers((v) => !v)}>{showAnswers ? "Hide answers" : "Show answers"}</Button>}
               {(type === "worksheet" || type === "rubric") && <Button variant="outline" onClick={() => window.print()}>Print</Button>}
+              {(type === "worksheet" || type === "rubric") && !savedToWorkspace && (
+                <Button variant="outline" onClick={() => setSaveDlg(true)}>Save to My Workspace</Button>
+              )}
             </div>
           </div>
           <h2 className="hidden print:block text-xl font-bold">{data.title}</h2>
@@ -248,6 +285,16 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
           )}
 
           {type === "video" && <div className="mt-4"><VideoMaker key={data.title} title={data.title} scenes={data.scenes} /></div>}
+
+          {type !== "video" && (
+            <SaveToWorkspaceDialog
+              open={saveDlg}
+              onOpenChange={setSaveDlg}
+              itemTitle={data.title}
+              onSave={saveCurrent}
+              onDelete={() => { setData(null); setImages([]); pptxBlob.current = null; }}
+            />
+          )}
         </div>
       )}
     </div>

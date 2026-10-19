@@ -20,9 +20,14 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import {
   BookOpen, Brain, PenLine, Search, Copy, Download, Trash2,
-  Pencil, Loader2, Eye, FileText,
+  Pencil, Loader2, Eye, FileText, Clapperboard, FolderOpen,
 } from "lucide-react";
 import UsageTracker from "@/components/UsageTracker";
+import {
+  listWorkspaceVideos, deleteWorkspaceVideo, listSavedResources,
+  deleteSavedResource, downloadSavedFile,
+  type WorkspaceVideo, type SavedResource,
+} from "@/lib/workspace";
 
 type SavedLesson = {
   id: string; title: string; curriculum: string | null; subject: string | null;
@@ -402,6 +407,153 @@ function AssessmentsTab() {
   );
 }
 
+/* ---------------- VIDEOS TAB ---------------- */
+function VideosTab() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [videos, setVideos] = useState<WorkspaceVideo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
+  const [playing, setPlaying] = useState<WorkspaceVideo | null>(null);
+
+  const refresh = async () => {
+    if (!user) { setVideos([]); setLoading(false); return; }
+    setLoading(true);
+    setVideos(await listWorkspaceVideos());
+    setLoading(false);
+  };
+  useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [user]);
+
+  const del = async (v: WorkspaceVideo) => {
+    if (!confirm(`Delete "${v.title || "this video"}"? This cannot be undone.`)) return;
+    const r = await deleteWorkspaceVideo(v.id);
+    if (r.ok) { toast({ title: "Deleted" }); refresh(); }
+    else toast({ title: "Could not delete", description: r.json.error, variant: "destructive" });
+  };
+
+  const filtered = videos.filter((v) => (v.title || "").toLowerCase().includes(q.trim().toLowerCase()));
+
+  if (loading) return <div className="py-10 text-center"><Loader2 className="h-5 w-5 animate-spin inline" /></div>;
+  if (!videos.length) return <EmptyState icon={<Clapperboard />} title="No videos yet" cta={<Link to="/app/video"><Button>Make an animated video</Button></Link>} />;
+
+  return (
+    <div>
+      <div className="relative mb-4">
+        <Search className="h-4 w-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <Input placeholder="Search videos..." className="pl-8" value={q} onChange={(e) => setQ(e.target.value)} />
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {filtered.map((v) => (
+          <div key={v.id} className="border border-border rounded-lg p-4 bg-card">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h3 className="font-semibold text-navy truncate">{v.title || "Untitled video"}</h3>
+              <DateBadge iso={v.createdAt} />
+              {!v.saved && <span className="text-xs bg-muted rounded px-2 py-0.5 text-muted-foreground">Not saved</span>}
+            </div>
+            {v.sceneIndex != null && <p className="text-xs text-muted-foreground mt-1">Scene {v.sceneIndex + 1}</p>}
+            <div className="flex flex-wrap gap-1 mt-2">
+              <Button size="sm" variant="ghost" onClick={() => setPlaying(v)}><Eye className="h-4 w-4" /></Button>
+              <a href={v.url} download={`${(v.title || "video").slice(0, 40)}${v.sceneIndex != null ? ` scene ${v.sceneIndex + 1}` : ""}.mp4`}>
+                <Button size="sm" variant="ghost"><Download className="h-4 w-4" /></Button>
+              </a>
+              <Button size="sm" variant="ghost" onClick={() => del(v)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+            </div>
+          </div>
+        ))}
+        {!filtered.length && <p className="text-sm text-muted-foreground py-8 text-center">No videos match your search.</p>}
+      </div>
+
+      <Dialog open={!!playing} onOpenChange={(o) => !o && setPlaying(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader><DialogTitle>{playing?.title || "Video"}</DialogTitle></DialogHeader>
+          {playing && <video src={playing.url} controls autoPlay className="w-full rounded-lg bg-foreground/90 aspect-video" />}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+/* ---------------- RESOURCES TAB ---------------- */
+function ResourcesTab() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [rows, setRows] = useState<SavedResource[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
+  const [openRow, setOpenRow] = useState<SavedResource | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
+
+  const refresh = async () => {
+    if (!user) { setRows([]); setLoading(false); return; }
+    setLoading(true);
+    setRows(await listSavedResources());
+    setLoading(false);
+  };
+  useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [user]);
+
+  const del = async (r: SavedResource) => {
+    if (!confirm(`Delete "${r.title}"? This cannot be undone.`)) return;
+    await deleteSavedResource(r);
+    toast({ title: "Deleted" });
+    refresh();
+  };
+
+  const dl = async (r: SavedResource) => {
+    setDownloading(r.id);
+    try {
+      if (r.storage_path) await downloadSavedFile(r);
+      else if (r.content) downloadText(`${r.title}.txt`, r.content);
+    } catch (e: any) {
+      toast({ title: "Download failed", description: e.message, variant: "destructive" });
+    } finally { setDownloading(null); }
+  };
+
+  const KIND_LABEL: Record<string, string> = { slides: "Slides", worksheet: "Worksheet", rubric: "Rubric", notes: "Notes" };
+  const filtered = rows.filter((r) => [r.title, r.kind].join(" ").toLowerCase().includes(q.trim().toLowerCase()));
+
+  if (loading) return <div className="py-10 text-center"><Loader2 className="h-5 w-5 animate-spin inline" /></div>;
+  if (!rows.length) return <EmptyState icon={<FileText />} title="No resources yet" cta={<Link to="/app/slides"><Button>Create slides</Button></Link>} />;
+
+  return (
+    <div>
+      <div className="relative mb-4">
+        <Search className="h-4 w-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <Input placeholder="Search resources..." className="pl-8" value={q} onChange={(e) => setQ(e.target.value)} />
+      </div>
+      <div className="grid gap-3">
+        {filtered.map((r) => (
+          <div key={r.id} className="flex items-start justify-between gap-3 border border-border rounded-lg p-4 bg-card">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-semibold text-navy truncate">{r.title}</h3>
+                <DateBadge iso={r.created_at} />
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                <span className="bg-muted rounded px-2 py-0.5">{KIND_LABEL[r.kind] || r.kind}</span>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {r.content && <Button size="sm" variant="ghost" onClick={() => setOpenRow(r)}><Eye className="h-4 w-4" /></Button>}
+              <Button size="sm" variant="ghost" disabled={downloading === r.id} onClick={() => dl(r)}>
+                {downloading === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => del(r)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+            </div>
+          </div>
+        ))}
+        {!filtered.length && <p className="text-sm text-muted-foreground py-8 text-center">No resources match your search.</p>}
+      </div>
+
+      <Dialog open={!!openRow} onOpenChange={(o) => !o && setOpenRow(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>{openRow?.title}</DialogTitle></DialogHeader>
+          <pre className="whitespace-pre-wrap text-sm">{openRow?.content}</pre>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 function EmptyState({ icon, title, cta }: { icon: React.ReactNode; title: string; cta: React.ReactNode }) {
   return (
     <div className="border border-dashed border-border rounded-xl py-14 text-center">
@@ -460,14 +612,18 @@ export default function MyWorkspacePage() {
 
 
       <Tabs value={tab} onValueChange={(v) => setParams({ tab: v })}>
-        <TabsList className="mb-4">
+        <TabsList className="mb-4 flex-wrap h-auto">
           <TabsTrigger value="lessons"><BookOpen className="h-4 w-4 mr-1.5" /> Lesson Notes</TabsTrigger>
           <TabsTrigger value="quizzes"><Brain className="h-4 w-4 mr-1.5" /> Quizzes</TabsTrigger>
           <TabsTrigger value="assessments"><PenLine className="h-4 w-4 mr-1.5" /> Assessments</TabsTrigger>
+          <TabsTrigger value="videos"><Clapperboard className="h-4 w-4 mr-1.5" /> Videos</TabsTrigger>
+          <TabsTrigger value="resources"><FolderOpen className="h-4 w-4 mr-1.5" /> Resources</TabsTrigger>
         </TabsList>
         <TabsContent value="lessons"><LessonsTab /></TabsContent>
         <TabsContent value="quizzes"><QuizzesTab /></TabsContent>
         <TabsContent value="assessments"><AssessmentsTab /></TabsContent>
+        <TabsContent value="videos"><VideosTab /></TabsContent>
+        <TabsContent value="resources"><ResourcesTab /></TabsContent>
       </Tabs>
     </div>
   );
