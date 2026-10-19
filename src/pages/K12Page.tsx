@@ -8,8 +8,7 @@ export default function K12Page() {
       other={{ to: "/higher-ed", label: "Higher Ed" }}
       groups={[
         { title: "Plan and teach", tools: [
-          { name: "Lesson plan generator", desc: "Curriculum-aligned lesson plans for classroom or online teaching.", to: "/app" },
-          { name: "Lesson notes", desc: "Full lesson notes ready to teach, saved automatically.", to: "/app" },
+          { name: "Lesson notes", desc: "Curriculum-aligned lesson plans and full notes for classroom or online teaching, saved automatically.", to: "/app" },
           { name: "Presentation slides", desc: "Classroom slides you can download as PowerPoint.", to: "/app/slides" },
           { name: "Animated videos", desc: "Narrated animated videos made from one sentence.", to: "/app/video" },
         ]},
