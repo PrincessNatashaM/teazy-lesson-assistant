@@ -145,7 +145,36 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
       sl.addText(`${i + 1}`, { x: 12.3, y: 6.9, w: 0.6, h: 0.4, fontSize: 12, color: ORANGE, align: "right" });
       if (s.notes) sl.addNotes(s.notes);
     });
-    await p.writeFile({ fileName: `${data.title.slice(0, 60)}.pptx` });
+    const blob = (await p.write({ outputType: "blob" })) as Blob;
+    pptxBlob.current = blob;
+    downloadBlob(blob, `${data.title.slice(0, 60)}.pptx`);
+    setSaveDlg(true);
+  };
+
+  const textContent = () => {
+    if (!data) return "";
+    if (type === "worksheet") {
+      return [data.title, "", data.instructions, ...data.sections.flatMap((sec: any) => [
+        "", sec.heading,
+        ...sec.questions.map((q: any, j: number) => `${j + 1}. ${q.question}\n   Answer: ${q.answer}`),
+      ])].join("\n");
+    }
+    if (type === "rubric") {
+      const header = ["Criterion (weight)", ...data.levels].join(" | ");
+      const rows = data.criteria.map((c: any) => [`${c.name} (${c.weight}%)`, ...c.descriptors].join(" | "));
+      return [data.title, "", header, ...rows].join("\n");
+    }
+    return "";
+  };
+
+  const saveCurrent = async () => {
+    if (savedToWorkspace) return;
+    if (type === "slides" && pptxBlob.current) {
+      await saveFileResource("slides", data.title, pptxBlob.current, "pptx", { topic, subject, level });
+    } else {
+      await saveTextResource(type, data.title, textContent(), { topic, subject, level });
+    }
+    setSavedToWorkspace(true);
   };
 
   const copy = (text: string) => { navigator.clipboard.writeText(text); toast({ title: "Copied" }); };
