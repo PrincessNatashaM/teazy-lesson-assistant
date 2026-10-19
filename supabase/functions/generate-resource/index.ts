@@ -1,4 +1,4 @@
-import { requireUser, readJsonBody, enforceRateLimit, jsonResponse, aiCorsHeaders } from "../_shared/authz.ts";
+import { consumeQuota, requireUser, readJsonBody, enforceRateLimit, jsonResponse, aiCorsHeaders } from "../_shared/authz.ts";
 
 const TYPES = ["worksheet", "slides", "rubric", "video"] as const;
 type Kind = typeof TYPES[number];
@@ -46,6 +46,10 @@ Deno.serve(async (req) => {
     if (notes != null && (typeof notes !== "string" || notes.length > 40000)) return jsonResponse({ error: "Uploaded notes are too long (max 40,000 characters)." }, 400);
     const limited = await enforceRateLimit(auth.id, "resources");
     if (limited) return limited;
+    if (type !== "rubric") {
+      const denied = await consumeQuota(auth, type as "worksheet" | "slides" | "video");
+      if (denied) return denied;
+    }
 
     const key = Deno.env.get("LOVABLE_API_KEY");
     if (!key) throw new Error("LOVABLE_API_KEY is not configured");

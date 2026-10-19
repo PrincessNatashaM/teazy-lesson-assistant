@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { loadPaystack } from "@/lib/paystack";
 import { loadFlutterwave, flutterwavePaymentOptionsFor } from "@/lib/flutterwave";
 import {
-  PACK_PRICES, PACK_UPLOADS, resolveDisplayCurrency, paystackChannelsFor, gatewayFor,
+  PACK_PRICES, PACK_UPLOADS, VIDEO_PACK_PRICES, resolveDisplayCurrency, paystackChannelsFor, gatewayFor,
   type DisplayCurrency, type PackId,
 } from "@/lib/pricing";
 
@@ -23,9 +23,11 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  /** "video" sells one extra video (4 clips of 8 seconds) instead of assessment uploads. */
+  kind?: "assessment" | "video";
 }
 
-export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
+export default function BuyPackModal({ open, onClose, onSuccess, kind = "assessment" }: Props) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [country, setCountry] = useState<DisplayCurrency>("NGN");
@@ -39,7 +41,10 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
     });
   }, [open, user]);
 
-  const price = PACK_PRICES[pack][country];
+  const isVideo = kind === "video";
+  const purpose = isVideo ? "video_pack_4" : pack;
+  const price = isVideo ? VIDEO_PACK_PRICES[country] : PACK_PRICES[pack][country];
+  const what = isVideo ? "1 extra video (4 clips of 8 seconds)" : `${PACK_UPLOADS[pack]} assessment uploads`;
 
   const handlePay = async () => {
     if (!user) return;
@@ -50,7 +55,7 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
       const verifyFn = gateway === "flutterwave" ? "flutterwave-verify" : "paystack-verify";
 
       const { data: init, error } = await supabase.functions.invoke(initFn, {
-        body: { purpose: pack, display_currency: country, redirect_url: window.location.href },
+        body: { purpose, display_currency: country, redirect_url: window.location.href },
       });
       if (error || !init) throw new Error(error?.message || "Could not start payment");
       if (!init.public_key) throw new Error("Payment gateway not configured.");
@@ -61,7 +66,7 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
           toast({ title: "Verification failed", description: vErr?.message || "Contact support.", variant: "destructive" });
           return;
         }
-        toast({ title: "Uploads added 🎉", description: `${PACK_UPLOADS[pack]} extra uploads added to your account.` });
+        toast({ title: "Purchase complete", description: `${what} added to your account.` });
         onSuccess?.();
         onClose();
       };
@@ -83,7 +88,7 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
           currency: init.currency,
           payment_options: flutterwavePaymentOptionsFor(country),
           customer: { email: user.email, name: user.user_metadata?.display_name || user.email },
-          customizations: { title: "Teazy AI", description: `${PACK_UPLOADS[pack]} assessment uploads` },
+          customizations: { title: "Teazy AI", description: what },
           onclose: () => setPaying(false),
           callback: (response: any) => {
             supabase.functions
@@ -123,9 +128,11 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
           <div className="mx-auto h-12 w-12 rounded-full bg-accent/10 text-accent flex items-center justify-center mb-2">
             <Zap className="h-6 w-6" />
           </div>
-          <DialogTitle className="text-center text-xl">Buy Writing Assessment uploads</DialogTitle>
+          <DialogTitle className="text-center text-xl">{isVideo ? "Buy an extra video" : "Buy Writing Assessment uploads"}</DialogTitle>
           <DialogDescription className="text-center">
-            Extra uploads never expire and are used after your monthly allowance is exhausted.
+            {isVideo
+              ? `You have used this month's video allowance. Get 4 more 8-second clips for ${VIDEO_PACK_PRICES[country].display}.`
+              : "Extra uploads never expire and are used after your monthly allowance is exhausted."}
           </DialogDescription>
         </DialogHeader>
 
@@ -142,7 +149,7 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {!isVideo && <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {(Object.keys(PACK_PRICES) as PackId[]).map((p) => (
               <button
                 key={p}
@@ -159,7 +166,7 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
                 )}
               </button>
             ))}
-          </div>
+          </div>}
 
           <Button
             onClick={handlePay}
@@ -169,13 +176,13 @@ export default function BuyPackModal({ open, onClose, onSuccess }: Props) {
             {paying ? (
               <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing…</>
             ) : (
-              `Buy ${PACK_UPLOADS[pack]} uploads · ${price.display}`
+              isVideo ? `Buy extra video · ${price.display}` : `Buy ${PACK_UPLOADS[pack]} uploads · ${price.display}`
             )}
           </Button>
 
-          <Button asChild variant="ghost" className="w-full text-xs">
+          {!isVideo && <Button asChild variant="ghost" className="w-full text-xs">
             <Link to="/pricing" onClick={onClose}>Or upgrade to Assessment Pro: up to 1000 scripts a month</Link>
-          </Button>
+          </Button>}
         </div>
       </DialogContent>
     </Dialog>

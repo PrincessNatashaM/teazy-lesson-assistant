@@ -84,6 +84,8 @@ async function grantAccess(admin: any, payment: any) {
     await admin.from("subscriptions").upsert({
       user_id, status: "active", plan, current_period_end: end.toISOString(),
     }, { onConflict: "user_id" });
+  } else if (purpose === "video_pack_4") {
+    await admin.rpc("grant_video_credits", { _user_id: user_id, _n: 1 });
   } else if (purpose in PACK_UPLOAD_COUNT) {
     const add = PACK_UPLOAD_COUNT[purpose];
     const { data: ex } = await admin.from("assessment_credits").select("remaining").eq("user_id", user_id).maybeSingle();

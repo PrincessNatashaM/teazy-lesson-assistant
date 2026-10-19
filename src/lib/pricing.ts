@@ -15,9 +15,9 @@ interface PriceRow {
 
 /** Teazy AI Pro (monthly) — standard subscription */
 export const STANDARD_PRICES: Record<DisplayCurrency, PriceRow> = {
-  NGN: { display: "₦2,000/month", chargeCurrency: "NGN", chargeMinor: 200000 },
-  GHS: { display: "GH₵20/month",  chargeCurrency: "GHS", chargeMinor: 2000 },
-  KES: { display: "KSh200/month", chargeCurrency: "KES", chargeMinor: 20000 },
+  NGN: { display: "₦3,000/month", chargeCurrency: "NGN", chargeMinor: 300000 },
+  GHS: { display: "GH₵30/month",  chargeCurrency: "GHS", chargeMinor: 3000 },
+  KES: { display: "KSh300/month", chargeCurrency: "KES", chargeMinor: 30000 },
 };
 
 /** Assessment Pro (monthly): up to 1000 handwritten scripts per billing month. */
@@ -34,6 +34,17 @@ export const PER_DOWNLOAD_PRICES: Record<DisplayCurrency, PriceRow> = {
   GHS: { display: "GH₵5",  chargeCurrency: "GHS", chargeMinor: 500 },
   KES: { display: "KSh50", chargeCurrency: "KES", chargeMinor: 5000 },
 };
+
+/** Extra video for paid plans once the monthly video allowance is used: 4 clips of 8 seconds. */
+export const VIDEO_PACK_PRICES: Record<DisplayCurrency, PriceRow> = {
+  NGN: { display: "₦500",  chargeCurrency: "NGN", chargeMinor: 50000 },
+  GHS: { display: "GH₵5",  chargeCurrency: "GHS", chargeMinor: 500 },
+  KES: { display: "KSh50", chargeCurrency: "KES", chargeMinor: 5000 },
+};
+
+/** Monthly allowances for the newer tools (server enforces the same values). */
+export const FREE_MONTHLY = { lesson: 10, quiz: 10, worksheet: 2, slides: 2, video: 1, writing: 2 };
+export const PAID_MONTHLY_VIDEO_LIMIT = 20;
 
 /** Upload packs. Standard-only add-on, uploads never expire. */
 export const PACK_PRICES: Record<PackId, Record<DisplayCurrency, PriceRow>> = {

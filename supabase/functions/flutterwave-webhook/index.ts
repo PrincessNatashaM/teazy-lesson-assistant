@@ -140,6 +140,8 @@ async function grant(admin: any, payment: any) {
       },
       { onConflict: "user_id" },
     );
+  } else if (purpose === "video_pack_4") {
+    await admin.rpc("grant_video_credits", { _user_id: user_id, _n: 1 });
   } else if (purpose in PACK_UPLOAD_COUNT) {
     const add = PACK_UPLOAD_COUNT[purpose];
     const { data: ex } = await admin

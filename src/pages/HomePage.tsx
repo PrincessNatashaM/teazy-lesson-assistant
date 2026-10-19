@@ -276,13 +276,13 @@ const OUTCOMES: {
   { stat: "5×", label: "Faster essay marking", sub: "Upload handwritten scripts, get personalized feedback." },
   { stat: "3", label: "Curricula supported", sub: "NERDC, NaCCA and CBC out of the box." },
   {
-    stat: "₦2,000",
+    stat: "₦3,000",
     label: "Affordable Pro tier",
     sub: "Priced for teachers, not enterprise budgets.",
     rotatePrices: [
-      { country: "Nigeria", price: "₦2,000" },
-      { country: "Ghana", price: "GH₵20" },
-      { country: "Kenya", price: "KSh200" },
+      { country: "Nigeria", price: "₦3,000" },
+      { country: "Ghana", price: "GH₵30" },
+      { country: "Kenya", price: "KSh300" },
     ],
   },
 ];
@@ -343,14 +343,64 @@ const FAQS = [
   { q: "Does it assess handwritten essays and exam scripts?", a: "Absolutely. Upload a photo of a handwritten essay or exam script, Teazy AI extracts the text and grades it using a rubric covering content, grammar, structure and originality." },
   { q: "Can I edit generated lessons?", a: "Yes. Every generated lesson note is fully editable inside Teazy AI before you export it as Word or PDF." },
   { q: "Can I download Word and PDF?", a: "Word and PDF downloads are part of the Pro tier. Free users can generate and copy content freely, then upgrade when they need a formatted file." },
-  { q: "Is there a free version?", a: "Yes. Lesson notes, quizzes, copying outputs and your first 2 Writing Assessment uploads are free forever." },
-  { q: "Is there a paid version?", a: "Yes. Teazy AI Pro unlocks unlimited downloads, inline editing, 40 Writing Assessment uploads per month and priority access." },
+  { q: "Is there a free version?", a: "Yes. Every month you get 10 lesson notes, 10 quizzes, 2 worksheets, 2 presentation slide decks and 1 animated video, plus 2 Writing Assessment uploads. Usage resets at the start of each month." },
+  { q: "Is there a paid version?", a: "Yes. Teazy AI Pro (₦3,000, GH₵30 or KSh300 a month) unlocks unlimited lesson notes and quizzes, the worksheet designer, presentation slides, animated videos, downloads, inline editing and 40 Writing Assessment uploads a month. Assessment Pro (₦8,000 a month) includes every feature plus up to 1000 scripts a month." },
+  { q: "What is the difference between Teazy AI Pro and Assessment Pro?", a: "Teazy AI Pro is for everyday lesson preparation. Assessment Pro includes everything in Teazy AI Pro and adds up to 1000 handwritten scripts a month, bulk marking, saved marking schemes, folders, analytics and Excel/CSV export." },
+  { q: "What is the Worksheet Designer?", a: "Enter a topic and class and Teazy builds a printable worksheet with sections, numbered questions, answer space, matching pictures for early-years number work and a separate answer key. Download it as PDF or Word." },
+  { q: "Can Teazy AI make presentation slides?", a: "Yes. Teazy creates a designed PowerPoint deck with topic-matched pictures and speaker notes. You can also upload your own notes as a Word, PDF, text or image file and the slides are built from them." },
+  { q: "How do animated videos work?", a: "Type one topic. Teazy writes the scenes and narration, then makes each scene as an animated clip with voiceover and music. You can play the clips, download them and save them to My Workspace." },
+  { q: "Is there anything for university lecturers?", a: "Yes. The Higher Ed section has presentation slides, a quiz generator, writing assessment that marks against your own scheme, and a rubric generator." },
+  { q: "Where are my saved resources?", a: "Everything you generate and save, including lesson notes, quizzes, assessments, worksheets, slides and videos, is kept in My Workspace, where you can search, reopen, download or delete it." },
 ];
 
+const ASSESSMENT_PRO_FEATURES = [
+  "Everything in Teazy AI Pro",
+  "Up to 1000 handwritten scripts per month",
+  "Bulk marking of many scripts at once",
+  "Mark against your own marking scheme and question paper",
+  "Saved marking schemes",
+  "Subject and course folders",
+  "Teacher Dashboard with analytics and student reports",
+  "Excel and CSV export",
+  "Priority AI processing",
+];
+
+function AssessmentProCard() {
+  return (
+    <motion.article
+      variants={fadeUp}
+      whileHover={{ y: -6 }}
+      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      className="relative rounded-2xl border-2 border-accent bg-card p-8 flex flex-col md:col-span-2 lg:col-span-1"
+    >
+      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-accent-foreground text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+        For schools and lecturers
+      </div>
+      <div className="text-sm font-bold uppercase tracking-wider text-accent">Assessment Pro</div>
+      <div className="mt-2 flex items-baseline gap-1">
+        <span className="text-5xl font-bold text-navy">₦8,000</span>
+        <span className="text-muted-foreground">/ month</span>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">GH₵80 · KSh800 · all features included</p>
+      <Button asChild className="mt-6 w-full h-11 bg-accent text-accent-foreground hover:bg-accent/90">
+        <Link to="/pricing">Upgrade to Assessment Pro</Link>
+      </Button>
+      <ul className="mt-6 space-y-3 text-sm">
+        {ASSESSMENT_PRO_FEATURES.map((p) => (
+          <li key={p} className="flex items-start gap-2">
+            <CheckCircle2 className="h-4 w-4 text-accent mt-0.5 shrink-0" />
+            <span className="text-navy font-medium">{p}</span>
+          </li>
+        ))}
+      </ul>
+    </motion.article>
+  );
+}
+
 const PRO_PRICES_ROTATE = [
-  { country: "Nigeria", price: "₦2,000", period: "/ month" },
-  { country: "Ghana", price: "GH₵20", period: "/ month" },
-  { country: "Kenya", price: "KSh200", period: "/ month" },
+  { country: "Nigeria", price: "₦3,000", period: "/ month" },
+  { country: "Ghana", price: "GH₵30", period: "/ month" },
+  { country: "Kenya", price: "KSh300", period: "/ month" },
 ];
 
 function ProPricingCard() {
@@ -372,7 +422,7 @@ function ProPricingCard() {
         Most popular
       </div>
       <div className="flex items-center justify-between">
-        <div className="text-sm font-bold uppercase tracking-wider text-primary">Professional</div>
+        <div className="text-sm font-bold uppercase tracking-wider text-primary">Teazy AI Pro</div>
         <div className="flex items-center gap-1">
           {PRO_PRICES_ROTATE.map((_, i) => (
             <button
@@ -411,11 +461,14 @@ function ProPricingCard() {
       </Button>
       <ul className="mt-6 space-y-3 text-sm">
         {[
-          "Unlimited lesson generation",
+          "Unlimited lesson notes and quizzes",
+          "Worksheet designer",
+          "Presentation slides",
+          "Animated video generation",
           "40 Writing assessment uploads per month",
           "Inline editing",
+          "Unlimited downloads",
           "Priority access",
-          "Unlimited Downloads",
         ].map((p) => (
           <li key={p} className="flex items-start gap-2">
             <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -552,7 +605,7 @@ export default function HomePage() {
               Everything a Modern Teacher Needs
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Three flagship tools that replace hours of manual prep and marking.
+              One place for K12 and Higher Ed teaching: plan, teach, practise and assess.
             </p>
           </motion.div>
 
@@ -561,7 +614,7 @@ export default function HomePage() {
             whileInView="show"
             viewport={{ once: true, margin: "-60px" }}
             variants={stagger}
-            className="mt-16 grid md:grid-cols-3 gap-6"
+            className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {[
               {
@@ -584,6 +637,27 @@ export default function HomePage() {
                 body: "Generate quizzes, tests and exam questions instantly, with answer keys ready for the classroom.",
                 tags: ["MCQ", "Theory", "Answer keys"],
                 accent: "from-primary/10 to-primary/0",
+              },
+              {
+                icon: FileText,
+                title: "Worksheet Designer",
+                body: "Printable worksheets with numbered sections, answer space, pictures that match each question and an answer key.",
+                tags: ["PDF", "Word", "Answer key"],
+                accent: "from-primary/15 to-primary/0",
+              },
+              {
+                icon: Sparkles,
+                title: "Presentation Slides",
+                body: "Designed slide decks with topic-matched pictures and speaker notes. Upload your own notes to build from them.",
+                tags: ["PowerPoint", "Speaker notes"],
+                accent: "from-primary/10 to-primary/0",
+              },
+              {
+                icon: Zap,
+                title: "Animated Videos",
+                body: "Type one topic and get a narrated animated lesson video with scenes, voiceover and music, made on Teazy.",
+                tags: ["Narration", "Scenes"],
+                accent: "from-primary/15 to-primary/0",
               },
             ].map((c) => (
               <motion.article
@@ -768,7 +842,7 @@ export default function HomePage() {
               Priced for teachers, not enterprises
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
-              Start free. Upgrade only when you need downloads and unlimited grading.
+              Start free. Usage resets every month. Upgrade when you need more.
             </p>
           </motion.div>
 
@@ -777,7 +851,7 @@ export default function HomePage() {
             whileInView="show"
             viewport={{ once: true, margin: "-60px" }}
             variants={stagger}
-            className="mt-16 grid md:grid-cols-2 gap-6"
+            className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
             {/* Free */}
             <motion.article
@@ -797,9 +871,12 @@ export default function HomePage() {
               </Button>
               <ul className="mt-6 space-y-3 text-sm">
                 {[
-                  "Lesson note generation",
-                  "2 free Writing Assessment uploads",
-                  "Quiz generator",
+                  "10 lesson notes per month",
+                  "10 quizzes per month",
+                  "2 worksheets per month",
+                  "2 presentation slide decks per month",
+                  "1 animated video per month",
+                  "2 Writing Assessment uploads",
                   "Copy and paste generated content",
                 ].map((p) => (
                   <li key={p} className="flex items-start gap-2">
@@ -835,6 +912,7 @@ export default function HomePage() {
 
             {/* Pro */}
             <ProPricingCard />
+            <AssessmentProCard />
           </motion.div>
         </div>
       </section>

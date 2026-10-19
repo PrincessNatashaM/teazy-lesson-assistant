@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 // Server-side price table (source of truth). Prices are in minor units.
-const SUB_STANDARD = { NGN: 200000, KES: 20000, GHS: 2000 };
+const SUB_STANDARD = { NGN: 300000, KES: 30000, GHS: 3000 };
 const SUB_PRO       = { NGN: 800000, KES: 80000, GHS: 8000 };
 const PACK_5        = { NGN: 50000,  KES: 4500,  GHS: 500  };
 const PACK_10       = { NGN: 100000, KES: 9000,  GHS: 1000 };
@@ -15,6 +15,7 @@ const PACK_30       = { NGN: 200000, KES: 18000, GHS: 2000 };
 const PACK_500      = { NGN: 1000000,KES: 100000,GHS: 10000 };
 
 // Legacy per-file unlock price (kept so old paywall paths still work)
+const VIDEO_PACK_4 = { NGN: 50000, KES: 5000, GHS: 500 };
 const LEGACY_UNLOCK  = { NGN: 50000,  KES: 4500,  GHS: 500  };
 const LEGACY_PRO     = { NGN: 200000, KES: 18000, GHS: 2000 };
 const LEGACY_PACK_6  = { NGN: 50000,  KES: 4500,  GHS: 500  };
@@ -29,6 +30,7 @@ function priceFor(purpose: string, displayCurrency: string): { minor: number; ch
   switch (purpose) {
     case "sub_standard": return { minor: SUB_STANDARD[charge], charge_currency: charge };
     case "sub_pro":      return { minor: SUB_PRO[charge], charge_currency: charge };
+    case "video_pack_4": return { minor: VIDEO_PACK_4[charge], charge_currency: charge };
     case "assessment_pack_5":  return { minor: PACK_5[charge], charge_currency: charge };
     case "assessment_pack_10": return { minor: PACK_10[charge], charge_currency: charge };
     case "assessment_pack_30": return { minor: PACK_30[charge], charge_currency: charge };
@@ -43,7 +45,7 @@ function priceFor(purpose: string, displayCurrency: string): { minor: number; ch
 
 const VALID_PURPOSES = new Set([
   "sub_standard", "sub_pro",
-  "assessment_pack_5", "assessment_pack_10", "assessment_pack_30", "assessment_pack_500",
+  "assessment_pack_5", "assessment_pack_10", "assessment_pack_30", "assessment_pack_500", "video_pack_4",
   // Legacy fallbacks:
   "download_pdf", "download_docx", "edit_unlock",
   "subscription", "assessment_pack_6", "assessment_pack_11",
@@ -199,6 +201,8 @@ async function grantAccess(admin: any, userId: string, purpose: string, lessonHa
     await admin.from("subscriptions").upsert({
       user_id: userId, status: "active", plan, current_period_end: end.toISOString(),
     }, { onConflict: "user_id" });
+  } else if (purpose === "video_pack_4") {
+    await admin.rpc("grant_video_credits", { _user_id: userId, _n: 1 });
   } else if (purpose in PACK_UPLOAD_COUNT) {
     const add = PACK_UPLOAD_COUNT[purpose];
     const { data: existing } = await admin.from("assessment_credits").select("remaining").eq("user_id", userId).maybeSingle();

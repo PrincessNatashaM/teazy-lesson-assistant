@@ -16,15 +16,22 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEntitlements } from "@/hooks/useEntitlements";
 
 const FREE_FEATURES = [
-  "Unlimited lesson note generation",
-  "Unlimited quiz generation",
-  "Copy lesson notes",
+  "10 lesson notes per month",
+  "10 quizzes per month",
+  "2 worksheets per month",
+  "2 presentation slide decks per month",
+  "1 animated video per month",
   "2 free Writing Assessment uploads",
+  "Usage resets every month",
 ];
 const FREE_LIMITS = ["No editing", "No PDF or Word downloads"];
 
 const STANDARD_FEATURES = [
   "Everything in Free",
+  "Unlimited lesson notes and quizzes",
+  "Worksheet designer",
+  "Presentation slides",
+  "Animated video generation",
   "Unlimited lesson editing",
   "Unlimited PDF & Word downloads",
   "40 Writing Assessment uploads / month",
@@ -33,7 +40,7 @@ const STANDARD_FEATURES = [
 ];
 
 const PRO_FEATURES = [
-  "Everything in Teazy AI Pro",
+  "All Teazy AI features, including everything in Teazy AI Pro",
   "Up to 1000 handwritten script uploads per month",
   "Unlimited marking within your 1000-script monthly allowance",
   "Saved marking schemes",
@@ -78,7 +85,7 @@ export default function PricingPage() {
     <>
       <Helmet>
         <title>Pricing | Teazy AI</title>
-        <meta name="description" content="Simple, affordable pricing for African teachers. Free forever plan, Teazy AI Pro from ₦2,000/mo, and Assessment Pro for heavy assessment users." />
+        <meta name="description" content="Simple, affordable pricing for African teachers. Free forever plan, Teazy AI Pro from ₦3,000/mo, and Assessment Pro for heavy assessment users." />
       </Helmet>
 
       <div className="container mx-auto px-4 py-12 max-w-6xl">

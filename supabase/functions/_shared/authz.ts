@@ -93,7 +93,7 @@ export function optStr(value: unknown, maxLen: number): string | null | Response
   return value;
 }
 
-export type FeatureKind = "lesson" | "quiz" | "writing";
+export type FeatureKind = "lesson" | "quiz" | "writing" | "worksheet" | "slides" | "video";
 
 /**
  * Server-authoritative quota consumption. Uses the caller's JWT so the RPC
@@ -113,7 +113,9 @@ export async function consumeQuota(user: AuthedUser, kind: FeatureKind): Promise
     }
     return jsonResponse(
       {
-        error: "Monthly limit reached. Upgrade your plan to continue.",
+        error: result.reason === "video_limit_reached"
+          ? "You have used your 20 videos this month. Buy an extra video (4 clips of 8 seconds) for ₦500 to continue."
+          : "Monthly limit reached. Upgrade your plan to continue.",
         reason: result.reason ?? "limit_reached",
         used: result.used,
         limit: result.limit,

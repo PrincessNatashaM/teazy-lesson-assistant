@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import VideoMaker from "@/components/VideoMaker";
+import BuyPackModal from "@/components/BuyPackModal";
 import SaveToWorkspaceDialog from "@/components/SaveToWorkspaceDialog";
 import { saveFileResource, saveTextResource, downloadBlob } from "@/lib/workspace";
 import { readOcrResponse } from "@/lib/assessmentUpload";
@@ -42,6 +43,7 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
   const { user } = useAuth();
   const { openGate } = useAuthGate();
   const { toast } = useToast();
+  const [buyVideo, setBuyVideo] = useState(false);
   const [topic, setTopic] = useState("");
   const [subject, setSubject] = useState("");
   const [level, setLevel] = useState("");
@@ -144,7 +146,10 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
         body: JSON.stringify({ type, audience, topic, subject, level, details, ...(type === "slides" && notes ? { notes } : {}) }),
       });
       const j = await r.json();
-      if (!r.ok) throw new Error(j.error || "Generation failed.");
+      if (!r.ok) {
+        if (j.reason === "video_limit_reached") { setBuyVideo(true); return; }
+        throw new Error(j.error || "Generation failed.");
+      }
       if (type === "worksheet") { const ws = normalizeWorksheet(j); setData(ws); makeWsImages(ws); }
       else setData(j);
       if (type === "slides") makeImages(j);
@@ -219,6 +224,7 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
   return (
     <div className="max-w-4xl mx-auto">
       <Helmet><title>{m.title} | Teazy AI</title></Helmet>
+      <BuyPackModal open={buyVideo} onClose={() => setBuyVideo(false)} kind="video" onSuccess={() => run()} />
       <h1 className="text-2xl font-bold text-navy font-heading">{m.title}</h1>
       <p className="text-muted-foreground mt-1">{m.intro}</p>
 
