@@ -42,6 +42,7 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
   const { user } = useAuth();
   const { openGate } = useAuthGate();
   const { toast } = useToast();
+  const [buyVideo, setBuyVideo] = useState(false);
   const [topic, setTopic] = useState("");
   const [subject, setSubject] = useState("");
   const [level, setLevel] = useState("");
@@ -144,7 +145,10 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
         body: JSON.stringify({ type, audience, topic, subject, level, details, ...(type === "slides" && notes ? { notes } : {}) }),
       });
       const j = await r.json();
-      if (!r.ok) throw new Error(j.error || "Generation failed.");
+      if (!r.ok) {
+        if (j.reason === "video_limit_reached") { setBuyVideo(true); return; }
+        throw new Error(j.error || "Generation failed.");
+      }
       if (type === "worksheet") { const ws = normalizeWorksheet(j); setData(ws); makeWsImages(ws); }
       else setData(j);
       if (type === "slides") makeImages(j);
