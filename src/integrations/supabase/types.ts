@@ -1020,6 +1020,8 @@ export type Database = {
         | "assessment_pack_5"
         | "assessment_pack_10"
         | "assessment_pack_30"
+        | "video_pack_4"
+        | "assessment_pack_500"
       payment_status: "pending" | "success" | "failed" | "abandoned"
       promo_kind:
         | "free_access"
@@ -1169,6 +1171,8 @@ export const Constants = {
         "assessment_pack_5",
         "assessment_pack_10",
         "assessment_pack_30",
+        "video_pack_4",
+        "assessment_pack_500",
       ],
       payment_status: ["pending", "success", "failed", "abandoned"],
       promo_kind: [
