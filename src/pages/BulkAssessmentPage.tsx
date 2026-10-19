@@ -120,10 +120,12 @@ export default function BulkAssessmentPage() {
         body: JSON.stringify({ imageBase64: base64, mimeType: mime }),
       });
       const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || "Could not read the file.");
       const text = data.extractedText === "[UNREADABLE]" ? "" : (data.extractedText || "");
       setFiles((prev) => prev.map((f) => f.id === id ? { ...f, ocrText: text, ocrLoading: false, ocrDone: true } : f));
-    } catch {
-      setFiles((prev) => prev.map((f) => f.id === id ? { ...f, ocrLoading: false } : f));
+    } catch (error) {
+      setFiles((prev) => prev.map((f) => f.id === id ? { ...f, ocrLoading: false, ocrDone: false } : f));
+      toast({ title: "Could not read script", description: error instanceof Error ? error.message : "Please upload the file again.", variant: "destructive" });
     }
   };
 
