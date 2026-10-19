@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import VideoMaker from "@/components/VideoMaker";
+import SaveToWorkspaceDialog from "@/components/SaveToWorkspaceDialog";
+import { saveFileResource, saveTextResource, downloadBlob } from "@/lib/workspace";
 import { readOcrResponse } from "@/lib/assessmentUpload";
 
 export type ToolType = "worksheet" | "slides" | "rubric" | "video";
@@ -49,6 +51,9 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
   const [reading, setReading] = useState(false);
   const [images, setImages] = useState<(string | null)[]>([]);
   const [imgBusy, setImgBusy] = useState(false);
+  const [saveDlg, setSaveDlg] = useState(false);
+  const [savedToWorkspace, setSavedToWorkspace] = useState(false);
+  const pptxBlob = useRef<Blob | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const headers = async () => {
