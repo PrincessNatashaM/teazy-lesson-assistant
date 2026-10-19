@@ -50,6 +50,13 @@
       "when": 1792407368050,
       "tag": "0006_resource_quotas_and_video_credits",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792407383112,
+      "tag": "0007_feature_usage_new_kinds",
+      "breakpoints": true
     }
   ]
 }

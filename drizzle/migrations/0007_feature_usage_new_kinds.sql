@@ -1,0 +1,2 @@
+ALTER TABLE public.monthly_feature_usage DROP CONSTRAINT monthly_feature_usage_kind_check;
+ALTER TABLE public.monthly_feature_usage ADD CONSTRAINT monthly_feature_usage_kind_check CHECK (kind IN ('lesson','quiz','writing','worksheet','slides','video'));
