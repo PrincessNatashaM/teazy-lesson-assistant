@@ -16,3 +16,22 @@ describe("worksheet", () => {
     expect(answerKeyLines(ws)).toEqual(["Section A: A", "1. X", "2. Y"]);
   });
 });
+
+import { reconcileVisual, visualSvg, emptyVisual } from "./worksheetVisual";
+import { limitFormats } from "./worksheet";
+describe("worksheet visuals", () => {
+  const obj = { ...emptyVisual(), kind: "objects" as const };
+  it("4 + 2 shows four then two objects", () => {
+    const v = reconcileVisual("4 + 2 = ____", { ...obj, groups: [3, 3] });
+    expect(v.groups).toEqual([4, 2]);
+    expect((visualSvg(v)!.svg.match(/fill="#f97316"/g) || []).length).toBe(6);
+  });
+  it("7 - 3 shows seven with three crossed out", () => {
+    const v = reconcileVisual("7 - 3 = ____", obj);
+    expect(v.groups).toEqual([7]); expect(v.takeAway).toBe(3);
+    expect((visualSvg(v)!.svg.match(/<line/g) || []).length).toBe(6);
+  });
+  it("keeps at most two question types by default", () => {
+    expect(limitFormats([{ format: "mcq" }, { format: "short" }, { format: "mcq" }, { format: "matching" }]).map((s) => s.format)).toEqual(["mcq", "short", "mcq"]);
+  });
+});
