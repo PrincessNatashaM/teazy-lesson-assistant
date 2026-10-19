@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import VideoMaker from "@/components/VideoMaker";
+import BuyPackModal from "@/components/BuyPackModal";
 import SaveToWorkspaceDialog from "@/components/SaveToWorkspaceDialog";
 import { saveFileResource, saveTextResource, downloadBlob } from "@/lib/workspace";
 import { readOcrResponse } from "@/lib/assessmentUpload";
@@ -223,6 +224,7 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
   return (
     <div className="max-w-4xl mx-auto">
       <Helmet><title>{m.title} | Teazy AI</title></Helmet>
+      <BuyPackModal open={buyVideo} onClose={() => setBuyVideo(false)} kind="video" onSuccess={() => run()} />
       <h1 className="text-2xl font-bold text-navy font-heading">{m.title}</h1>
       <p className="text-muted-foreground mt-1">{m.intro}</p>
 
