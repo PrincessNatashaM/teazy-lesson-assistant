@@ -10,7 +10,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useAssessmentStatus } from "@/hooks/useAssessmentStatus";
 import { useToast } from "@/hooks/use-toast";
-import UsageCounter from "@/components/dashboard/UsageCounter";
 import PaywallModal from "@/components/PaywallModal";
 import { relativeDay } from "@/lib/assessmentQuota";
 
@@ -88,6 +87,11 @@ export default function DashboardPage() {
       new Date(b.last_opened_at || b.created_at).getTime() - new Date(a.last_opened_at || a.created_at).getTime(),
     ).slice(0, 6), [batches]);
 
+  const needsAttention = useMemo(
+    () => batches.filter((b) => ["processing", "draft", "pending", "failed"].includes((b.status || "").toLowerCase())).slice(0, 5),
+    [batches],
+  );
+
   const q = query.trim().toLowerCase();
   const folderById = useMemo(() => Object.fromEntries(folders.map((f) => [f.id, f])), [folders]);
   const foundFolders = q ? folders.filter((f) => f.name.toLowerCase().includes(q)) : [];
@@ -131,10 +135,20 @@ export default function DashboardPage() {
         />
       </header>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <UsageCounter status={status} />
-        {!status.loading && !isPro && <UpgradeCard onUpgrade={() => setPaywall(true)} />}
-      </div>
+      {needsAttention.length > 0 && (
+        <section className="mt-6 rounded-xl border border-accent/40 bg-secondary/40 p-4">
+          <h2 className="text-sm font-semibold text-navy">Needs your attention</h2>
+          <ul className="mt-2 space-y-1">
+            {needsAttention.map((b) => (
+              <li key={b.id}>
+                <Link to={`/app/writing/batches/${b.id}`} className="text-sm text-foreground hover:text-primary underline-offset-2 hover:underline">
+                  {b.name} — {b.status === "processing" ? "still processing" : b.status} · {b.script_count} scripts
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {q && (
         <section className="mt-8">
