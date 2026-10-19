@@ -5,6 +5,8 @@
 
 # Workspace, video player, saved materials
 
+- [ ] Simplify workspace navigation, correct worksheet/slides views, and verify desktop/mobile margins.
+
 - [x] Videos tab in My Workspace: persistent player, download, delete, per-user access.
 - [x] Video results survive refresh/navigation; save clips to workspace; no silent regeneration.
 - [x] Save-to-workspace dialog after downloads (slides, worksheets, rubrics, videos).

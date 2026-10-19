@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  LayoutGrid, BookOpen, Brain, PenLine, FileText, Presentation, Clapperboard,
-  FolderOpen, CreditCard, Settings, GraduationCap, School,
+  BookOpen, Brain, PenLine, FileText, Presentation, Clapperboard,
+  FolderOpen, CreditCard, Settings,
 } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -11,24 +11,14 @@ import {
 type Item = { title: string; url: string; icon: React.ComponentType<{ className?: string }>; match?: (pathname: string, search: string) => boolean };
 
 const MATERIALS: Item[] = [
-  { title: "All materials", url: "/app/workspace", icon: FolderOpen, match: (p, s) => p === "/app/workspace" && !s },
+  { title: "Recent generations", url: "/app/workspace", icon: FolderOpen, match: (p, s) => p === "/app/workspace" && !s },
   { title: "Lesson notes", url: "/app/workspace?tab=lessons", icon: BookOpen, match: (p, s) => p === "/app/workspace" && s.includes("tab=lessons") },
   { title: "Quizzes", url: "/app/workspace?tab=quizzes", icon: Brain, match: (p, s) => p === "/app/workspace" && s.includes("tab=quizzes") },
   { title: "Worksheets", url: "/app/workspace?tab=worksheets", icon: FileText, match: (p, s) => p === "/app/workspace" && s.includes("tab=worksheets") },
-  { title: "Slides", url: "/app/workspace?tab=slides", icon: Presentation, match: (p, s) => p === "/app/workspace" && s.includes("tab=slides") },
+  { title: "Presentation slides", url: "/app/workspace?tab=slides", icon: Presentation, match: (p, s) => p === "/app/workspace" && s.includes("tab=slides") },
   { title: "Videos", url: "/app/workspace?tab=videos", icon: Clapperboard, match: (p, s) => p === "/app/workspace" && s.includes("tab=videos") },
   { title: "Marked assessments", url: "/app/workspace?tab=assessments", icon: PenLine, match: (p, s) => p === "/app/workspace" && s.includes("tab=assessments") },
-];
-
-const TOOLS: Item[] = [
-  { title: "K12 tools", url: "/k12", icon: School },
-  { title: "Higher Ed tools", url: "/higher-ed", icon: GraduationCap },
-  { title: "Lesson notes", url: "/app", icon: BookOpen, match: (p) => p === "/app" },
-  { title: "Quiz generator", url: "/app/quiz", icon: Brain },
-  { title: "Writing assessment", url: "/app/writing", icon: PenLine, match: (p) => p.startsWith("/app/writing") },
-  { title: "Worksheet designer", url: "/app/worksheet", icon: FileText },
-  { title: "Presentation slides", url: "/app/slides", icon: Presentation },
-  { title: "Video maker", url: "/app/video", icon: Clapperboard },
+  { title: "Other resources", url: "/app/workspace?tab=resources", icon: FileText, match: (p, s) => p === "/app/workspace" && s.includes("tab=resources") },
 ];
 
 const ACCOUNT: Item[] = [
@@ -69,11 +59,9 @@ function NavGroup({ label, items }: { label?: string; items: Item[] }) {
 
 export default function DashboardSidebar() {
   return (
-    <Sidebar collapsible="icon">
-      <SidebarContent>
-        <NavGroup items={[{ title: "Overview", url: "/dashboard", icon: LayoutGrid, match: (p) => p === "/dashboard" }]} />
+    <Sidebar collapsible="icon" className="top-[61px] h-[calc(100svh-61px)]">
+      <SidebarContent className="gap-4 py-4">
         <NavGroup label="MY MATERIALS" items={MATERIALS} />
-        <NavGroup label="TEACHING TOOLS" items={TOOLS} />
         <NavGroup label="ACCOUNT" items={ACCOUNT} />
       </SidebarContent>
     </Sidebar>
