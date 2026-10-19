@@ -101,7 +101,7 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
   const run = async () => {
     if (!user) return openGate("lesson");
     if (!topic.trim()) return;
-    setBusy(true); setData(null); setImages([]);
+    setBusy(true); setData(null); setImages([]); setSavedToWorkspace(false); pptxBlob.current = null;
     try {
       const r = await fetch(URL_, {
         method: "POST",
@@ -227,6 +227,9 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
               {type === "slides" && <Button onClick={downloadPptx} disabled={imgBusy}>{imgBusy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding pictures...</> : "Download PowerPoint"}</Button>}
               {type === "worksheet" && <Button variant="outline" onClick={() => setShowAnswers((v) => !v)}>{showAnswers ? "Hide answers" : "Show answers"}</Button>}
               {(type === "worksheet" || type === "rubric") && <Button variant="outline" onClick={() => window.print()}>Print</Button>}
+              {(type === "worksheet" || type === "rubric") && !savedToWorkspace && (
+                <Button variant="outline" onClick={() => setSaveDlg(true)}>Save to My Workspace</Button>
+              )}
             </div>
           </div>
           <h2 className="hidden print:block text-xl font-bold">{data.title}</h2>
