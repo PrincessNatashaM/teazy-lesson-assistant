@@ -260,7 +260,7 @@ export default function ResourceToolPage({ type, audience = "k12" }: { type: Too
         <div className="mt-6 rounded-xl border border-border bg-card p-5">
           <div className="flex flex-wrap items-center justify-between gap-2 print:hidden">
             <h2 className="text-xl font-bold text-navy">{data.title}</h2>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {type === "slides" && <Button onClick={downloadPptx} disabled={imgBusy}>{imgBusy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Adding pictures...</> : "Download PowerPoint"}</Button>}
               {type === "worksheet" && <>
                 <Button onClick={() => exportWs("pdf")} disabled={exporting || imgBusy}>{imgBusy ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Drawing diagrams...</> : "Download PDF"}</Button>
