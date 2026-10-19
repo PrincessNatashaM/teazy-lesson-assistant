@@ -36,8 +36,40 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: msg, retryable: r.status === 429 || r.status >= 500 }, r.status);
       }
       const job = JSON.parse(t);
-      await admin.from("video_jobs").insert({ id: job.id, user_id: auth.id, status: job.status || "queued" });
+      const title = typeof body.title === "string" ? body.title.slice(0, 200) : null;
+      const sceneIndex = Number.isInteger(body.sceneIndex) ? body.sceneIndex : null;
+      await admin.from("video_jobs").insert({ id: job.id, user_id: auth.id, status: job.status || "queued", title, scene_index: sceneIndex });
       return jsonResponse({ id: job.id, status: job.status });
+    }
+
+    if (body.action === "list") {
+      const { data: rows } = await admin.from("video_jobs")
+        .select("id, title, scene_index, status, storage_path, saved, created_at")
+        .eq("user_id", auth.id).eq("status", "completed").not("storage_path", "is", null)
+        .order("created_at", { ascending: false });
+      const out = [];
+      for (const row of rows || []) {
+        const signed = (await admin.storage.from("lesson-videos").createSignedUrl(row.storage_path, 60 * 60 * 6)).data?.signedUrl;
+        if (signed) out.push({ id: row.id, title: row.title, sceneIndex: row.scene_index, saved: row.saved, createdAt: row.created_at, url: signed });
+      }
+      return jsonResponse({ videos: out });
+    }
+
+    if (body.action === "save") {
+      const ids = Array.isArray(body.ids) ? body.ids.filter((x: unknown) => typeof x === "string").slice(0, 50) : [];
+      if (!ids.length) return jsonResponse({ error: "Invalid request." }, 400);
+      await admin.from("video_jobs").update({ saved: true }).in("id", ids).eq("user_id", auth.id);
+      return jsonResponse({ saved: true });
+    }
+
+    if (body.action === "delete") {
+      const id = body.id;
+      if (typeof id !== "string" || id.length > 200) return jsonResponse({ error: "Invalid request." }, 400);
+      const { data: row } = await admin.from("video_jobs").select("storage_path").eq("id", id).eq("user_id", auth.id).maybeSingle();
+      if (!row) return jsonResponse({ error: "Not found." }, 404);
+      if (row.storage_path) await admin.storage.from("lesson-videos").remove([row.storage_path]);
+      await admin.from("video_jobs").delete().eq("id", id);
+      return jsonResponse({ deleted: true });
     }
 
     if (body.action === "status") {
