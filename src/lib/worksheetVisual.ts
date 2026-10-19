@@ -41,8 +41,9 @@ function shapeSvg(sh: WsShape, x: number, y: number, s: number) {
 }
 
 /** Returns an SVG string with exactly the counts in the visual, or "" when nothing should be drawn. */
-export function visualSvg(v: WsVisual): { svg: string; width: number; height: number } | null {
-  if (v.kind === "objects" && v.groups.some((g) => g > 0)) {
+export function visualSvg(v?: WsVisual | null): { svg: string; width: number; height: number } | null {
+  if (!v) return null;
+  if (v.kind === "objects" && (v.groups || []).some((g) => g > 0)) {
     const S = 44, PER_ROW = 5, PAD = 10, SIGN = 40;
     const groups = v.groups.slice(0, 3).map((g) => Math.min(20, Math.max(0, g)));
     const sub = v.takeAway > 0 && groups.length === 1;
@@ -62,7 +63,7 @@ export function visualSvg(v: WsVisual): { svg: string; width: number; height: nu
     });
     return { svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${x}" height="${maxH}" viewBox="0 0 ${x} ${maxH}">${out}</svg>`, width: x, height: maxH };
   }
-  if (v.kind === "shapes" && v.shapes.length) {
+  if (v.kind === "shapes" && v.shapes?.length) {
     const S = 90, GAP = 18, list = v.shapes.slice(0, 8);
     const w = list.length * S + (list.length - 1) * GAP;
     const out = list.map((sh, i) => shapeSvg(sh, i * (S + GAP), 0, S)).join("");
@@ -73,6 +74,7 @@ export function visualSvg(v: WsVisual): { svg: string; width: number; height: nu
 
 /** Makes object counts match the arithmetic in the prompt (e.g. "4 + 2" -> groups [4, 2]; "7 - 3" -> 7 with 3 crossed out). */
 export function reconcileVisual(prompt: string, v: WsVisual): WsVisual {
+  if (!v) return emptyVisual();
   if (v.kind !== "objects") return v;
   const m = prompt.match(/(\d{1,2})\s*([+\-−–])\s*(\d{1,2})/);
   if (m) {
@@ -86,7 +88,7 @@ export function reconcileVisual(prompt: string, v: WsVisual): WsVisual {
 }
 
 /** Rasterises a visual for Word export. */
-export async function visualPng(v: WsVisual): Promise<{ data: Uint8Array; width: number; height: number } | null> {
+export async function visualPng(v?: WsVisual | null): Promise<{ data: Uint8Array; width: number; height: number } | null> {
   const r = visualSvg(v); if (!r) return null;
   const img = new Image(); const scale = 2;
   img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(r.svg);
