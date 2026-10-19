@@ -11,12 +11,12 @@ export async function worksheetPdf(root: HTMLElement, title: string): Promise<Bl
   let y = M, page = 1;
   const footer = () => { pdf.setFontSize(9); pdf.setTextColor(90); pdf.text(`${title.slice(0, 80)}  |  Page ${page}`, W / 2, H - 6, { align: "center" }); };
   for (const b of blocks) {
-    const c = await html2canvas(b, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
+    const c = await html2canvas(b, { scale: 1.6, backgroundColor: "#ffffff", useCORS: true });
     let w = b.offsetWidth * scale, h = b.offsetHeight * scale;
     const maxH = H - 2 * M - FOOT;
     if (h > maxH) { w *= maxH / h; h = maxH; }
     if (y + h > H - M - FOOT) { footer(); pdf.addPage(); page += 1; y = M; }
-    pdf.addImage(c.toDataURL("image/png"), "PNG", M, y, w, h);
+    pdf.addImage(c.toDataURL("image/jpeg", 0.85), "JPEG", M, y, w, h);
     y += h;
   }
   footer();

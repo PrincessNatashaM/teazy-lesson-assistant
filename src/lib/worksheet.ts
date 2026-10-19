@@ -5,6 +5,9 @@ export interface Worksheet { title: string; subject: string; level: string; topi
 
 export const letters = "ABCDEFGHIJKLMNOP".split("");
 
+/** Removes numbering the model sometimes adds ("1.", "A.", "Section A:") since the layout numbers items itself. */
+export const stripNum = (t: string) => t.replace(/^\s*(section\s+[a-z0-9]+\s*[:.)-]\s*)?([a-z0-9]{1,2}[.)]\s+)?/i, "").trim();
+
 export function sizeFor(age: Worksheet["ageBand"]) {
   if (age === "early") return { font: 20, line: 48, docx: 32 };
   if (age === "primary") return { font: 16, line: 34, docx: 26 };
@@ -24,9 +27,9 @@ export function blankParts(prompt: string): (string | null)[] {
 export function normalizeWorksheet(raw: any): Worksheet {
   const arr = (v: any) => (Array.isArray(v) ? v.map((x) => String(x ?? "")) : []);
   const sections: WsSection[] = (raw?.sections || []).map((s: any) => ({
-    heading: String(s.heading || ""), instructions: String(s.instructions || ""), format: (s.format || "short") as WsFormat,
+    heading: stripNum(String(s.heading || "")), instructions: String(s.instructions || ""), format: (s.format || "short") as WsFormat,
     questions: (s.questions || []).map((q: any) => ({
-      prompt: String(q.prompt ?? q.question ?? ""), marks: Number(q.marks) || 0, lines: Number(q.lines) || 0,
+      prompt: stripNum(String(q.prompt ?? q.question ?? "")), marks: Number(q.marks) || 0, lines: Number(q.lines) || 0,
       options: arr(q.options), left: arr(q.left), right: arr(q.right), items: arr(q.items), labels: arr(q.labels),
       tableHeaders: arr(q.tableHeaders), tableRows: Array.isArray(q.tableRows) ? q.tableRows.map(arr) : [],
       imagePrompt: String(q.imagePrompt || ""), answer: String(q.answer || ""),

@@ -16,7 +16,7 @@ function QuestionBody({ q, format, n, gap, images, qKey }: { q: WsQuestion; form
   switch (format) {
     case "mcq":
       return <>{head(q.prompt)}<div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-2 pl-6">{q.options.map((o, i) => (
-        <div key={i} className="flex items-center"><span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full border-2 border-foreground text-xs font-bold">{letters[i]}</span>{o}</div>))}</div></>;
+        <div key={i} className="flex items-center"><span className="mr-2 block h-6 w-6 shrink-0 rounded-full border-2 border-foreground text-center text-xs font-bold" style={{ lineHeight: "20px" }}>{letters[i]}</span>{o}</div>))}</div></>;
     case "fill_blank":
       return head(blankParts(q.prompt).map((p, i) => p === null ? <span key={i} className="inline-block min-w-[110px] border-b-2 border-foreground mx-1">&nbsp;</span> : <span key={i}>{p}</span>));
     case "true_false":
