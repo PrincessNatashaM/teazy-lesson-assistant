@@ -1,5 +1,6 @@
 import type { Worksheet, WsQuestion, WsSection } from "./worksheet";
 import { answerKeyLines, blankParts, letters, sizeFor } from "./worksheet";
+import { visualPng } from "./worksheetVisual";
 
 /** PDF that mirrors the preview: each block is captured separately and placed whole, so a question never splits from its answer space. */
 export async function worksheetPdf(root: HTMLElement, title: string): Promise<Blob> {
@@ -60,14 +61,16 @@ export async function worksheetDocx(ws: Worksheet, images: Record<string, string
   ];
   if (ws.instructions) body.push(new Paragraph({ border: { top: { style: BorderStyle.SINGLE, size: 8 }, bottom: { style: BorderStyle.SINGLE, size: 8 }, left: { style: BorderStyle.SINGLE, size: 8 }, right: { style: BorderStyle.SINGLE, size: 8 } }, spacing: { before: 200 }, children: [run("Instructions: ", { bold: true }), run(ws.instructions)] }));
 
+  const pngs: Record<string, Awaited<ReturnType<typeof visualPng>>> = {};
+  for (const [si, s] of ws.sections.entries()) for (const [qi, q] of s.questions.entries()) pngs[`${si}-${qi}`] = await visualPng(q.visual).catch(() => null);
   let n = 0;
   ws.sections.forEach((s: WsSection, si) => {
     body.push(new Paragraph({ keepNext: true, spacing: { before: 400 }, border: { bottom: { style: BorderStyle.SINGLE, size: 12 } }, children: [run(`SECTION ${letters[si]}: ${s.heading.toUpperCase()}`, { bold: true })] }));
     if (s.instructions) body.push(new Paragraph({ keepNext: true, children: [run(s.instructions, { italics: true, size: sz - 2 })] }));
     s.questions.forEach((q, qi) => {
-      n += 1; const img = images[`${si}-${qi}`];
+      n += 1; const img = images[`${si}-${qi}`]; const at = body.length;
       switch (s.format) {
-        case "mcq": body.push(qHead(n, q)); { const opts = q.options.map((o, i) => `( ${letters[i]} )  ${o}`); const rows: string[][] = []; for (let i = 0; i < opts.length; i += 2) rows.push([opts[i], opts[i + 1] || ""]); body.push(grid(rows, false)); } break;
+        case "mcq": body.push(qHead(n, q)); { const opts = q.options.map((o, i) => `☐ ( ${letters[i]} )  ${o}`); const rows: string[][] = []; for (let i = 0; i < opts.length; i += 2) rows.push([opts[i], opts[i + 1] || ""]); body.push(grid(rows, false)); } break;
         case "fill_blank": body.push(qHead(n, q, blankParts(q.prompt).map((p) => p === null ? run("________________") : run(p)))); break;
         case "true_false": body.push(qHead(n, q)); body.push(new Paragraph({ children: [run("☐ True        ☐ False")] })); break;
         case "matching": body.push(qHead(n, q, [run(q.prompt || "Match Column A with Column B.")])); body.push(grid([["Column A", "Answer", "Column B"], ...q.left.map((l, i) => [`${i + 1}. ${l}`, "______", `${letters[i]}. ${q.right[i] || ""}`])])); break;
@@ -84,6 +87,8 @@ export async function worksheetDocx(ws: Worksheet, images: Record<string, string
         case "maths": body.push(qHead(n, q)); body.push(new Paragraph({ children: [run("Working:", { italics: true })] })); for (let i = 0; i < 5; i++) body.push(new Paragraph({ children: [run(" ")] })); body.push(new Paragraph({ alignment: AlignmentType.RIGHT, children: [run("Answer: ____________")] })); break;
         default: body.push(qHead(n, q)); for (let i = 0; i < (q.lines || (s.format === "long" ? 8 : 2)); i++) body.push(line());
       }
+      const v = pngs[`${si}-${qi}`];
+      if (v) { const w = Math.min(560, v.width); body.splice(at + 1, 0, new Paragraph({ keepNext: true, alignment: AlignmentType.CENTER, spacing: { before: 120, after: 120 }, children: [new ImageRun({ type: "png", data: v.data, transformation: { width: w, height: Math.round(v.height * (w / v.width)) } })] })); }
     });
   });
   const sections: any[] = [{ footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ children: [`${ws.title}  |  Page `, PageNumber.CURRENT], size: 18 })] })] }) }, children: body }];

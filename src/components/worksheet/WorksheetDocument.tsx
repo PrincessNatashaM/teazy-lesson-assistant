@@ -1,6 +1,13 @@
 import { forwardRef } from "react";
 import type { Worksheet, WsQuestion, WsSection } from "@/lib/worksheet";
 import { blankParts, sizeFor, letters } from "@/lib/worksheet";
+import { visualSvg, type WsVisual } from "@/lib/worksheetVisual";
+
+const Visual = ({ v }: { v: WsVisual }) => {
+  const r = visualSvg(v);
+  if (!r) return null;
+  return <div className="my-3 flex justify-center"><img src={`data:image/svg+xml;charset=utf-8,${encodeURIComponent(r.svg)}`} alt="Picture for this question" style={{ width: Math.min(r.width, 640), maxWidth: "100%" }} /></div>;
+};
 
 const Lines = ({ n, gap }: { n: number; gap: number }) => (
   <div className="mt-2">{Array.from({ length: Math.max(1, n) }).map((_, i) => <div key={i} className="border-b border-foreground/50" style={{ height: gap }} />)}</div>
@@ -9,19 +16,20 @@ const Box = () => <span className="inline-block h-4 w-4 border-2 border-foregrou
 const Marks = ({ m }: { m: number }) => (m > 0 ? <span className="ml-2 whitespace-nowrap text-xs font-semibold">[{m} mark{m === 1 ? "" : "s"}]</span> : null);
 
 function QuestionBody({ q, format, n, gap, images, qKey }: { q: WsQuestion; format: WsSection["format"]; n: number; gap: number; images: Record<string, string>; qKey: string }) {
-  const head = (text: React.ReactNode) => (
+  const head0 = (text: React.ReactNode) => (
     <div className="flex justify-between gap-3"><div><span className="font-semibold mr-2">{n}.</span>{text}</div><Marks m={q.marks} /></div>
   );
+  const head = (text: React.ReactNode) => <>{head0(text)}<Visual v={q.visual} /></>;
   const img = images[qKey];
   switch (format) {
     case "mcq":
       return <>{head(q.prompt)}<div className="mt-2 grid grid-cols-2 gap-x-6 gap-y-2 pl-6">{q.options.map((o, i) => (
-        <div key={i} className="flex items-center"><span className="mr-2 shrink-0 font-bold">({letters[i]})</span>{o}</div>))}</div></>;
+        <div key={i} className="flex items-center"><Box /><span className="mr-2 shrink-0 font-bold">({letters[i]})</span>{o}</div>))}</div></>;
     case "fill_blank":
-      return head(blankParts(q.prompt).map((p, i) => p === null ? <span key={i} className="inline-block min-w-[110px] border-b-2 border-foreground mx-1">&nbsp;</span> : <span key={i}>{p}</span>));
+      return <>{head0(blankParts(q.prompt).map((p, i) => p === null ? <span key={i} className="inline-block min-w-[110px] border-b-2 border-foreground mx-1">&nbsp;</span> : <span key={i}>{p}</span>))}<Visual v={q.visual} /></>;
     case "true_false":
       return <div className="flex flex-wrap items-center justify-between gap-3"><div><span className="font-semibold mr-2">{n}.</span>{q.prompt}</div>
-        <div className="flex items-center gap-4 whitespace-nowrap"><span><Box />True</span><span><Box />False</span><Marks m={q.marks} /></div></div>;
+        <div className="flex items-center gap-4 whitespace-nowrap"><span><Box />True</span><span><Box />False</span><Marks m={q.marks} /></div><div className="w-full"><Visual v={q.visual} /></div></div>;
     case "short": return <>{head(q.prompt)}<Lines n={q.lines || 2} gap={gap} /></>;
     case "long": return <>{head(q.prompt)}<Lines n={q.lines || 8} gap={gap} /></>;
     case "maths":
@@ -49,7 +57,7 @@ function QuestionBody({ q, format, n, gap, images, qKey }: { q: WsQuestion; form
       return <>{head(q.prompt)}<div className="mt-2 flex h-56 items-center justify-center rounded border-2 border-dashed border-foreground/60">{img && <img src={img} alt="Picture to colour" className="max-h-52 object-contain" />}</div></>;
     case "tracing":
       return <>{head("Trace, then write it yourself.")}<div className="mt-2 flex flex-wrap gap-6 text-6xl font-bold tracking-widest" style={{ color: "transparent", WebkitTextStroke: "2px hsl(var(--foreground) / 0.45)" }}>
-        {[0, 1, 2].map((i) => <span key={i} className="border-b-2 border-dashed border-foreground/40 pb-1">{q.prompt}</span>)}</div><Lines n={1} gap={70} /></>;
+        {[0, 1, 2].map((i) => <span key={i} className="border-b-2 border-dashed border-foreground/40 pb-1">{q.prompt}</span>)}</div><Lines n={2} gap={70} /></>;
     default: return <>{head(q.prompt)}<Lines n={3} gap={gap} /></>;
   }
 }
